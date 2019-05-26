@@ -1,0 +1,11 @@
+[package]
+name = "radium"
+version = "0.1.0"
+authors = ["Nika Layzell <nika@thelayzells.com>"]
+edition = "2018"
+
+description = "Helper trait for working with maybe-atomic values"
+repository = "https://github.com/mystor/radium"
+license = "MIT"
+
+[dependencies]
