@@ -1,7 +1,10 @@
 [package]
 name = "radium"
-version = "0.1.1"
-authors = ["Nika Layzell <nika@thelayzells.com>"]
+version = "0.2.0"
+authors = [
+    "Nika Layzell <nika@thelayzells.com>",
+    "myrrlyn <self@myrrlyn.dev>"
+]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/mystor/radium"
@@ -14,6 +17,5 @@ categories = ["concurrency", "no-std"]
 include = ["src/**/*", "Cargo.toml", "README.md"]
 
 edition = "2018"
-
 
 [dependencies]
