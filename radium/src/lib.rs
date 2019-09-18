@@ -527,22 +527,21 @@ impl<T> RadiumPtr<T> for Cell<*mut T> {
     cell_impl!(base: *mut T);
 }
 
-/** A maybe-atomic shared mutable fundamental type `T`.
-
-This trait is implemented by both the [atomic wrapper] type for `T`, and by
-[`Cell<T>`], providing a consistent interface for interacting with the two
-types.
-
-This trait only provides atomic load/store access, and does not perform
-type-specific operations on the values. For types that can be used in bitwise
-arithmetic, see [`RadiumBits`]; for types that can be used in integer
-arithmetic, see [`RadiumMath`].
-
-[atomic wrapper]: core::sync::atomic
-[`Cell<T>`]: core::cell::Cell
-[`RadiumBits`]: crate::RadiumBits
-[`RadiumMath`]: crate::RadiumMath
-**/
+/// A maybe-atomic shared mutable fundamental type `T`.
+///
+/// This trait is implemented by both the [atomic wrapper] type for `T`, and by
+/// [`Cell<T>`], providing a consistent interface for interacting with the two
+/// types.
+///
+/// This trait only provides atomic load/store access, and does not perform
+/// type-specific operations on the values. For types that can be used in
+/// bitwise arithmetic, see [`RadiumBits`]; for types that can be used as
+/// integers, see [`RadiumInteger`].
+///
+/// [atomic wrapper]: core::sync::atomic
+/// [`Cell<T>`]: core::cell::Cell
+/// [`RadiumBits`]: crate::RadiumBits
+/// [`RadiumInteger`]: crate::RadiumInteger
 pub trait Radium<Item> {
     /// Creates a new value of this type.
     fn new(value: Item) -> Self;
@@ -703,7 +702,7 @@ pub trait RadiumBits<Item>: Radium<Item> {
 }
 
 /// Performs integer arithmetic on a maybe-atomic value.
-pub trait RadiumMath<Item>: Radium<Item> {
+pub trait RadiumInteger<Item>: Radium<Item> {
     /// Adds `value` to the currently-stored value, wrapping on overflow, and
     /// stores the result in `self`.
     ///
@@ -730,36 +729,45 @@ pub trait RadiumMath<Item>: Radium<Item> {
 }
 
 macro_rules! radium {
-    ( atom $base:ty, $atom:ty ) => {
-
+    //  Emit `Radium` trait function implementations where `self` is one of the
+    //  standard library atomic types
+    ( atom $base:ty ) => {
+        #[inline]
         fn new(value: $base) -> Self {
-            <$atom>::new(value)
+            Self::new(value)
         }
 
+        #[inline]
         fn fence(order: Ordering) {
             atomic::fence(order);
         }
 
+        #[inline]
         fn get_mut(&mut self) -> &mut $base {
             self.get_mut()
         }
 
+        #[inline]
         fn into_inner(self) -> $base {
             self.into_inner()
         }
 
+        #[inline]
         fn load(&self, order: Ordering) -> $base {
             self.load(order)
         }
 
+        #[inline]
         fn store(&self, value: $base, order: Ordering) {
             self.store(value, order);
         }
 
+        #[inline]
         fn swap(&self, value: $base, order: Ordering) -> $base {
             self.swap(value, order)
         }
 
+        #[inline]
         fn compare_and_swap(
             &self,
             current: $base,
@@ -769,6 +777,7 @@ macro_rules! radium {
             self.compare_and_swap(current, new, order)
         }
 
+        #[inline]
         fn compare_exchange(
             &self,
             current: $base,
@@ -779,6 +788,7 @@ macro_rules! radium {
             self.compare_exchange(current, new, success, failure)
         }
 
+        #[inline]
         fn compare_exchange_weak(
             &self,
             current: $base,
@@ -788,40 +798,50 @@ macro_rules! radium {
         ) -> Result<$base, $base> {
             self.compare_exchange_weak(current, new, success, failure)
         }
-
     };
 
-    ( atom_bits $base:ty, $atom:ty ) => {
+    //  Emit `RadiumBits` trait function implementations where `self` is one of
+    //  the standard library atomic types
+    ( atom_bits $base:ty ) => {
+        #[inline]
         fn fetch_and(&self, value: $base, order: Ordering) -> $base {
             self.fetch_and(value, order)
         }
 
+        #[inline]
         fn fetch_nand(&self, value: $base, order: Ordering) -> $base {
             self.fetch_nand(value, order)
         }
 
+        #[inline]
         fn fetch_or(&self, value: $base, order: Ordering) -> $base {
             self.fetch_or(value, order)
         }
 
+        #[inline]
         fn fetch_xor(&self, value: $base, order: Ordering) -> $base {
             self.fetch_xor(value, order)
         }
     };
 
-    ( atom_math $base:ty, $atom:ty ) => {
+    //  Emit `RadiumInteger` trait function implementations where `self` is one
+    //  of the standard library atomic types
+    ( atom_int $base:ty, $atom:ty ) => {
+        #[inline]
         fn fetch_add(&self, value: $base, order: Ordering) -> $base {
             self.fetch_add(value, order)
         }
 
+        #[inline]
         fn fetch_sub(&self, value: $base, order: Ordering) -> $base {
             self.fetch_sub(value, order)
         }
     };
 
+    //  Implement `Radium` and `RadiumBits` for `bool` wrappers
     ( bits $( $base:ty , $atom:ty );* ) => { $(
         impl Radium<$base> for $atom {
-            radium!(atom $base, $atom);
+            radium!(atom $base);
         }
 
         impl Radium<$base> for Cell<$base> {
@@ -829,7 +849,7 @@ macro_rules! radium {
         }
 
         impl RadiumBits<$base> for $atom {
-            radium!(atom_bits $base, $atom);
+            radium!(atom_bits $base);
         }
 
         impl RadiumBits<$base> for Cell<$base> {
@@ -837,34 +857,42 @@ macro_rules! radium {
         }
     )* };
 
+    //  Emit `Radium` trait function implementations where `self` is `Cell`
     ( cell $base:ty ) => {
-
+        #[inline]
         fn new(value: $base) -> Self {
             Cell::new(value)
         }
 
+        #[inline]
         fn fence(_: Ordering) {}
 
+        #[inline]
         fn get_mut(&mut self) -> &mut $base {
             self.get_mut()
         }
 
+        #[inline]
         fn into_inner(self) -> $base {
             self.into_inner()
         }
 
+        #[inline]
         fn load(&self, _: Ordering) -> $base {
             self.get()
         }
 
+        #[inline]
         fn store(&self, value: $base, _: Ordering) {
             self.set(value);
         }
 
+        #[inline]
         fn swap(&self, value: $base, _: Ordering) -> $base {
             self.replace(value)
         }
 
+        #[inline]
         fn compare_and_swap(
             &self,
             current: $base,
@@ -879,6 +907,7 @@ macro_rules! radium {
             }
         }
 
+        #[inline]
         fn compare_exchange(
             &self,
             current: $base,
@@ -894,6 +923,7 @@ macro_rules! radium {
             }
         }
 
+        #[inline]
         fn compare_exchange_weak(
             &self,
             current: $base,
@@ -903,52 +933,63 @@ macro_rules! radium {
         ) -> Result<$base, $base> {
             Radium::compare_exchange(self, current, new, success, failure)
         }
-
     };
 
+    //  Emit `RadiumBits` trait function implementations where `self` is `Cell`
     ( cell_bits $base:ty ) => {
+        #[inline]
         fn fetch_and(&self, value: $base, _: Ordering) -> $base {
             self.replace(self.get() & value)
         }
 
+        #[inline]
         fn fetch_nand(&self, value: $base, _: Ordering) -> $base {
             self.replace(!(self.get() & value))
         }
 
+        #[inline]
         fn fetch_or(&self, value: $base, _: Ordering) -> $base {
             self.replace(self.get() | value)
         }
 
+        #[inline]
         fn fetch_xor(&self, value: $base, _: Ordering) -> $base {
             self.replace(self.get() ^ value)
         }
     };
 
-    ( cell_math $base:ty ) => {
+    //  Emit `RadiumInteger` trait function implementations where `self` is
+    //  `Cell`
+    ( cell_int $base:ty ) => {
+        #[inline]
         fn fetch_add(&self, value: $base, _: Ordering) -> $base {
             self.replace(self.get().wrapping_add(value))
         }
 
+        #[inline]
         fn fetch_sub(&self, value: $base, _: Ordering) -> $base {
             self.replace(self.get().wrapping_sub(value))
         }
     };
 
-    ( num $( $base:ty , $atom:ty ; )* ) => { $(
+    //  Emit `RadiumInteger` trait implementations for both atomic and cell
+    //  wrappers around a base type
+    ( int $( $base:ty , $atom:ty ; )* ) => { $(
         radium!(bits $base, $atom);
 
-        impl RadiumMath<$base> for $atom {
-            radium!(atom_math $base, $atom);
+        impl RadiumInteger<$base> for $atom {
+            radium!(atom_int $base, $atom);
         }
 
-        impl RadiumMath<$base> for Cell<$base> {
-            radium!(cell_math $base);
+        impl RadiumInteger<$base> for Cell<$base> {
+            radium!(cell_int $base);
         }
-        )* };
+    )* };
 
+    //  Emit `Radium` trait implementations for pointers.
     ( ptr ) => {
         impl<T> Radium<*mut T> for AtomicPtr<T> {
-            radium!(atom *mut T, AtomicPtr<T>);
+            radium!(atom *mut T);
         }
 
         impl<T> Radium<*mut T> for Cell<*mut T> {
@@ -958,7 +999,7 @@ macro_rules! radium {
 }
 
 radium![
-    num
+    int
     i8, AtomicI8;
     i16, AtomicI16;
     i32, AtomicI32;
