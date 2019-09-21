@@ -1,0 +1,15 @@
+name: Build and Test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # FIXME: Test multiple rustc versions?
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
