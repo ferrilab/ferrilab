@@ -7,30 +7,41 @@
 //! type.
 
 use radium::{
-	//  Import this for load/store operations
+    // Import this for load/store operations
     Radium,
-	//  Import this for add/sub operations
+    // Import this for add/sub operations
     RadiumInteger,
 };
 
 use std::{
     cell::Cell,
-    sync::atomic::{
-        AtomicU64,
-        Ordering,
-    },
+    sync::atomic::{AtomicU64, Ordering},
     thread,
     time::Duration,
 };
 
 /// Operates on a value, which might or might not be atomic.
 fn routine<R: RadiumInteger<u64>>(obj: &R, ident: usize) {
-    println!("Entry {} observes value: {}", ident, obj.load(Ordering::Relaxed));
-    obj.fetch_add(1, Ordering::Relaxed);
-    println!("Middle {} observes value: {}", ident, obj.load(Ordering::Relaxed));
+    println!(
+        "Entry {} observes value: {}",
+        ident,
+        obj.load(Ordering::Relaxed)
+    );
+    let added = obj.fetch_add(1, Ordering::Relaxed);
+    println!("Middle {} observes fetched value: {}", ident, added);
+    println!(
+        "Middle {} observes loaded value:  {}",
+        ident,
+        obj.load(Ordering::Relaxed)
+    );
     thread::sleep(Duration::from_millis(obj.load(Ordering::Relaxed) * 10));
-    obj.fetch_sub(1, Ordering::Relaxed);
-    println!("Exit {} observes value: {}", ident, obj.load(Ordering::Relaxed));
+    let subbed = obj.fetch_sub(1, Ordering::Relaxed);
+    println!("Exit {} observes fetched value: {}", ident, subbed);
+    println!(
+        "Exit {} observes loaded value:  {}",
+        ident,
+        obj.load(Ordering::Relaxed)
+    );
 }
 
 /// Single value which will be contended by multiple threads
