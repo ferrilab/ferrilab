@@ -6,12 +6,7 @@
 //! a unified trait interface for a cell and an atom of the same underlying
 //! type.
 
-use radium::{
-    // Import this for load/store operations
-    Radium,
-    // Import this for add/sub operations
-    RadiumInteger,
-};
+use radium::Radium;
 
 use std::{
     cell::Cell,
@@ -21,7 +16,7 @@ use std::{
 };
 
 /// Operates on a value, which might or might not be atomic.
-fn routine<R: RadiumInteger<u64>>(obj: &R, ident: usize) {
+fn routine<R: Radium<u64>>(obj: &R, ident: usize) {
     println!(
         "Entry {} observes value: {}",
         ident,

@@ -3,14 +3,13 @@
 [![Latest Version](https://img.shields.io/crates/v/radium.svg)](https://crates.io/crates/radium)
 [![Documentation](https://docs.rs/radium/badge.svg)](https://docs.rs/radium)
 
-`radium` provides a series of helper traits providing a uniform API for
-interacting with both atomic types like
-[`AtomicUsize`](core::sync::atomic::AtomicUsize), and non-atomic types like
-[`Cell<usize>`](core::cell::Cell).
+`radium` provides a helper trait with a uniform API for interacting with both
+atomic types like [`AtomicUsize`](core::sync::atomic::AtomicUsize), and
+non-atomic types like [`Cell<usize>`](core::cell::Cell).
 
 This crate is `#![no_std]`-compatible, and uses no non-core types.
 
-For more details, see each trait's documentation.
+For more details, see the trait's documentation.
 
 ---
 

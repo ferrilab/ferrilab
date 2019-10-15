@@ -36,15 +36,15 @@ use core::sync::atomic::{
 /// [`Cell<T>`], providing a consistent interface for interacting with the two
 /// types.
 ///
-/// This trait only provides atomic load/store access, and does not perform
-/// type-specific operations on the values. For types that can be used in
-/// bitwise arithmetic, see [`RadiumBits`]; for types that can be used as
-/// integers, see [`RadiumInteger`].
+/// This trait provides methods predicated on marker traits for the underlying
+/// fundamental. Only types which can be viewed as sequences of bits may use the
+/// functions for bit-wise arithmetic, and only types which can be used as
+/// integers may use the functions for numeric arithmetic. Use of these methods
+/// on insufficient underlying types (for example, `Radium::fetch_and` on an
+/// atomic or cell-wrapped pointer) will cause a compiler error.
 ///
 /// [atomic wrapper]: core::sync::atomic
 /// [`Cell<T>`]: core::cell::Cell
-/// [`RadiumBits`]: crate::RadiumBits
-/// [`RadiumInteger`]: crate::RadiumInteger
 pub trait Radium<Item> {
     /// Creates a new value of this type.
     fn new(value: Item) -> Self;
@@ -148,10 +148,7 @@ pub trait Radium<Item> {
         success: Ordering,
         failure: Ordering,
     ) -> Result<Item, Item>;
-}
 
-/// Performs bitwise arithmetic on a maybe-atomic value.
-pub trait RadiumBits<Item>: Radium<Item> {
     /// Performs a bitwise "and" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
     ///
@@ -162,7 +159,9 @@ pub trait RadiumBits<Item>: Radium<Item> {
     /// See also: [`AtomicUsize::fetch_and`].
     ///
     /// [`AtomicUsize::fetch_and`]: core::sync::atomic::AtomicUsize::fetch_and
-    fn fetch_and(&self, value: Item, order: Ordering) -> Item;
+    fn fetch_and(&self, value: Item, order: Ordering) -> Item
+    where
+        Item: IsBits;
 
     /// Performs a bitwise "nand" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -174,7 +173,9 @@ pub trait RadiumBits<Item>: Radium<Item> {
     /// See also: [`AtomicUsize::fetch_nand`].
     ///
     /// [`AtomicUsize::fetch_nand`]: core::sync::atomic::AtomicUsize::fetch_nand
-    fn fetch_nand(&self, value: Item, order: Ordering) -> Item;
+    fn fetch_nand(&self, value: Item, order: Ordering) -> Item
+    where
+        Item: IsBits;
 
     /// Performs a bitwise "or" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -186,7 +187,9 @@ pub trait RadiumBits<Item>: Radium<Item> {
     /// See also: [`AtomicUsize::fetch_or`].
     ///
     /// [`AtomicUsize::fetch_or`]: core::sync::atomic::AtomicUsize::fetch_or
-    fn fetch_or(&self, value: Item, order: Ordering) -> Item;
+    fn fetch_or(&self, value: Item, order: Ordering) -> Item
+    where
+        Item: IsBits;
 
     /// Performs a bitwise "xor" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -198,15 +201,10 @@ pub trait RadiumBits<Item>: Radium<Item> {
     /// See also: [`AtomicUsize::fetch_xor`].
     ///
     /// [`AtomicUsize::fetch_xor`]: core::sync::atomic::AtomicUsize::fetch_xor
-    fn fetch_xor(&self, value: Item, order: Ordering) -> Item;
-}
+    fn fetch_xor(&self, value: Item, order: Ordering) -> Item
+    where
+        Item: IsBits;
 
-/// Performs integer arithmetic on a maybe-atomic value.
-///
-/// All integer types implement `RadiumBits`, so `RadiumInteger` may specify
-/// `RadiumBits` as a supertrait, and users may specify `RadiumInteger` alone to
-/// access `RadiumBits` as well.
-pub trait RadiumInteger<Item>: RadiumBits<Item> {
     /// Adds `value` to the currently-stored value, wrapping on overflow, and
     /// stores the result in `self`.
     ///
@@ -217,7 +215,9 @@ pub trait RadiumInteger<Item>: RadiumBits<Item> {
     /// See also: [`AtomicUsize::fetch_add`].
     ///
     /// [`AtomicUsize::fetch_add`]: core::sync::atomic::AtomicUsize::fetch_add
-    fn fetch_add(&self, value: Item, order: Ordering) -> Item;
+    fn fetch_add(&self, value: Item, order: Ordering) -> Item
+    where
+        Item: IsANum;
 
     /// Subtracts `value` from the currently-stored value, wrapping on
     /// underflow, and stores the result in `self`.
@@ -229,12 +229,58 @@ pub trait RadiumInteger<Item>: RadiumBits<Item> {
     /// See also: [`AtomicUsize::fetch_sub`].
     ///
     /// [`AtomicUsize::fetch_sub`]: core::sync::atomic::AtomicUsize::fetch_sub
-    fn fetch_sub(&self, value: Item, order: Ordering) -> Item;
+    fn fetch_sub(&self, value: Item, order: Ordering) -> Item
+    where
+        Item: IsANum;
 }
 
+/// Marks that a type can be viewed as a set of bits.
+///
+/// `bool` and all integer fundamentals implement this.
+///
+/// ```rust
+/// use core::sync::atomic::*;
+/// use radium::Radium;
+///
+/// let num: AtomicUsize = AtomicUsize::new(0);
+/// Radium::fetch_or(&num, 2, Ordering::Relaxed);
+/// ```
+///
+/// Pointers do not. This will cause a compiler error.
+///
+/// ```rust,compile_fail
+/// # use core::sync::atomic::*;
+/// # use radium::Radium;
+/// let mut data = 0usize;
+/// let ptr: AtomicPtr<usize> = AtomicPtr::new(&data as *mut usize);
+/// Radium::fetch_or(&ptr, &data as *mut usize, Ordering::Relaxed);
+/// ```
+pub trait IsBits {}
+
+/// Marks that a type can be viewed as an integer.
+///
+/// All integer fundamentals implement this.
+///
+/// ```rust
+/// use core::sync::atomic::*;
+/// use radium::Radium;
+///
+/// let num: AtomicUsize = AtomicUsize::new(2);
+/// Radium::fetch_and(&num, 2, Ordering::Relaxed);
+/// ```
+///
+/// `bool` and pointers do not. This will cause a compiler error.
+///
+/// ```rust,compile_fail
+/// # use core::sync::atomic::*;
+/// # use radium::Radium;
+/// let bit: AtomicBool = AtomicBool::new(false);
+/// Radium::fetch_add(&bit, true, Ordering::Relaxed);
+/// ```
+pub trait IsANum {}
+
 macro_rules! radium {
-    //  Emit `Radium` trait function implementations where `self` is one of the
-    //  standard library atomic types
+    // Emit the universal `Radium` trait function bodies for atomic types.
     ( atom $base:ty ) => {
         #[inline]
         fn new(value: $base) -> Self {
@@ -304,9 +350,8 @@ macro_rules! radium {
         }
     };
 
-    //  Emit `RadiumBits` trait function implementations where `self` is one of
-    //  the standard library atomic types
-    ( atom_bits $base:ty ) => {
+    // Emit the `Radium` trait function bodies for bit-wise types.
+    ( atom_bit $base:ty ) => {
         #[inline]
         fn fetch_and(&self, value: $base, order: Ordering) -> $base {
             self.fetch_and(value, order)
@@ -328,9 +373,8 @@ macro_rules! radium {
         }
     };
 
-    //  Emit `RadiumInteger` trait function implementations where `self` is one
-    //  of the standard library atomic types
-    ( atom_int $base:ty, $atom:ty ) => {
+    // Emit the `Radium` trait function bodies for integral types.
+    ( atom_int $base:ty ) => {
         #[inline]
         fn fetch_add(&self, value: $base, order: Ordering) -> $base {
             self.fetch_add(value, order)
@@ -342,26 +386,38 @@ macro_rules! radium {
         }
     };
 
-    //  Implement `Radium` and `RadiumBits` for `bool` wrappers
-    ( bits $( $base:ty , $atom:ty );* ) => { $(
+    //  Implement `Radium` for `bool`.
+    ( bit $( $base:ty , $atom:ty );* ) => { $(
+        impl IsBits for $base {}
+
         impl Radium<$base> for $atom {
             radium!(atom $base);
+            radium!(atom_bit $base);
+
+            fn fetch_add(&self, _value: $base, _order: Ordering) -> $base {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_sub(&self, _value: $base, _order: Ordering) -> $base {
+                unreachable!("This method statically cannot be called")
+            }
         }
 
         impl Radium<$base> for Cell<$base> {
             radium!(cell $base);
-        }
+            radium!(cell_bit $base);
 
-        impl RadiumBits<$base> for $atom {
-            radium!(atom_bits $base);
-        }
+            fn fetch_add(&self, _value: $base, _order: Ordering) -> $base {
+                unreachable!("This method statically cannot be called")
+            }
 
-        impl RadiumBits<$base> for Cell<$base> {
-            radium!(cell_bits $base);
+            fn fetch_sub(&self, _value: $base, _order: Ordering) -> $base {
+                unreachable!("This method statically cannot be called")
+            }
         }
     )* };
 
-    //  Emit `Radium` trait function implementations where `self` is `Cell`
+    // Emit the universal `Radium` trait function bodies for `Cell<_>`.
     ( cell $base:ty ) => {
         #[inline]
         fn new(value: $base) -> Self {
@@ -405,8 +461,7 @@ macro_rules! radium {
         ) -> $base {
             if self.get() == current {
                 self.replace(new)
-            }
-            else {
+            } else {
                 self.get()
             }
         }
@@ -421,8 +476,7 @@ macro_rules! radium {
         ) -> Result<$base, $base> {
             if self.get() == current {
                 Ok(self.replace(new))
-            }
-            else {
+            } else {
                 Err(self.get())
             }
         }
@@ -439,8 +493,8 @@ macro_rules! radium {
         }
     };
 
-    //  Emit `RadiumBits` trait function implementations where `self` is `Cell`
-    ( cell_bits $base:ty ) => {
+    // Emit the `Radium` trait function bodies for bit-wise types.
+    ( cell_bit $base:ty ) => {
         #[inline]
         fn fetch_and(&self, value: $base, _: Ordering) -> $base {
             self.replace(self.get() & value)
@@ -462,8 +516,7 @@ macro_rules! radium {
         }
     };
 
-    //  Emit `RadiumInteger` trait function implementations where `self` is
-    //  `Cell`
+    // Emit the `Radium` trait function bodies for integral types.
     ( cell_int $base:ty ) => {
         #[inline]
         fn fetch_add(&self, value: $base, _: Ordering) -> $base {
@@ -476,28 +529,80 @@ macro_rules! radium {
         }
     };
 
-    //  Emit `RadiumInteger` trait implementations for both atomic and cell
-    //  wrappers around a base type
+    // Implement `Radium` for integral fundamentals.
     ( int $( $base:ty , $atom:ty ; )* ) => { $(
-        radium!(bits $base, $atom);
+        impl IsBits for $base {}
+        impl IsANum for $base {}
 
-        impl RadiumInteger<$base> for $atom {
-            radium!(atom_int $base, $atom);
+        impl Radium<$base> for $atom {
+            radium!(atom $base);
+            radium!(atom_bit $base);
+            radium!(atom_int $base);
         }
 
-        impl RadiumInteger<$base> for Cell<$base> {
+        impl Radium<$base> for Cell<$base> {
+            radium!(cell $base);
+            radium!(cell_bit $base);
             radium!(cell_int $base);
         }
     )* };
 
-    //  Emit `Radium` trait implementations for pointers.
+    // Emit `Radium` trait implementations for pointers.
     ( ptr ) => {
         impl<T> Radium<*mut T> for AtomicPtr<T> {
             radium!(atom *mut T);
+
+            fn fetch_and(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_nand(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_or(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_xor(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_add(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_sub(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
         }
 
         impl<T> Radium<*mut T> for Cell<*mut T> {
             radium!(cell *mut T);
+
+            fn fetch_and(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_nand(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_or(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_xor(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_add(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
+
+            fn fetch_sub(&self, _value: *mut T, _order: Ordering) -> *mut T {
+                unreachable!("This method statically cannot be called")
+            }
         }
     };
 }
@@ -516,6 +621,23 @@ radium![
     usize, AtomicUsize;
 ];
 
-radium!(bits bool, AtomicBool);
+radium!(bit bool, AtomicBool);
 
 radium!(ptr);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn absent_traits() {
+        static_assertions::assert_not_impl_any!(bool: IsANum);
+        static_assertions::assert_not_impl_any!(*mut u8: IsBits, IsANum);
+    }
+
+    #[test]
+    fn present_traits() {
+        static_assertions::assert_impl_all!(bool: IsBits);
+        static_assertions::assert_impl_all!(usize: IsBits, IsANum);
+    }
+}

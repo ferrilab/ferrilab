@@ -19,3 +19,6 @@ include = ["src/**/*", "Cargo.toml", "README.md"]
 edition = "2018"
 
 [dependencies]
+
+[dev-dependencies]
+static_assertions = "1"
