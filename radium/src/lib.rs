@@ -45,9 +45,9 @@ use core::sync::atomic::{
 ///
 /// [atomic wrapper]: core::sync::atomic
 /// [`Cell<T>`]: core::cell::Cell
-pub trait Radium<Item> {
+pub trait Radium<T> {
     /// Creates a new value of this type.
-    fn new(value: Item) -> Self;
+    fn new(value: T) -> Self;
 
     /// If the underlying value is atomic, calls [`fence`] with the given
     /// [`Ordering`]. Otherwise, does nothing.
@@ -60,12 +60,12 @@ pub trait Radium<Item> {
     ///
     /// This is safe because the mutable reference to `self` guarantees that no
     /// other references exist to this value.
-    fn get_mut(&mut self) -> &mut Item;
+    fn get_mut(&mut self) -> &mut T;
 
     /// Consumes the wrapper and returns the contained value.
     ///
     /// This is safe as passing by value ensures no other references exist.
-    fn into_inner(self) -> Item;
+    fn into_inner(self) -> T;
 
     /// Load a value from this object.
     ///
@@ -74,7 +74,7 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::load`].
     ///
     /// [`AtomicUsize::load`]: core::sync::atomic::AtomicUsize::load
-    fn load(&self, order: Ordering) -> Item;
+    fn load(&self, order: Ordering) -> T;
 
     /// Store a value in this object.
     ///
@@ -83,7 +83,7 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::store`].
     ///
     /// [`AtomicUsize::store`]: core::sync::atomic::AtomicUsize::store
-    fn store(&self, value: Item, order: Ordering);
+    fn store(&self, value: T, order: Ordering);
 
     /// Swap with the value stored in this object.
     ///
@@ -92,7 +92,7 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::swap`].
     ///
     /// [`AtomicUsize::swap`]: core::sync::atomic::AtomicUsize::swap
-    fn swap(&self, value: Item, order: Ordering) -> Item;
+    fn swap(&self, value: T, order: Ordering) -> T;
 
     /// Stores a value into this object if the currently-stored value is the
     /// same as the `current` value.
@@ -105,7 +105,7 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::compare_and_swap`].
     ///
     /// [`AtomicUsize::compare_and_swap`]: core::sync::atomic::AtomicUsize::compare_and_swap
-    fn compare_and_swap(&self, current: Item, new: Item, order: Ordering) -> Item;
+    fn compare_and_swap(&self, current: T, new: T, order: Ordering) -> T;
 
     /// Stores a value into this object if the currently-stored value is the
     /// same as the `current` value.
@@ -121,11 +121,11 @@ pub trait Radium<Item> {
     /// [`AtomicUsize::compare_exchange`]: core::sync::atomic::AtomicUsize::compare_exchange
     fn compare_exchange(
         &self,
-        current: Item,
-        new: Item,
+        current: T,
+        new: T,
         success: Ordering,
         failure: Ordering,
-    ) -> Result<Item, Item>;
+    ) -> Result<T, T>;
 
     /// Stores a value into this object if the currently-stored value is the
     /// same as the `current` value.
@@ -143,11 +143,11 @@ pub trait Radium<Item> {
     /// [`AtomicUsize::compare_exchange_weak`]: core::sync::atomic::AtomicUsize::compare_exchange_weak
     fn compare_exchange_weak(
         &self,
-        current: Item,
-        new: Item,
+        current: T,
+        new: T,
         success: Ordering,
         failure: Ordering,
-    ) -> Result<Item, Item>;
+    ) -> Result<T, T>;
 
     /// Performs a bitwise "and" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -159,9 +159,9 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::fetch_and`].
     ///
     /// [`AtomicUsize::fetch_and`]: core::sync::atomic::AtomicUsize::fetch_and
-    fn fetch_and(&self, value: Item, order: Ordering) -> Item
+    fn fetch_and(&self, value: T, order: Ordering) -> T
     where
-        Item: IsBits;
+        T: IsBits;
 
     /// Performs a bitwise "nand" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -173,9 +173,9 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::fetch_nand`].
     ///
     /// [`AtomicUsize::fetch_nand`]: core::sync::atomic::AtomicUsize::fetch_nand
-    fn fetch_nand(&self, value: Item, order: Ordering) -> Item
+    fn fetch_nand(&self, value: T, order: Ordering) -> T
     where
-        Item: IsBits;
+        T: IsBits;
 
     /// Performs a bitwise "or" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -187,9 +187,9 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::fetch_or`].
     ///
     /// [`AtomicUsize::fetch_or`]: core::sync::atomic::AtomicUsize::fetch_or
-    fn fetch_or(&self, value: Item, order: Ordering) -> Item
+    fn fetch_or(&self, value: T, order: Ordering) -> T
     where
-        Item: IsBits;
+        T: IsBits;
 
     /// Performs a bitwise "xor" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -201,9 +201,9 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::fetch_xor`].
     ///
     /// [`AtomicUsize::fetch_xor`]: core::sync::atomic::AtomicUsize::fetch_xor
-    fn fetch_xor(&self, value: Item, order: Ordering) -> Item
+    fn fetch_xor(&self, value: T, order: Ordering) -> T
     where
-        Item: IsBits;
+        T: IsBits;
 
     /// Adds `value` to the currently-stored value, wrapping on overflow, and
     /// stores the result in `self`.
@@ -215,9 +215,9 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::fetch_add`].
     ///
     /// [`AtomicUsize::fetch_add`]: core::sync::atomic::AtomicUsize::fetch_add
-    fn fetch_add(&self, value: Item, order: Ordering) -> Item
+    fn fetch_add(&self, value: T, order: Ordering) -> T
     where
-        Item: IsANum;
+        T: IsANum;
 
     /// Subtracts `value` from the currently-stored value, wrapping on
     /// underflow, and stores the result in `self`.
@@ -229,9 +229,9 @@ pub trait Radium<Item> {
     /// See also: [`AtomicUsize::fetch_sub`].
     ///
     /// [`AtomicUsize::fetch_sub`]: core::sync::atomic::AtomicUsize::fetch_sub
-    fn fetch_sub(&self, value: Item, order: Ordering) -> Item
+    fn fetch_sub(&self, value: T, order: Ordering) -> T
     where
-        Item: IsANum;
+        T: IsANum;
 }
 
 /// Marks that a type can be viewed as a set of bits.
@@ -239,9 +239,8 @@ pub trait Radium<Item> {
 /// `bool` and all integer fundamentals implement this.
 ///
 /// ```rust
-/// use core::sync::atomic::*;
-/// use radium::Radium;
-///
+/// # use core::sync::atomic::*;
+/// # use radium::Radium;
 /// let num: AtomicUsize = AtomicUsize::new(0);
 /// Radium::fetch_or(&num, 2, Ordering::Relaxed);
 /// ```
@@ -252,8 +251,8 @@ pub trait Radium<Item> {
 /// # use core::sync::atomic::*;
 /// # use radium::Radium;
 /// let mut data = 0usize;
-/// let ptr: AtomicPtr<usize> = AtomicPtr::new(&data as *mut usize);
-/// Radium::fetch_or(&ptr, &data as *mut usize, Ordering::Relaxed);
+/// let ptr: AtomicPtr<usize> = AtomicPtr::new(Default::default());
+/// Radium::fetch_or(&ptr, &mut data as *mut usize, Ordering::Relaxed);
 /// ```
 pub trait IsBits {}
 
@@ -262,9 +261,8 @@ pub trait IsBits {}
 /// All integer fundamentals implement this.
 ///
 /// ```rust
-/// use core::sync::atomic::*;
-/// use radium::Radium;
-///
+/// # use core::sync::atomic::*;
+/// # use radium::Radium;
 /// let num: AtomicUsize = AtomicUsize::new(2);
 /// Radium::fetch_and(&num, 2, Ordering::Relaxed);
 /// ```
