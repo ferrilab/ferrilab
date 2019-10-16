@@ -250,9 +250,9 @@ pub trait Radium<T> {
 /// ```rust,compile_fail
 /// # use core::sync::atomic::*;
 /// # use radium::Radium;
-/// let mut data = 0usize;
-/// let ptr: AtomicPtr<usize> = AtomicPtr::new(Default::default());
-/// Radium::fetch_or(&ptr, &mut data as *mut usize, Ordering::Relaxed);
+/// # use core::ptr;
+/// let ptr: AtomicPtr<usize> = Default::default();
+/// Radium::fetch_or(&ptr, ptr::null_mut(), Ordering::Relaxed);
 /// ```
 pub trait IsBits {}
 
