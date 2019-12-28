@@ -10,13 +10,13 @@ use radium::Radium;
 
 use std::{
     cell::Cell,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::atomic::{AtomicU32, Ordering},
     thread,
     time::Duration,
 };
 
 /// Operates on a value, which might or might not be atomic.
-fn routine<R: Radium<u64>>(obj: &R, ident: usize) {
+fn routine<R: Radium<u32>>(obj: &R, ident: usize) {
     println!(
         "Entry {} observes value: {}",
         ident,
@@ -29,7 +29,9 @@ fn routine<R: Radium<u64>>(obj: &R, ident: usize) {
         ident,
         obj.load(Ordering::Relaxed)
     );
-    thread::sleep(Duration::from_millis(obj.load(Ordering::Relaxed) * 10));
+    thread::sleep(Duration::from_millis(
+        obj.load(Ordering::Relaxed) as u64 * 10,
+    ));
     let subbed = obj.fetch_sub(1, Ordering::Relaxed);
     println!("Exit {} observes fetched value: {}", ident, subbed);
     println!(
@@ -40,12 +42,12 @@ fn routine<R: Radium<u64>>(obj: &R, ident: usize) {
 }
 
 /// Single value which will be contended by multiple threads
-static HOT: AtomicU64 = AtomicU64::new(0);
+static HOT: AtomicU32 = AtomicU32::new(0);
 
 fn main() {
     //  This cannot cross a thread, so it is only accessed without contention in
     //  an ordered call sequence.
-    let cold = Cell::new(0u64);
+    let cold = Cell::new(0u32);
 
     routine(&cold, 0);
     let one = thread::spawn(move || {

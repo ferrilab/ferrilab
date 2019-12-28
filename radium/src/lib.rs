@@ -26,9 +26,17 @@
 
 use core::cell::Cell;
 use core::sync::atomic::{
-    self, AtomicBool, AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicIsize, AtomicPtr, AtomicU16,
-    AtomicU32, AtomicU64, AtomicU8, AtomicUsize, Ordering,
+    self, AtomicBool, AtomicI16, AtomicI32, AtomicI8, AtomicIsize, AtomicPtr, AtomicU16, AtomicU32,
+    AtomicU8, AtomicUsize, Ordering,
 };
+
+// Note: The correct gate to use is `target_has_atomic`, but it is unstable as
+// of EOY 2019, and cannot be used in libraries targeting stable. When this
+// attribute stabilizes, all types from i8 through i128 should be separately
+// gated on this attribute, in order to match the standard library's provision
+// of atomic types.
+#[cfg(target_pointer_width = "64")]
+use core::sync::atomic::{AtomicI64, AtomicU64};
 
 /// A maybe-atomic shared mutable fundamental type `T`.
 ///
@@ -537,13 +545,18 @@ radium![
     i8, AtomicI8;
     i16, AtomicI16;
     i32, AtomicI32;
-    i64, AtomicI64;
     isize, AtomicIsize;
     u8, AtomicU8;
     u16, AtomicU16;
     u32, AtomicU32;
-    u64, AtomicU64;
     usize, AtomicUsize;
+];
+
+#[cfg(target_pointer_width = "64")]
+radium![
+    int
+    i64, AtomicI64;
+    u64, AtomicU64;
 ];
 
 impl marker::BitOps for bool {}
