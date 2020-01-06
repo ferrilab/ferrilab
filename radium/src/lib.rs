@@ -35,6 +35,8 @@ use core::sync::atomic::{
 // attribute stabilizes, all types from i8 through i128 should be separately
 // gated on this attribute, in order to match the standard library's provision
 // of atomic types.
+//
+// Rust tracking issue: https://github.com/rust-lang/rust/issues/32976
 #[cfg(target_pointer_width = "64")]
 use core::sync::atomic::{AtomicI64, AtomicU64};
 
