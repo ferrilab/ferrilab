@@ -42,7 +42,10 @@ of acceptable widths to lower or upper bounds. These traits are equivalent to
 #![deny(unconditional_recursion)]
 
 use core::{
-	convert::TryFrom,
+	convert::{
+		TryFrom,
+		TryInto,
+	},
 	fmt::{
 		Binary,
 		Debug,
@@ -164,31 +167,28 @@ pub trait IsNumber: Sized
 /// Declare that a type is a fixed-point integer.
 ///
 /// This unifies all of the signed and unsigned integral types.
-pub trait IsInteger: IsNumber
+pub trait IsInteger:
+	IsNumber
 	+ Hash
-	//  cmp
 	+ Eq
 	+ Ord
-	//  fmt
 	+ Binary
 	+ LowerHex
 	+ UpperHex
 	+ Octal
-	//  boolean ops
-	+ BitAnd<Self, Output=Self>
-	+ for<'a> BitAnd<&'a Self, Output=Self>
+	+ BitAnd<Self, Output = Self>
+	+ for<'a> BitAnd<&'a Self, Output = Self>
 	+ BitAndAssign<Self>
 	+ for<'a> BitAndAssign<&'a Self>
-	+ BitOr<Self, Output=Self>
-	+ for<'a> BitOr<&'a Self, Output=Self>
+	+ BitOr<Self, Output = Self>
+	+ for<'a> BitOr<&'a Self, Output = Self>
 	+ BitOrAssign<Self>
 	+ for<'a> BitOrAssign<&'a Self>
-	+ BitXor<Self, Output=Self>
-	+ for<'a> BitXor<&'a Self, Output=Self>
+	+ BitXor<Self, Output = Self>
+	+ for<'a> BitXor<&'a Self, Output = Self>
 	+ BitXorAssign<Self>
 	+ for<'a> BitXorAssign<&'a Self>
-	+ Not<Output=Self>
-	//  conversions
+	+ Not<Output = Self>
 	+ TryFrom<i8>
 	+ TryFrom<u8>
 	+ TryFrom<i16>
@@ -201,101 +201,112 @@ pub trait IsInteger: IsNumber
 	+ TryFrom<u128>
 	+ TryFrom<isize>
 	+ TryFrom<usize>
-	//  shifts
-	+ Shl<i8, Output=Self>
-	+ for<'a> Shl<&'a i8, Output=Self>
+	+ TryInto<i8>
+	+ TryInto<u8>
+	+ TryInto<i16>
+	+ TryInto<u16>
+	+ TryInto<i32>
+	+ TryInto<u32>
+	+ TryInto<i64>
+	+ TryInto<u64>
+	+ TryInto<i128>
+	+ TryInto<u128>
+	+ TryInto<isize>
+	+ TryInto<usize>
+	+ Shl<i8, Output = Self>
+	+ for<'a> Shl<&'a i8, Output = Self>
 	+ ShlAssign<i8>
 	+ for<'a> ShlAssign<&'a i8>
-	+ Shr<i8, Output=Self>
-	+ for<'a> Shr<&'a i8, Output=Self>
+	+ Shr<i8, Output = Self>
+	+ for<'a> Shr<&'a i8, Output = Self>
 	+ ShrAssign<i8>
 	+ for<'a> ShrAssign<&'a i8>
-	+ Shl<u8, Output=Self>
-	+ for<'a> Shl<&'a u8, Output=Self>
+	+ Shl<u8, Output = Self>
+	+ for<'a> Shl<&'a u8, Output = Self>
 	+ ShlAssign<u8>
 	+ for<'a> ShlAssign<&'a u8>
-	+ Shr<u8, Output=Self>
-	+ for<'a> Shr<&'a u8, Output=Self>
+	+ Shr<u8, Output = Self>
+	+ for<'a> Shr<&'a u8, Output = Self>
 	+ ShrAssign<u8>
 	+ for<'a> ShrAssign<&'a u8>
-	+ Shl<i16, Output=Self>
-	+ for<'a> Shl<&'a i16, Output=Self>
+	+ Shl<i16, Output = Self>
+	+ for<'a> Shl<&'a i16, Output = Self>
 	+ ShlAssign<i16>
 	+ for<'a> ShlAssign<&'a i16>
-	+ Shr<i16, Output=Self>
-	+ for<'a> Shr<&'a i16, Output=Self>
+	+ Shr<i16, Output = Self>
+	+ for<'a> Shr<&'a i16, Output = Self>
 	+ ShrAssign<i16>
 	+ for<'a> ShrAssign<&'a i16>
-	+ Shl<u16, Output=Self>
-	+ for<'a> Shl<&'a u16, Output=Self>
+	+ Shl<u16, Output = Self>
+	+ for<'a> Shl<&'a u16, Output = Self>
 	+ ShlAssign<u16>
 	+ for<'a> ShlAssign<&'a u16>
-	+ Shr<u16, Output=Self>
-	+ for<'a> Shr<&'a u16, Output=Self>
+	+ Shr<u16, Output = Self>
+	+ for<'a> Shr<&'a u16, Output = Self>
 	+ ShrAssign<u16>
 	+ for<'a> ShrAssign<&'a u16>
-	+ Shl<i32, Output=Self>
-	+ for<'a> Shl<&'a i32, Output=Self>
+	+ Shl<i32, Output = Self>
+	+ for<'a> Shl<&'a i32, Output = Self>
 	+ ShlAssign<i32>
 	+ for<'a> ShlAssign<&'a i32>
-	+ Shr<i32, Output=Self>
-	+ for<'a> Shr<&'a i32, Output=Self>
+	+ Shr<i32, Output = Self>
+	+ for<'a> Shr<&'a i32, Output = Self>
 	+ ShrAssign<i32>
 	+ for<'a> ShrAssign<&'a i32>
-	+ Shl<u32, Output=Self>
-	+ for<'a> Shl<&'a u32, Output=Self>
+	+ Shl<u32, Output = Self>
+	+ for<'a> Shl<&'a u32, Output = Self>
 	+ ShlAssign<u32>
 	+ for<'a> ShlAssign<&'a u32>
-	+ Shr<u32, Output=Self>
-	+ for<'a> Shr<&'a u32, Output=Self>
+	+ Shr<u32, Output = Self>
+	+ for<'a> Shr<&'a u32, Output = Self>
 	+ ShrAssign<u32>
 	+ for<'a> ShrAssign<&'a u32>
-	+ Shl<i64, Output=Self>
-	+ for<'a> Shl<&'a i64, Output=Self>
+	+ Shl<i64, Output = Self>
+	+ for<'a> Shl<&'a i64, Output = Self>
 	+ ShlAssign<i64>
 	+ for<'a> ShlAssign<&'a i64>
-	+ Shr<i64, Output=Self>
-	+ for<'a> Shr<&'a i64, Output=Self>
+	+ Shr<i64, Output = Self>
+	+ for<'a> Shr<&'a i64, Output = Self>
 	+ ShrAssign<i64>
 	+ for<'a> ShrAssign<&'a i64>
-	+ Shl<u64, Output=Self>
-	+ for<'a> Shl<&'a u64, Output=Self>
+	+ Shl<u64, Output = Self>
+	+ for<'a> Shl<&'a u64, Output = Self>
 	+ ShlAssign<u64>
 	+ for<'a> ShlAssign<&'a u64>
-	+ Shr<u64, Output=Self>
-	+ for<'a> Shr<&'a u64, Output=Self>
+	+ Shr<u64, Output = Self>
+	+ for<'a> Shr<&'a u64, Output = Self>
 	+ ShrAssign<u64>
 	+ for<'a> ShrAssign<&'a u64>
-	+ Shl<i128, Output=Self>
-	+ for<'a> Shl<&'a i128, Output=Self>
+	+ Shl<i128, Output = Self>
+	+ for<'a> Shl<&'a i128, Output = Self>
 	+ ShlAssign<i128>
 	+ for<'a> ShlAssign<&'a i128>
-	+ Shr<i128, Output=Self>
-	+ for<'a> Shr<&'a i128, Output=Self>
+	+ Shr<i128, Output = Self>
+	+ for<'a> Shr<&'a i128, Output = Self>
 	+ ShrAssign<i128>
 	+ for<'a> ShrAssign<&'a i128>
-	+ Shl<u128, Output=Self>
-	+ for<'a> Shl<&'a u128, Output=Self>
+	+ Shl<u128, Output = Self>
+	+ for<'a> Shl<&'a u128, Output = Self>
 	+ ShlAssign<u128>
 	+ for<'a> ShlAssign<&'a u128>
-	+ Shr<u128, Output=Self>
-	+ for<'a> Shr<&'a u128, Output=Self>
+	+ Shr<u128, Output = Self>
+	+ for<'a> Shr<&'a u128, Output = Self>
 	+ ShrAssign<u128>
 	+ for<'a> ShrAssign<&'a u128>
-	+ Shl<isize, Output=Self>
-	+ for<'a> Shl<&'a isize, Output=Self>
+	+ Shl<isize, Output = Self>
+	+ for<'a> Shl<&'a isize, Output = Self>
 	+ ShlAssign<isize>
 	+ for<'a> ShlAssign<&'a isize>
-	+ Shr<isize, Output=Self>
-	+ for<'a> Shr<&'a isize, Output=Self>
+	+ Shr<isize, Output = Self>
+	+ for<'a> Shr<&'a isize, Output = Self>
 	+ ShrAssign<isize>
 	+ for<'a> ShrAssign<&'a isize>
-	+ Shl<usize, Output=Self>
-	+ for<'a> Shl<&'a usize, Output=Self>
+	+ Shl<usize, Output = Self>
+	+ for<'a> Shl<&'a usize, Output = Self>
 	+ ShlAssign<usize>
 	+ for<'a> ShlAssign<&'a usize>
-	+ Shr<usize, Output=Self>
-	+ for<'a> Shr<&'a usize, Output=Self>
+	+ Shr<usize, Output = Self>
+	+ for<'a> Shr<&'a usize, Output = Self>
 	+ ShrAssign<usize>
 	+ for<'a> ShrAssign<&'a usize>
 {
@@ -682,7 +693,6 @@ pub trait IsInteger: IsNumber
 	/// perform the shift.
 	fn overflowing_shr(self, rhs: u32) -> (Self, bool);
 
-
 	/// Raises self to the power of `exp`, using exponentiation by squaring.
 	///
 	/// Returns a tuple of the exponentiation along with a bool indicating
@@ -801,7 +811,8 @@ pub trait IsFloat:
 	+ From<u8>
 	+ From<u16>
 {
-	type Raw;
+	/// The unsigned integer type of the same width as `Self`.
+	type Raw: IsUnsigned;
 
 	/// The radix or base of the internal representation of `f32`.
 	const RADIX: u32;

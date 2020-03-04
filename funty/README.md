@@ -8,7 +8,6 @@
 [![Documentation][docs_img]][docs]
 [![License][license_img]][license_file]
 
-[![Continuous Integration][travis_img]][travis]
 [![Crate Downloads][downloads_img]][crate]
 [![Crate Size][loc_img]][loc]
 
@@ -57,6 +56,18 @@ fn invert_middle_bits<T: IsUnsigned>(num: T) -> T {
 }
 ```
 
+## `#![no_std]` Compatibility
+
+The floating-point numbers offer many functions which are implemented in the
+target system’s `libm`. This library is present only in `std`-targets. If you
+are compiling to a `#![no_std]` target, depend on this library with
+
+```toml
+[dependencies.funty]
+version = "1"
+default-features = false
+```
+
 <!-- Badges -->
 [crate]: https://crates.io/crates/funty "Crate Link"
 [crate_img]: https://img.shields.io/crates/v/funty.svg?logo=rust "Crate Page"
@@ -67,5 +78,3 @@ fn invert_middle_bits<T: IsUnsigned>(num: T) -> T {
 [license_img]: https://img.shields.io/crates/l/funty.svg "License Display"
 [loc]: https://github.com/myrrlyn/funty "Repository"
 [loc_img]: https://tokei.rs/b1/github/myrrlyn/funty?category=code "Repository Size"
-[travis]: https://travis-ci.org/myrrlyn/funty "Travis CI"
-[travis_img]: https://img.shields.io/travis/myrrlyn/funty.svg?logo=travis "Travis CI Display"
