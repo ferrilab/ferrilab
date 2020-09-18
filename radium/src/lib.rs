@@ -6,6 +6,12 @@
 //!
 //! For details, see the documentation for [`Radium`].
 //!
+//! Additionally, `radium` exports type aliases that map to the atomic types in
+//! `core::sync::atomic` when they exist, and fall back to `Cell` wrappers when
+//! the atomic is missing. These are accessible through the `types` module; you
+//! can use these names for a guaranteed-portable symbol with best-effort atomic
+//! behavior.
+//!
 //! ---
 //!
 //! **@kneecaw** - <https://twitter.com/kneecaw/status/1132695060812849154>
@@ -24,21 +30,25 @@
 #![no_std]
 #![deny(unconditional_recursion)]
 
-use core::cell::Cell;
-use core::sync::atomic::{
-    self, AtomicBool, AtomicI16, AtomicI32, AtomicI8, AtomicIsize, AtomicPtr, AtomicU16, AtomicU32,
-    AtomicU8, AtomicUsize, Ordering,
-};
+pub mod types;
 
-// Note: The correct gate to use is `target_has_atomic`, but it is unstable as
-// of EOY 2019, and cannot be used in libraries targeting stable. When this
-// attribute stabilizes, all types from i8 through i128 should be separately
-// gated on this attribute, in order to match the standard library's provision
-// of atomic types.
-//
-// Rust tracking issue: https://github.com/rust-lang/rust/issues/32976
-#[cfg(target_pointer_width = "64")]
+use core::cell::Cell;
+use core::sync::atomic::Ordering;
+
+#[cfg(radium_atomic_8)]
+use core::sync::atomic::{AtomicBool, AtomicI8, AtomicU8};
+
+#[cfg(radium_atomic_16)]
+use core::sync::atomic::{AtomicI16, AtomicU16};
+
+#[cfg(radium_atomic_32)]
+use core::sync::atomic::{AtomicI32, AtomicU32};
+
+#[cfg(radium_atomic_64)]
 use core::sync::atomic::{AtomicI64, AtomicU64};
+
+#[cfg(radium_atomic_ptr)]
+use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
 
 /// A maybe-atomic shared mutable fundamental type `T`.
 ///
@@ -314,7 +324,7 @@ macro_rules! radium {
 
         #[inline]
         fn fence(order: Ordering) {
-            atomic::fence(order);
+            core::sync::atomic::fence(order);
         }
 
         #[inline]
@@ -524,10 +534,11 @@ macro_rules! radium {
     };
 
     // Implement `Radium` for integral fundamentals.
-    ( int $( $base:ty , $atom:ty ; )* ) => { $(
+    ( int $flag:ident $( $base:ty , $atom:ty ; )* ) => { $(
         impl marker::BitOps for $base {}
         impl marker::NumericOps for $base {}
 
+        #[cfg($flag)]
         impl Radium<$base> for $atom {
             radium!(atom $base);
             radium!(atom_bit $base);
@@ -542,27 +553,15 @@ macro_rules! radium {
     )* };
 }
 
-radium![
-    int
-    i8, AtomicI8;
-    i16, AtomicI16;
-    i32, AtomicI32;
-    isize, AtomicIsize;
-    u8, AtomicU8;
-    u16, AtomicU16;
-    u32, AtomicU32;
-    usize, AtomicUsize;
-];
-
-#[cfg(target_pointer_width = "64")]
-radium![
-    int
-    i64, AtomicI64;
-    u64, AtomicU64;
-];
+radium![int radium_atomic_8 i8, AtomicI8; u8, AtomicU8;];
+radium![int radium_atomic_16 i16, AtomicI16; u16, AtomicU16;];
+radium![int radium_atomic_32 i32, AtomicI32; u32, AtomicU32;];
+radium![int radium_atomic_64 i64, AtomicI64; u64, AtomicU64;];
+radium![int radium_atomic_ptr isize, AtomicIsize; usize, AtomicUsize;];
 
 impl marker::BitOps for bool {}
 
+#[cfg(radium_atomic_8)]
 impl Radium<bool> for AtomicBool {
     radium!(atom bool);
     radium!(atom_bit bool);
@@ -617,6 +616,7 @@ impl Radium<bool> for Cell<bool> {
     }
 }
 
+#[cfg(radium_atomic_ptr)]
 impl<T> Radium<*mut T> for AtomicPtr<T> {
     radium!(atom *mut T);
 
@@ -760,6 +760,7 @@ impl<T> Radium<*mut T> for Cell<*mut T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::cell::Cell;
 
     #[test]
     fn absent_traits() {
@@ -771,5 +772,37 @@ mod tests {
     fn present_traits() {
         static_assertions::assert_impl_all!(bool: marker::BitOps);
         static_assertions::assert_impl_all!(usize: marker::BitOps, marker::NumericOps);
+    }
+
+    #[test]
+    fn always_cell() {
+        static_assertions::assert_impl_all!(Cell<bool>: Radium<bool>);
+        static_assertions::assert_impl_all!(Cell<i8>: Radium<i8>);
+        static_assertions::assert_impl_all!(Cell<u8>: Radium<u8>);
+        static_assertions::assert_impl_all!(Cell<i16>: Radium<i16>);
+        static_assertions::assert_impl_all!(Cell<u16>: Radium<u16>);
+        static_assertions::assert_impl_all!(Cell<i32>: Radium<i32>);
+        static_assertions::assert_impl_all!(Cell<u32>: Radium<u32>);
+        static_assertions::assert_impl_all!(Cell<i64>: Radium<i64>);
+        static_assertions::assert_impl_all!(Cell<u64>: Radium<u64>);
+        static_assertions::assert_impl_all!(Cell<isize>: Radium<isize>);
+        static_assertions::assert_impl_all!(Cell<usize>: Radium<usize>);
+        static_assertions::assert_impl_all!(Cell<*mut ()>: Radium<*mut ()>);
+    }
+
+    #[test]
+    fn always_alias() {
+        static_assertions::assert_impl_all!(types::RadiumBool: Radium<bool>);
+        static_assertions::assert_impl_all!(types::RadiumI8: Radium<i8>);
+        static_assertions::assert_impl_all!(types::RadiumU8: Radium<u8>);
+        static_assertions::assert_impl_all!(types::RadiumI16: Radium<i16>);
+        static_assertions::assert_impl_all!(types::RadiumU16: Radium<u16>);
+        static_assertions::assert_impl_all!(types::RadiumI32: Radium<i32>);
+        static_assertions::assert_impl_all!(types::RadiumU32: Radium<u32>);
+        static_assertions::assert_impl_all!(types::RadiumI64: Radium<i64>);
+        static_assertions::assert_impl_all!(types::RadiumU64: Radium<u64>);
+        static_assertions::assert_impl_all!(types::RadiumIsize: Radium<isize>);
+        static_assertions::assert_impl_all!(types::RadiumUsize: Radium<usize>);
+        static_assertions::assert_impl_all!(types::RadiumPtr<()>: Radium<*mut ()>);
     }
 }
