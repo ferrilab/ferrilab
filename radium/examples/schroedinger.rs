@@ -16,7 +16,7 @@ use std::{
 };
 
 /// Operates on a value, which might or might not be atomic.
-fn routine<R: Radium<u32>>(obj: &R, ident: usize) {
+fn routine<R: Radium<Item = u32>>(obj: &R, ident: usize) {
     println!(
         "Entry {} observes value: {}",
         ident,

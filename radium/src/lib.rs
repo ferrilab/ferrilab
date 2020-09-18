@@ -65,9 +65,10 @@ use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
 ///
 /// [atomic wrapper]: core::sync::atomic
 /// [`Cell<T>`]: core::cell::Cell
-pub trait Radium<T> {
+pub trait Radium {
+    type Item;
     /// Creates a new value of this type.
-    fn new(value: T) -> Self;
+    fn new(value: Self::Item) -> Self;
 
     /// If the underlying value is atomic, calls [`fence`] with the given
     /// [`Ordering`]. Otherwise, does nothing.
@@ -80,12 +81,12 @@ pub trait Radium<T> {
     ///
     /// This is safe because the mutable reference to `self` guarantees that no
     /// other references exist to this value.
-    fn get_mut(&mut self) -> &mut T;
+    fn get_mut(&mut self) -> &mut Self::Item;
 
     /// Consumes the wrapper and returns the contained value.
     ///
     /// This is safe as passing by value ensures no other references exist.
-    fn into_inner(self) -> T;
+    fn into_inner(self) -> Self::Item;
 
     /// Load a value from this object.
     ///
@@ -94,7 +95,7 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::load`].
     ///
     /// [`AtomicUsize::load`]: core::sync::atomic::AtomicUsize::load
-    fn load(&self, order: Ordering) -> T;
+    fn load(&self, order: Ordering) -> Self::Item;
 
     /// Store a value in this object.
     ///
@@ -103,7 +104,7 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::store`].
     ///
     /// [`AtomicUsize::store`]: core::sync::atomic::AtomicUsize::store
-    fn store(&self, value: T, order: Ordering);
+    fn store(&self, value: Self::Item, order: Ordering);
 
     /// Swap with the value stored in this object.
     ///
@@ -112,7 +113,7 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::swap`].
     ///
     /// [`AtomicUsize::swap`]: core::sync::atomic::AtomicUsize::swap
-    fn swap(&self, value: T, order: Ordering) -> T;
+    fn swap(&self, value: Self::Item, order: Ordering) -> Self::Item;
 
     /// Stores a value into this object if the currently-stored value is the
     /// same as the `current` value.
@@ -125,7 +126,8 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::compare_and_swap`].
     ///
     /// [`AtomicUsize::compare_and_swap`]: core::sync::atomic::AtomicUsize::compare_and_swap
-    fn compare_and_swap(&self, current: T, new: T, order: Ordering) -> T;
+    fn compare_and_swap(&self, current: Self::Item, new: Self::Item, order: Ordering)
+        -> Self::Item;
 
     /// Stores a value into this object if the currently-stored value is the
     /// same as the `current` value.
@@ -141,11 +143,11 @@ pub trait Radium<T> {
     /// [`AtomicUsize::compare_exchange`]: core::sync::atomic::AtomicUsize::compare_exchange
     fn compare_exchange(
         &self,
-        current: T,
-        new: T,
+        current: Self::Item,
+        new: Self::Item,
         success: Ordering,
         failure: Ordering,
-    ) -> Result<T, T>;
+    ) -> Result<Self::Item, Self::Item>;
 
     /// Stores a value into this object if the currently-stored value is the
     /// same as the `current` value.
@@ -163,11 +165,11 @@ pub trait Radium<T> {
     /// [`AtomicUsize::compare_exchange_weak`]: core::sync::atomic::AtomicUsize::compare_exchange_weak
     fn compare_exchange_weak(
         &self,
-        current: T,
-        new: T,
+        current: Self::Item,
+        new: Self::Item,
         success: Ordering,
         failure: Ordering,
-    ) -> Result<T, T>;
+    ) -> Result<Self::Item, Self::Item>;
 
     /// Performs a bitwise "and" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -179,9 +181,9 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::fetch_and`].
     ///
     /// [`AtomicUsize::fetch_and`]: core::sync::atomic::AtomicUsize::fetch_and
-    fn fetch_and(&self, value: T, order: Ordering) -> T
+    fn fetch_and(&self, value: Self::Item, order: Ordering) -> Self::Item
     where
-        T: marker::BitOps;
+        Self::Item: marker::BitOps;
 
     /// Performs a bitwise "nand" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -193,9 +195,9 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::fetch_nand`].
     ///
     /// [`AtomicUsize::fetch_nand`]: core::sync::atomic::AtomicUsize::fetch_nand
-    fn fetch_nand(&self, value: T, order: Ordering) -> T
+    fn fetch_nand(&self, value: Self::Item, order: Ordering) -> Self::Item
     where
-        T: marker::BitOps;
+        Self::Item: marker::BitOps;
 
     /// Performs a bitwise "or" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -207,9 +209,9 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::fetch_or`].
     ///
     /// [`AtomicUsize::fetch_or`]: core::sync::atomic::AtomicUsize::fetch_or
-    fn fetch_or(&self, value: T, order: Ordering) -> T
+    fn fetch_or(&self, value: Self::Item, order: Ordering) -> Self::Item
     where
-        T: marker::BitOps;
+        Self::Item: marker::BitOps;
 
     /// Performs a bitwise "xor" on the currently-stored value and the argument
     /// `value`, and stores the result in `self`.
@@ -221,9 +223,9 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::fetch_xor`].
     ///
     /// [`AtomicUsize::fetch_xor`]: core::sync::atomic::AtomicUsize::fetch_xor
-    fn fetch_xor(&self, value: T, order: Ordering) -> T
+    fn fetch_xor(&self, value: Self::Item, order: Ordering) -> Self::Item
     where
-        T: marker::BitOps;
+        Self::Item: marker::BitOps;
 
     /// Adds `value` to the currently-stored value, wrapping on overflow, and
     /// stores the result in `self`.
@@ -235,9 +237,9 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::fetch_add`].
     ///
     /// [`AtomicUsize::fetch_add`]: core::sync::atomic::AtomicUsize::fetch_add
-    fn fetch_add(&self, value: T, order: Ordering) -> T
+    fn fetch_add(&self, value: Self::Item, order: Ordering) -> Self::Item
     where
-        T: marker::NumericOps;
+        Self::Item: marker::NumericOps;
 
     /// Subtracts `value` from the currently-stored value, wrapping on
     /// underflow, and stores the result in `self`.
@@ -249,9 +251,9 @@ pub trait Radium<T> {
     /// See also: [`AtomicUsize::fetch_sub`].
     ///
     /// [`AtomicUsize::fetch_sub`]: core::sync::atomic::AtomicUsize::fetch_sub
-    fn fetch_sub(&self, value: T, order: Ordering) -> T
+    fn fetch_sub(&self, value: Self::Item, order: Ordering) -> Self::Item
     where
-        T: marker::NumericOps;
+        Self::Item: marker::NumericOps;
 }
 
 /// Marker traits used by [`Radium`].
@@ -539,13 +541,17 @@ macro_rules! radium {
         impl marker::NumericOps for $base {}
 
         #[cfg($flag)]
-        impl Radium<$base> for $atom {
+        impl Radium for $atom {
+            type Item = $base;
+
             radium!(atom $base);
             radium!(atom_bit $base);
             radium!(atom_int $base);
         }
 
-        impl Radium<$base> for Cell<$base> {
+        impl Radium for Cell<$base> {
+            type Item = $base;
+
             radium!(cell $base);
             radium!(cell_bit $base);
             radium!(cell_int $base);
@@ -562,7 +568,9 @@ radium![int radium_atomic_ptr isize, AtomicIsize; usize, AtomicUsize;];
 impl marker::BitOps for bool {}
 
 #[cfg(radium_atomic_8)]
-impl Radium<bool> for AtomicBool {
+impl Radium for AtomicBool {
+    type Item = bool;
+
     radium!(atom bool);
     radium!(atom_bit bool);
 
@@ -589,7 +597,9 @@ impl Radium<bool> for AtomicBool {
     }
 }
 
-impl Radium<bool> for Cell<bool> {
+impl Radium for Cell<bool> {
+    type Item = bool;
+
     radium!(cell bool);
     radium!(cell_bit bool);
 
@@ -617,7 +627,9 @@ impl Radium<bool> for Cell<bool> {
 }
 
 #[cfg(radium_atomic_ptr)]
-impl<T> Radium<*mut T> for AtomicPtr<T> {
+impl<T> Radium for AtomicPtr<T> {
+    type Item = *mut T;
+
     radium!(atom *mut T);
 
     /// ```compile_fail
@@ -687,7 +699,9 @@ impl<T> Radium<*mut T> for AtomicPtr<T> {
     }
 }
 
-impl<T> Radium<*mut T> for Cell<*mut T> {
+impl<T> Radium for Cell<*mut T> {
+    type Item = *mut T;
+
     radium!(cell *mut T);
 
     /// ```compile_fail
@@ -776,33 +790,33 @@ mod tests {
 
     #[test]
     fn always_cell() {
-        static_assertions::assert_impl_all!(Cell<bool>: Radium<bool>);
-        static_assertions::assert_impl_all!(Cell<i8>: Radium<i8>);
-        static_assertions::assert_impl_all!(Cell<u8>: Radium<u8>);
-        static_assertions::assert_impl_all!(Cell<i16>: Radium<i16>);
-        static_assertions::assert_impl_all!(Cell<u16>: Radium<u16>);
-        static_assertions::assert_impl_all!(Cell<i32>: Radium<i32>);
-        static_assertions::assert_impl_all!(Cell<u32>: Radium<u32>);
-        static_assertions::assert_impl_all!(Cell<i64>: Radium<i64>);
-        static_assertions::assert_impl_all!(Cell<u64>: Radium<u64>);
-        static_assertions::assert_impl_all!(Cell<isize>: Radium<isize>);
-        static_assertions::assert_impl_all!(Cell<usize>: Radium<usize>);
-        static_assertions::assert_impl_all!(Cell<*mut ()>: Radium<*mut ()>);
+        static_assertions::assert_impl_all!(Cell<bool>: Radium<Item = bool>);
+        static_assertions::assert_impl_all!(Cell<i8>: Radium<Item = i8>);
+        static_assertions::assert_impl_all!(Cell<u8>: Radium<Item = u8>);
+        static_assertions::assert_impl_all!(Cell<i16>: Radium<Item = i16>);
+        static_assertions::assert_impl_all!(Cell<u16>: Radium<Item = u16>);
+        static_assertions::assert_impl_all!(Cell<i32>: Radium<Item = i32>);
+        static_assertions::assert_impl_all!(Cell<u32>: Radium<Item = u32>);
+        static_assertions::assert_impl_all!(Cell<i64>: Radium<Item = i64>);
+        static_assertions::assert_impl_all!(Cell<u64>: Radium<Item = u64>);
+        static_assertions::assert_impl_all!(Cell<isize>: Radium<Item = isize>);
+        static_assertions::assert_impl_all!(Cell<usize>: Radium<Item = usize>);
+        static_assertions::assert_impl_all!(Cell<*mut ()>: Radium<Item = *mut ()>);
     }
 
     #[test]
     fn always_alias() {
-        static_assertions::assert_impl_all!(types::RadiumBool: Radium<bool>);
-        static_assertions::assert_impl_all!(types::RadiumI8: Radium<i8>);
-        static_assertions::assert_impl_all!(types::RadiumU8: Radium<u8>);
-        static_assertions::assert_impl_all!(types::RadiumI16: Radium<i16>);
-        static_assertions::assert_impl_all!(types::RadiumU16: Radium<u16>);
-        static_assertions::assert_impl_all!(types::RadiumI32: Radium<i32>);
-        static_assertions::assert_impl_all!(types::RadiumU32: Radium<u32>);
-        static_assertions::assert_impl_all!(types::RadiumI64: Radium<i64>);
-        static_assertions::assert_impl_all!(types::RadiumU64: Radium<u64>);
-        static_assertions::assert_impl_all!(types::RadiumIsize: Radium<isize>);
-        static_assertions::assert_impl_all!(types::RadiumUsize: Radium<usize>);
-        static_assertions::assert_impl_all!(types::RadiumPtr<()>: Radium<*mut ()>);
+        static_assertions::assert_impl_all!(types::RadiumBool: Radium<Item = bool>);
+        static_assertions::assert_impl_all!(types::RadiumI8: Radium<Item = i8>);
+        static_assertions::assert_impl_all!(types::RadiumU8: Radium<Item = u8>);
+        static_assertions::assert_impl_all!(types::RadiumI16: Radium<Item = i16>);
+        static_assertions::assert_impl_all!(types::RadiumU16: Radium<Item = u16>);
+        static_assertions::assert_impl_all!(types::RadiumI32: Radium<Item = i32>);
+        static_assertions::assert_impl_all!(types::RadiumU32: Radium<Item = u32>);
+        static_assertions::assert_impl_all!(types::RadiumI64: Radium<Item = i64>);
+        static_assertions::assert_impl_all!(types::RadiumU64: Radium<Item = u64>);
+        static_assertions::assert_impl_all!(types::RadiumIsize: Radium<Item = isize>);
+        static_assertions::assert_impl_all!(types::RadiumUsize: Radium<Item = usize>);
+        static_assertions::assert_impl_all!(types::RadiumPtr<()>: Radium<Item = *mut ()>);
     }
 }
