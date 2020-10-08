@@ -1,6 +1,6 @@
 [package]
 name = "radium"
-version = "0.5.1"
+version = "0.5.2"
 authors = [
     "Nika Layzell <nika@thelayzells.com>",
     "myrrlyn <self@myrrlyn.dev>"

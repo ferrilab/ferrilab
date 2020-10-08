@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // both `target_arch = "riscv32", and have no stable `cfg`-discoverable
         // distinction. As such, the atomic RISC-V target must be discovered
         // here.
-        "mips" | "mipsel" | "powerpc" | "riscv32imac" | "thumbv7em" | "thumbv7m" => {
+        "arm5te" | "mips" | "mipsel" | "powerpc" | "riscv32imac" | "thumbv7em" | "thumbv7m" => {
             atomics.has_64 = false
         }
         "riscv32i" | "riscv32imc" | "thumbv6m" => atomics = Atomics::NONE,
