@@ -6,7 +6,9 @@
 //! portable types.
 
 macro_rules! radium_type {
-    ($flag:ident $( $name:ident $atom:ident => $inner:ty => $adoc:literal $cdoc:literal )*) => { $(
+    ($flag:ident $(
+        $name:ident $atom:ident => $inner:ty => $adoc:literal $cdoc:literal
+    )*) => { $(
         #[doc = $adoc]
         #[cfg($flag)]
         pub type $name = core::sync::atomic::$atom;

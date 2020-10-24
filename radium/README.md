@@ -16,6 +16,10 @@ of the atomic primitive types (`bool`, signed and unsigned integers up to 64,
 when it is not. This allows you to have stable, portable, type names that do not
 require `cfg` guards to remove them for targets that do not support them.
 
+You may also use the macros `radium::{has,not}_atomic_WIDTH!` to conditionally
+preserve or destroy code by whether the requested atomic width (`8`, `16`, `32`,
+`64`, `ptr`) exist on your target.
+
 [`AtomicUsize`]: https://doc.rust-lang.org/core/sync/atomic/struct.AtomicUsize.html
 [`Cell<usize>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
 
