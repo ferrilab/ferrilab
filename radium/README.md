@@ -1,39 +1,42 @@
 # radium
 
-[![Latest Version](https://img.shields.io/crates/v/radium.svg)](https://crates.io/crates/radium)
-[![Documentation](https://docs.rs/radium/badge.svg)](https://docs.rs/radium)
+[![Latest Version][version_img]][crate_link]
+[![Documentation][docs_img]][docs_link]
 
-`radium` provides a helper trait with a uniform API for interacting with both
-atomic types like [`AtomicUsize`], and non-atomic types like [`Cell<usize>`].
+`radium` provides abstractions and graceful degradation for behavior that *must*
+be shared-mutable, but merely *may* use atomic instructions to do so.
+
+The primary export is the [`Radium`] trait. This is implemented on all symbols
+in the [`atomic`] module, and on their [`Cell<T>`] equivalents, and presents the
+atomic inherent API as a trait. Your code can be generic over `Radium`, use a
+stable and consistent API, and permit callers to select atomic or `Cell`
+behavior as they need.
+
+The symbols [`atomic`] module are conditionally present according to the target
+architecture’s atomic support. As such, code that is portable across targets
+with varying atomic support cannot use those names directly. Instead, the
+[`radium::types`] module provides names that will always exist, and forward to
+the corresponding atomic type when it exists and the equivalent `Cell<T>` type
+when it does not.
+
+As the `cfg(target_has_atomic)` compiler attribute is unstable, `radium`
+provides the macro `radium::if_atomic!` to perform conditional compilation based
+on atomic availability.
 
 This crate is `#![no_std]`-compatible, and uses no non-core types.
 
-For more details, see the trait's documentation.
-
-Additionally, the `radium::types` module provides a set of type aliases for all
-of the atomic primitive types (`bool`, signed and unsigned integers up to 64,
-`*mut T`) that map to the atomic type when it is present, and the `Cell` wrapper
-when it is not. This allows you to have stable, portable, type names that do not
-require `cfg` guards to remove them for targets that do not support them.
-
-You may also use the macros `radium::{has,not}_atomic_WIDTH!` to conditionally
-preserve or destroy code by whether the requested atomic width (`8`, `16`, `32`,
-`64`, `ptr`) exist on your target.
-
-[`AtomicUsize`]: https://doc.rust-lang.org/core/sync/atomic/struct.AtomicUsize.html
-[`Cell<usize>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
-
 ## Target Architecture Compatibility
 
-Not all Rust targets have symbols for atomic types! The compiler knows what
-targets have what atomics, but does not yet expose this information on the
-stable channel for libraries to use.
-
-As such, `radium` uses a build script to detect the target architecture and emit
-our own directives that mark the presence or absence of an atomic integer.
+Because the compiler does not expose this information to libraries, `radium`
+uses a build script to detect the target architecture and emit its own
+directives that mark the presence or absence of an atomic integer. We accomplish
+this by reading the compiler’s target information records and copying the
+information directly into the build script.
 
 If `radium` does not work for your architecture, please update the build script
-to handle your target string and submit a pull request.
+to handle your target string and submit a pull request. We write the build
+script on an as-needed basis; it is not proactively filled with all of the
+information listed in the compiler.
 
 ---
 
@@ -46,3 +49,13 @@ to handle your target string and submit a pull request.
 > no but call the crate radium
 >
 > (since people didn't care that it was radioactive and used it in everything)
+
+<!-- Badges -->
+[crate_link]: https://crates.io/crates/raidum "Crates.io package"
+[docs_img]: https://docs.rs/radium/badge.svg "Radium documentation badge"
+[docs_link]: https://docs.rs/radium "Radium documentation"
+[version_img]: https://img.shields.io/crates/v/radium.svg "Radium version badge"
+[`Cell<T>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
+[`Radium`]: https://docs.rs/radium/latest/radium/trait.Radium.html
+[`atomic`]: https://doc.rust-lang.org/core/sync/atomic
+[`radium::types`]: https://docs.rs/radium/latest/radium/types
