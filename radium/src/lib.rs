@@ -32,11 +32,9 @@
 #![deny(unconditional_recursion)]
 
 #[macro_use]
-pub mod macros;
+mod macros;
 
 pub mod types;
-
-pub use macros::*;
 
 use core::cell::Cell;
 use core::sync::atomic::Ordering;
