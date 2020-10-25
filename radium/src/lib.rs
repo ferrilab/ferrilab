@@ -1,16 +1,17 @@
-//! `radium` provides a series of helper traits providing a uniform API for
-//! interacting with both atomic types like
-//! [`AtomicUsize`], and non-atomic types like [`Cell<T>`].
+//! `radium` provides a series of helpers for a uniform API over both atomic
+//! types like [`AtomicUsize`], and non-atomic types like [`Cell<T>`].
 //!
 //! This crate is `#![no_std]`-compatible, and uses no non-core types.
 //!
 //! For details, see the documentation for [`Radium`].
 //!
-//! Additionally, `radium` exports type aliases that map to the atomic types in
-//! `core::sync::atomic` when they exist, and fall back to `Cell` wrappers when
-//! the atomic is missing. These are accessible through the `types` module; you
-//! can use these names for a guaranteed-portable symbol with best-effort atomic
-//! behavior.
+//! The `types` module provides type names that are atomic where the target
+//! supports it, and fall back to `Cell` when the target does not.
+//!
+//! The `if_atomic!` macro provides a means of conditional compilation based on
+//! the presence of atomic instructions. It is a substitute for the
+//! `cfg(target_has_atomic)` or `cfg(accessible)` attribute tests, which are not
+//! yet stabilized.
 //!
 //! ---
 //!
@@ -40,20 +41,23 @@ pub use macros::*;
 use core::cell::Cell;
 use core::sync::atomic::Ordering;
 
-#[cfg(radium_atomic_8)]
-use core::sync::atomic::{AtomicBool, AtomicI8, AtomicU8};
-
-#[cfg(radium_atomic_16)]
-use core::sync::atomic::{AtomicI16, AtomicU16};
-
-#[cfg(radium_atomic_32)]
-use core::sync::atomic::{AtomicI32, AtomicU32};
-
-#[cfg(radium_atomic_64)]
-use core::sync::atomic::{AtomicI64, AtomicU64};
-
-#[cfg(radium_atomic_ptr)]
-use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
+crate::if_atomic! {
+    if atomic(8) {
+        use core::sync::atomic::{AtomicBool, AtomicI8, AtomicU8};
+    }
+    if atomic(16) {
+        use core::sync::atomic::{AtomicI16, AtomicU16};
+    }
+    if atomic(32) {
+        use core::sync::atomic::{AtomicI32, AtomicU32};
+    }
+    if atomic(64) {
+        use core::sync::atomic::{AtomicI64, AtomicU64};
+    }
+    if atomic(ptr) {
+        use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
+    }
+}
 
 /// A maybe-atomic shared mutable fundamental type `T`.
 ///
