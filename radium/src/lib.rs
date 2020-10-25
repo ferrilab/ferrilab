@@ -827,4 +827,37 @@ mod tests {
         static_assertions::assert_impl_all!(types::RadiumUsize: Radium<Item = usize>);
         static_assertions::assert_impl_all!(types::RadiumPtr<()>: Radium<Item = *mut ()>);
     }
+
+    #[test]
+    fn maybe_atom() {
+        if_atomic! {
+            if atomic(bool) {
+                use core::sync::atomic::*;
+                static_assertions::assert_impl_all!(AtomicBool: Radium<Item = bool>);
+            }
+            if atomic(8) {
+                static_assertions::assert_impl_all!(AtomicI8: Radium<Item = i8>);
+                static_assertions::assert_impl_all!(AtomicU8: Radium<Item = u8>);
+            }
+            if atomic(16) {
+                static_assertions::assert_impl_all!(AtomicI16: Radium<Item = i16>);
+                static_assertions::assert_impl_all!(AtomicU16: Radium<Item = u16>);
+            }
+            if atomic(32) {
+                static_assertions::assert_impl_all!(AtomicI32: Radium<Item = i32>);
+                static_assertions::assert_impl_all!(AtomicU32: Radium<Item = u32>);
+            }
+            if atomic(64) {
+                static_assertions::assert_impl_all!(AtomicI64: Radium<Item = i64>);
+                static_assertions::assert_impl_all!(AtomicU64: Radium<Item = u64>);
+            }
+            if atomic(size) {
+                static_assertions::assert_impl_all!(AtomicIsize: Radium<Item = isize>);
+                static_assertions::assert_impl_all!(AtomicUsize: Radium<Item = usize>);
+            }
+            if atomic(ptr) {
+                static_assertions::assert_impl_all!(AtomicPtr<()>: Radium<Item = *mut ()>);
+            }
+        }
+    }
 }

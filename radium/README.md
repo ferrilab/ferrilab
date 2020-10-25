@@ -12,12 +12,12 @@ atomic inherent API as a trait. Your code can be generic over `Radium`, use a
 stable and consistent API, and permit callers to select atomic or `Cell`
 behavior as they need.
 
-The symbols [`atomic`] module are conditionally present according to the target
-architecture’s atomic support. As such, code that is portable across targets
-with varying atomic support cannot use those names directly. Instead, the
-[`radium::types`] module provides names that will always exist, and forward to
-the corresponding atomic type when it exists and the equivalent `Cell<T>` type
-when it does not.
+The symbols in the [`atomic`] module are conditionally present according to the
+target architecture’s atomic support. As such, code that is portable across
+targets with varying atomic support cannot use those names directly. Instead,
+the [`radium::types`] module provides names that will always exist, and forward
+to the corresponding atomic type when it exists and the equivalent [`Cell<T>`]
+type when it does not.
 
 As the `cfg(target_has_atomic)` compiler attribute is unstable, `radium`
 provides the macro `radium::if_atomic!` to perform conditional compilation based
