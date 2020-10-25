@@ -162,16 +162,12 @@ macro_rules! if_atomic {
         $( $crate::if_atomic! { if $($rest)* } )?
     };
 
-    ( if atomic(bool) { $($a:tt)* } $( else { $($b:tt)* } )? $( if $($rest:tt)* )? ) => {
-        $crate::if_atomic! {
-            if atomic(8) { $($a)* } $( else { $($b)* } )? $( if $($rest)* )?
-        }
+    ( if atomic(bool) $($rest:tt)* ) => {
+        $crate::if_atomic! { if atomic(8) $($rest)* }
     };
 
-    ( if atomic(size) { $($a:tt)* } $( else { $($b:tt)* } )? $( if $($rest:tt)* )? ) => {
-        $crate::if_atomic! {
-            if atomic(ptr) { $($a)* } $( else { $($b)* } )? $( if $($rest)* )?
-        }
+    ( if atomic(size) $($rest:tt)* ) => {
+        $crate::if_atomic! { if atomic(ptr) $($rest)* }
     };
 
     ( if ! atomic( $t:tt ) { $($a:tt)* } $( else { $($b:tt)* } )? $( if $($rest:tt)* )? ) => {
