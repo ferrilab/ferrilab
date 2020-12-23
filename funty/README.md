@@ -19,6 +19,11 @@ and eventually removed.
 
 This library reïnstates these traits.
 
+## MSRV
+
+Each minor version of this library raises the MSRV to the current stable at the
+time of release.
+
 ## Functionality Traits
 
 The numeric primitives implement the following trait hierarchy:

@@ -4,6 +4,11 @@ All notable changes will be documented in this file.
 
 This document is written according to the [Keep a Changelog][kac] style.
 
+## 1.1
+
+Add `leading_ones` and `trailing_ones`, as these methods were introduced in Rust
+1.46.
+
 ## 1.0
 
 Library creation.

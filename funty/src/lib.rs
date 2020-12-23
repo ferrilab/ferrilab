@@ -354,6 +354,14 @@ pub trait IsInteger:
 	/// `self`.
 	fn trailing_zeros(self) -> u32;
 
+	/// Returns the number of leading ones in the binary representation of
+	/// `self`.
+	fn leading_ones(self) -> u32;
+
+	/// Returns the number of trailing ones in the binary representation of
+	/// `self`.
+	fn trailing_ones(self) -> u32;
+
 	/// Shifts the bits to the left by a specified amount, `n`, wrapping the
 	/// truncated bits to the end of the resulting integer.
 	///
@@ -1307,6 +1315,8 @@ macro_rules! impl_for {
 			func!(count_zeros(self) -> u32);
 			func!(leading_zeros(self) -> u32);
 			func!(trailing_zeros(self) -> u32);
+			func!(leading_ones(self) -> u32);
+			func!(trailing_ones(self) -> u32);
 			func!(rotate_left(self, n: u32) -> Self);
 			func!(rotate_right(self, n: u32) -> Self);
 			func!(swap_bytes(self) -> Self);
