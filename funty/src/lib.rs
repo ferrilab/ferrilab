@@ -137,7 +137,11 @@ pub trait IsNumber: Sized
 	+ RemAssign<Self>
 	+ for<'a> RemAssign<&'a Self>
 {
+	/// The `[u8; N]` byte array that stores values of `Self`.
 	type Bytes;
+
+	/// The size of this numeric type in bits.
+	const BITS: u32;
 
 	/// Return the memory representation of this number as a byte array in
 	/// big-endian (network) byte order.
@@ -1293,6 +1297,10 @@ macro_rules! impl_for {
 	( IsNumber => $($t:ty),+ $(,)? ) => { $(
 		impl IsNumber for $t {
 			type Bytes = [u8; core::mem::size_of::<Self>()];
+
+			//  This can be replaced with the `::BITS` inherent once it
+			//  stabilizes in the standard library.
+			const BITS: u32 = core::mem::size_of::<Self>() as u32 * 8;
 
 			func!(to_be_bytes(self) -> Self::Bytes);
 			func!(to_le_bytes(self) -> Self::Bytes);
