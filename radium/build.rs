@@ -69,14 +69,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ => {}
     }
 
-    let arch = target.split('-').next().ok_or("Invalid target triple")?;
+    let arch = std::env::var("CARGO_CFG_TARGET_ARCH")?;
     // Add new architecture sections here with their atomic availability.
     #[allow(clippy::match_single_binding, clippy::single_match)]
-    match arch {
+    match &*arch {
         "armv5te" | "mips" | "mipsel" | "powerpc" | "riscv32imac" | "thumbv7em" | "thumbv7m"
         | "thumbv8m.main" | "armebv7r" | "armv7r" => atomics.has_64 = false,
         // These ARMv7 targets have 32-bit pointers and 64-bit atomics.
         "armv7" | "armv7a" | "armv7s" => atomics.has_64 = true,
+        "avr" => atomics = Atomics::NONE,
         // "riscv32imc-unknown-none-elf" and "riscv32imac-unknown-none-elf" are
         // both `target_arch = "riscv32", and have no stable `cfg`-discoverable
         // distinction. As such, the non-atomic RISC-V targets must be
