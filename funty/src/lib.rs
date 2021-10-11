@@ -96,7 +96,8 @@ use core::{
 ///
 /// This unifies all of the signed-integer, unsigned-integer, and floating-point
 /// types.
-pub trait IsNumber: Sized
+pub trait IsNumber: 'static
+	+ Sized
 	+ Send
 	+ Sync
 	+ Unpin

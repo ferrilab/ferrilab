@@ -4,6 +4,11 @@ All notable changes will be documented in this file.
 
 This document is written according to the [Keep a Changelog][kac] style.
 
+## 1.2.1, 1.1.1, and 1.0.1
+
+`IsNumber` now requires a `'static` lifetime. This is not a breaking change, as
+all implementors are already `'static`.
+
 ## 1.2
 
 Add `BITS` in preparation for [`rust-lang/rust#76904`].
