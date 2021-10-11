@@ -26,15 +26,22 @@ time of release.
 
 ## Functionality Traits
 
-The numeric primitives implement the following trait hierarchy:
+All primitive types (`bool`, `char`, `{i,u}{8,16,32,64,128,size}`, and
+`f{32,64}`) implement the `Fundamental` trait. This trait defines the basic
+concepts available to primitives: they are plain-old-data values, and can be
+`as`-casted to each other. `Fundamental` has no functionality other than
+providing the basic set of traits and allowing conversion.
 
-- `IsNumber` exports all the trait implementations and methods found on *all*
+The numeric primitives (everything except `bool` and `char`) implement the
+following trait hierarchy:
+
+- `Numeric` exports all the trait implementations and methods found on *all*
   numeric primitives.
-  - `IsInteger` exports the trait implementations and methods found on all
+  - `Integral` exports the trait implementations and methods found on all
     integers.
-    - `IsSigned` unifies all signed integers `iN`.
-    - `IsUnsigned` unifies all unsigned integers `uN`.
-  - `IsFloat` unifies both floating-point numbers.
+    - `Signed` unifies all signed integers `iN`.
+    - `Unsigned` unifies all unsigned integers `uN`.
+  - `Floating` unifies both floating-point numbers.
 
 ## Width Traits
 
@@ -54,8 +61,8 @@ Type `use funty::*;`, then declare the traits you need as generic bounds.
 Perform bit arithmetic on some unsigned integer:
 
 ```rust
-use funty::IsUnsigned;
-fn invert_middle_bits<T: IsUnsigned>(num: T) -> T {
+use funty::Unsigned;
+fn invert_middle_bits<T: Unsigned>(num: T) -> T {
   let mask = (!T::ZERO).wrapping_shl(2).wrapping_shr(4).wrapping_shl(2);
   num ^ mask
 }

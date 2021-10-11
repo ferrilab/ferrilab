@@ -9,18 +9,18 @@ for each axis and group on that axis are provided:
 
 ## Numeric Categories
 
-The most general category is represented by the trait [`IsNumber`]. It is
+The most general category is represented by the trait [`Numeric`]. It is
 implemented by all the numeric fundamentals, and includes only the traits that
 they all implement. This is an already-large amount: basic memory management,
 comparison, rendering, and numeric arithmetic.
 
-The numbers are then split into [`IsInteger`] and [`IsFloat`]. The former fills
+The numbers are then split into [`Integral`] and [`Floating`]. The former fills
 out the API of `f32` and `f64`, while the latter covers all of the `iN` and `uN`
 numbers.
 
-Lastly, [`IsInteger`] splits further, into [`IsSigned`] and [`IsUnsigned`].
-These provide the last specializations unique to the differences between `iN`
-and `uN`.
+Lastly, [`Integral`] splits further, into [`Signed`] and [`Unsigned`]. These
+provide the last specializations unique to the differences between `iN` and
+`uN`.
 
 ## Width Categories
 
@@ -31,11 +31,11 @@ In addition, the trait groups `AtLeastN` and `AtMostN` enable clamping the range
 of acceptable widths to lower or upper bounds. These traits are equivalent to
 `mem::size_of::<T>() >= N` and `mem::size_of::<T>() <= N`, respectively.
 
-[`IsFloat`]: trait.IsFloat.html
-[`IsInteger`]: trait.IsInteger.html
-[`IsNumber`]: trait.IsNumber.html
-[`IsSigned`]: trait.IsSigned.html
-[`IsUnsigned`]: trait.IsUnsigned.html
+[`Floating`]: trait.Floating.html
+[`Integral`]: trait.Integral.html
+[`Numeric`]: trait.Numeric.html
+[`Signed`]: trait.Signed.html
+[`Unsigned`]: trait.Unsigned.html
 !*/
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -92,11 +92,9 @@ use core::{
 	str::FromStr,
 };
 
-/// Declare that a type is an abstract number.
-///
-/// This unifies all of the signed-integer, unsigned-integer, and floating-point
-/// types.
-pub trait IsNumber: 'static
+/// Declare that a type is one of the language fundamental types.
+pub trait Fundamental:
+	'static
 	+ Sized
 	+ Send
 	+ Sync
@@ -111,6 +109,62 @@ pub trait IsNumber: 'static
 	//  fmt
 	+ Debug
 	+ Display
+	{
+		/// Tests `self != 0`.
+		fn as_bool(self) -> bool;
+
+		/// Represents `self` as a Unicode Scalar Value, if possible.
+		fn as_char(self) -> Option<char>;
+
+		/// Performs `self as i8`.
+		fn as_i8(self) -> i8;
+
+		/// Performs `self as i16`.
+		fn as_i16(self) -> i16;
+
+		/// Performs `self as i32`.
+		fn as_i32(self) -> i32;
+
+		/// Performs `self as i64`.
+		fn as_i64(self) -> i64;
+
+		/// Performs `self as i128`.
+		fn as_i128(self) -> i128;
+
+		/// Performs `self as isize`.
+		fn as_isize(self) -> isize;
+
+		/// Performs `self as u8`.
+		fn as_u8(self) -> u8;
+
+		/// Performs `self as u16`.
+		fn as_u16(self) -> u16;
+
+		/// Performs `self as u32`.
+		fn as_u32(self) -> u32;
+
+		/// Performs `self as u64`.
+		fn as_u64(self) -> u64;
+
+		/// Performs `self as u128`.
+		fn as_u128(self) -> u128;
+
+		/// Performs `self as usize`.
+		fn as_usize(self) -> usize;
+
+		/// Performs `self as f32`.
+		fn as_f32(self) -> f32;
+
+		/// Performs `self as f64`.
+		fn as_f64(self) -> f64;
+	}
+
+/// Declare that a type is an abstract number.
+///
+/// This unifies all of the signed-integer, unsigned-integer, and floating-point
+/// types.
+pub trait Numeric:
+	Fundamental
 	//  iter
 	+ Product<Self>
 	+ for<'a> Product<&'a Self>
@@ -172,8 +226,8 @@ pub trait IsNumber: 'static
 /// Declare that a type is a fixed-point integer.
 ///
 /// This unifies all of the signed and unsigned integral types.
-pub trait IsInteger:
-	IsNumber
+pub trait Integral:
+	Numeric
 	+ Hash
 	+ Eq
 	+ Ord
@@ -218,6 +272,14 @@ pub trait IsInteger:
 	+ TryInto<u128>
 	+ TryInto<isize>
 	+ TryInto<usize>
+	+ Shl<Self, Output = Self>
+	+ for<'a> Shl<&'a Self, Output = Self>
+	+ ShlAssign<Self>
+	+ for<'a> ShlAssign<&'a Self>
+	+ Shr<Self, Output = Self>
+	+ for<'a> Shr<&'a Self, Output = Self>
+	+ ShrAssign<Self>
+	+ for<'a> ShrAssign<&'a Self>
 	+ Shl<i8, Output = Self>
 	+ for<'a> Shl<&'a i8, Output = Self>
 	+ ShlAssign<i8>
@@ -318,6 +380,9 @@ pub trait IsInteger:
 	/// The type’s zero value.
 	const ZERO: Self;
 
+	/// The type’s step value.
+	const ONE: Self;
+
 	/// The type’s minimum value. This is zero for unsigned integers.
 	const MIN: Self;
 
@@ -388,11 +453,13 @@ pub trait IsInteger:
 	/// Converts an integer from big endian to the target’s endianness.
 	///
 	/// On big endian this is a no-op. On little endian the bytes are swapped.
+	#[allow(clippy::wrong_self_convention)]
 	fn from_be(self) -> Self;
 
 	/// Converts an integer frm little endian to the target’s endianness.
 	///
 	/// On little endian this is a no-op. On big endian the bytes are swapped.
+	#[allow(clippy::wrong_self_convention)]
 	fn from_le(self) -> Self;
 
 	/// Converts `self` to big endian from the target’s endianness.
@@ -501,7 +568,7 @@ pub trait IsInteger:
 	/// This function will panic if `rhs` is 0.
 	fn wrapping_div(self, rhs: Self) -> Self;
 
-	/// Wrapping Eulidean division. Computes `self.div_euclid(rhs)`, wrapping
+	/// Wrapping Euclidean division. Computes `self.div_euclid(rhs)`, wrapping
 	/// around at the boundary of the type.
 	///
 	/// # Signed Types
@@ -591,7 +658,7 @@ pub trait IsInteger:
 
 	/// Panic-free bitwise shift-left; yields `self << mask(rhs)`, where `mask`
 	/// removes any high-order bits of `rhs` that would cause the shift to
-	/// exceed the bitwidth of the type.
+	/// exceed the bit-width of the type.
 	///
 	/// Note that this is not the same as a rotate-left; the RHS of a wrapping
 	/// shift-left is restricted to the range of the type, rather than the bits
@@ -602,7 +669,7 @@ pub trait IsInteger:
 
 	/// Panic-free bitwise shift-right; yields `self >> mask(rhs)`, where `mask`
 	/// removes any high-order bits of `rhs` that would cause the shift to
-	/// exceed the bitwidth of the type.
+	/// exceed the bit-width of the type.
 	///
 	/// Note that this is not the same as a rotate-right; the RHS of a wrapping
 	/// shift-right is restricted to the range of the type, rather than the bits
@@ -746,7 +813,7 @@ pub trait IsInteger:
 }
 
 /// Declare that a type is a signed integer.
-pub trait IsSigned: IsInteger + Neg {
+pub trait Signed: Integral + Neg {
 	/// Checked absolute value. Computes `self.abs()`, returning `None` if
 	/// `self == MIN`.
 	fn checked_abs(self) -> Option<Self>;
@@ -795,7 +862,7 @@ pub trait IsSigned: IsInteger + Neg {
 }
 
 /// Declare that a type is an unsigned integer.
-pub trait IsUnsigned: IsInteger {
+pub trait Unsigned: Integral {
 	/// Returns `true` if and only if `self == 2^k` for some `k`.
 	fn is_power_of_two(self) -> bool;
 
@@ -813,8 +880,8 @@ pub trait IsUnsigned: IsInteger {
 }
 
 /// Declare that a type is a floating-point number.
-pub trait IsFloat:
-	IsNumber
+pub trait Floating:
+	Numeric
 	+ LowerExp
 	+ UpperExp
 	+ Neg
@@ -825,7 +892,7 @@ pub trait IsFloat:
 	+ From<u16>
 {
 	/// The unsigned integer type of the same width as `Self`.
-	type Raw: IsUnsigned;
+	type Raw: Unsigned;
 
 	/// The radix or base of the internal representation of `f32`.
 	const RADIX: u32;
@@ -922,8 +989,8 @@ pub trait IsFloat:
 	/// ln(10)
 	const LN_10: Self;
 
-	//  These functions are only available in `libstd`, because they rely on the
-	//  system math library `libm` which is not provided by `libcore`.
+	//  These functions are only available in `std`, because they rely on the
+	//  system math library `libm` which is not provided by `core`.
 
 	/// Returns the largest integer less than or equal to a number.
 	#[cfg(feature = "std")]
@@ -969,9 +1036,9 @@ pub trait IsFloat:
 	fn copysign(self, sign: Self) -> Self;
 
 	/// Fused multiply-add. Computes `(self * a) + b` with only one rounding
-	/// error, yielding a more accurate result than an unfused multiply-add.
+	/// error, yielding a more accurate result than an un-fused multiply-add.
 	///
-	/// Using `mul_add` can be more performant than an unfused multiply-add if
+	/// Using `mul_add` can be more performant than an un-fused multiply-add if
 	/// the target architecture has a dedicated `fma` CPU instruction.
 	#[cfg(feature = "std")]
 	fn mul_add(self, a: Self, b: Self) -> Self;
@@ -1216,87 +1283,149 @@ pub trait IsFloat:
 }
 
 /// Declare that a type is exactly eight bits wide.
-pub trait Is8: IsNumber {}
+pub trait Is8: Numeric {}
 
 /// Declare that a type is exactly sixteen bits wide.
-pub trait Is16: IsNumber {}
+pub trait Is16: Numeric {}
 
 /// Declare that a type is exactly thirty-two bits wide.
-pub trait Is32: IsNumber {}
+pub trait Is32: Numeric {}
 
 /// Declare that a type is exactly sixty-four bits wide.
-pub trait Is64: IsNumber {}
+pub trait Is64: Numeric {}
 
 /// Declare that a type is exactly one hundred twenty-eight bits wide.
-pub trait Is128: IsNumber {}
+pub trait Is128: Numeric {}
 
 /// Declare that a type is eight or more bits wide.
-pub trait AtLeast8: IsNumber {}
+pub trait AtLeast8: Numeric {}
 
 /// Declare that a type is sixteen or more bits wide.
-pub trait AtLeast16: IsNumber {}
+pub trait AtLeast16: Numeric {}
 
 /// Declare that a type is thirty-two or more bits wide.
-pub trait AtLeast32: IsNumber {}
+pub trait AtLeast32: Numeric {}
 
 /// Declare that a type is sixty-four or more bits wide.
-pub trait AtLeast64: IsNumber {}
+pub trait AtLeast64: Numeric {}
 
 /// Declare that a type is one hundred twenty-eight or more bits wide.
-pub trait AtLeast128: IsNumber {}
+pub trait AtLeast128: Numeric {}
 
 /// Declare that a type is eight or fewer bits wide.
-pub trait AtMost8: IsNumber {}
+pub trait AtMost8: Numeric {}
 
 /// Declare that a type is sixteen or fewer bits wide.
-pub trait AtMost16: IsNumber {}
+pub trait AtMost16: Numeric {}
 
 /// Declare that a type is thirty-two or fewer bits wide.
-pub trait AtMost32: IsNumber {}
+pub trait AtMost32: Numeric {}
 
 /// Declare that a type is sixty-four or fewer bits wide.
-pub trait AtMost64: IsNumber {}
+pub trait AtMost64: Numeric {}
 
 /// Declare that a type is one hundred twenty-eight or fewer bits wide.
-pub trait AtMost128: IsNumber {}
+pub trait AtMost128: Numeric {}
 
 macro_rules! func {
 	( $name:ident ( self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		fn $name ( self $(, $arg : $t )* ) $( -> $ret )? { <Self>:: $name ( self $(, $arg )* )}
+		fn $name ( self $(, $arg : $t )* ) $( -> $ret )?
+		{ <Self>:: $name ( self $(, $arg )* )}
 	};
 	( $name:ident ( &self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		fn $name ( &self $(, $arg : $t )* ) $( -> $ret )? { <Self>:: $name ( &self $(, $arg )* )}
+		fn $name ( &self $(, $arg : $t )* ) $( -> $ret )?
+		{ <Self>:: $name ( &self $(, $arg )* )}
 	};
 	( $name:ident ( &mut self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		fn $name ( &mut self $(, $arg : $t )* ) $( -> $ret )? { <Self>:: $name ( &mut self $(, $arg )* )}
+		fn $name ( &mut self $(, $arg : $t )* ) $( -> $ret )?
+		{ <Self>:: $name ( &mut self $(, $arg )* )}
 	};
 	( $name:ident ( $($arg:ident : $t:ty),* ) $( -> $ret:ty )? ) => {
-		fn $name ( $($arg : $t ),* ) $( -> $ret )? { <Self>:: $name ( $( $arg ),* )}
+		fn $name ( $($arg : $t ),* ) $( -> $ret )?
+		{ <Self>:: $name ( $( $arg ),* )}
 	};
 }
 
 macro_rules! stdfunc {
 	( $name:ident ( self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
 		#[cfg(feature = "std")]
-		fn $name ( self $(, $arg : $t )* ) $( -> $ret )? { <Self>:: $name ( self $(, $arg )* )}
+		fn $name ( self $(, $arg : $t )* ) $( -> $ret )?
+		{ <Self>:: $name ( self $(, $arg )* )}
 	};
 	( $name:ident ( &self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
 		#[cfg(feature = "std")]
-		fn $name ( &self $(, $arg : $t )* ) $( -> $ret )? { <Self>:: $name ( &self $(, $arg )* )}
+		fn $name ( &self $(, $arg : $t )* ) $( -> $ret )?
+		{ <Self>:: $name ( &self $(, $arg )* )}
 	};
 	( $name:ident ( &mut self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
 		#[cfg(feature = "std")]
-		fn $name ( &mut self $(, $arg : $t )* ) $( -> $ret )? { <Self>:: $name ( &mut self $(, $arg )* )}
+		fn $name ( &mut self $(, $arg : $t )* ) $( -> $ret )?
+		{ <Self>:: $name ( &mut self $(, $arg )* )}
 	};
 	( $name:ident ( $($arg:ident : $t:ty),* ) $( -> $ret:ty )? ) => {
 		#[cfg(feature = "std")]
-		fn $name ( $($arg : $t ),* ) $( -> $ret )? { <Self>:: $name ( $( $arg ),* )}
+		fn $name ( $($arg : $t ),* ) $( -> $ret )?
+		{ <Self>:: $name ( $( $arg ),* )}
 	};
 }
 
 macro_rules! impl_for {
-	( IsNumber => $($t:ty),+ $(,)? ) => { $(
-		impl IsNumber for $t {
+	( Fundamental => $($t:ty => $is_zero:expr),+ $(,)? ) => { $(
+		impl Fundamental for $t {
+			#[inline(always)]
+			#[allow(clippy::redundant_closure_call)]
+			fn as_bool(self) -> bool { ($is_zero)(self) }
+
+			#[inline(always)]
+			fn as_char(self) -> Option<char> {
+				core::char::from_u32(self as u32)
+			}
+
+			#[inline(always)]
+			fn as_i8(self) -> i8 { self as i8 }
+
+			#[inline(always)]
+			fn as_i16(self) -> i16 { self as i16 }
+
+			#[inline(always)]
+			fn as_i32(self) -> i32 { self as i32 }
+
+			#[inline(always)]
+			fn as_i64(self) -> i64 { self as i64 }
+
+			#[inline(always)]
+			fn as_i128(self) -> i128 { self as i128 }
+
+			#[inline(always)]
+			fn as_isize(self) -> isize { self as isize }
+
+			#[inline(always)]
+			fn as_u8(self) -> u8 { self as u8 }
+
+			#[inline(always)]
+			fn as_u16(self) -> u16 { self as u16 }
+
+			#[inline(always)]
+			fn as_u32(self) -> u32 { self as u32 }
+
+			#[inline(always)]
+			fn as_u64(self) -> u64 { self as u64 }
+
+			#[inline(always)]
+			fn as_u128(self) ->u128 { self as u128 }
+
+			#[inline(always)]
+			fn as_usize(self) -> usize { self as usize }
+
+			#[inline(always)]
+			fn as_f32(self) -> f32 { self as u32 as f32 }
+
+			#[inline(always)]
+			fn as_f64(self) -> f64 { self as u64 as f64 }
+		}
+	)+ };
+	( Numeric => $($t:ty),+ $(,)? ) => { $(
+		impl Numeric for $t {
 			type Bytes = [u8; core::mem::size_of::<Self>()];
 
 			//  This can be replaced with the `::BITS` inherent once it
@@ -1311,9 +1440,10 @@ macro_rules! impl_for {
 			func!(from_ne_bytes(bytes: Self::Bytes) -> Self);
 		}
 	)+ };
-	( IsInteger => $($t:ty),+ $(,)? ) => { $(
-		impl IsInteger for $t {
+	( Integral => $($t:ty),+ $(,)? ) => { $(
+		impl Integral for $t {
 			const ZERO: Self = 0;
+			const ONE: Self = 1;
 			const MIN: Self = <Self>::min_value();
 			const MAX: Self = <Self>::max_value();
 
@@ -1376,8 +1506,8 @@ macro_rules! impl_for {
 			func!(rem_euclid(self, rhs: Self) -> Self);
 		}
 	)+ };
-	( IsSigned => $($t:ty),+ $(,)? ) => { $(
-		impl IsSigned for $t {
+	( Signed => $($t:ty),+ $(,)? ) => { $(
+		impl Signed for $t {
 			func!(checked_abs(self) -> Option<Self>);
 			func!(wrapping_abs(self) -> Self);
 			func!(overflowing_abs(self) -> (Self, bool));
@@ -1387,15 +1517,15 @@ macro_rules! impl_for {
 			func!(is_negative(self) -> bool);
 		}
 	)+ };
-	( IsUnsigned => $($t:ty),+ $(,)? ) => { $(
-		impl IsUnsigned for $t {
+	( Unsigned => $($t:ty),+ $(,)? ) => { $(
+		impl Unsigned for $t {
 			func!(is_power_of_two(self) -> bool);
 			func!(next_power_of_two(self) -> Self);
 			func!(checked_next_power_of_two(self) -> Option<Self>);
 		}
 	)+ };
-	( IsFloat => $($t:ident | $u:ty),+ $(,)? ) => { $(
-		impl IsFloat for $t {
+	( Floating => $($t:ident | $u:ty),+ $(,)? ) => { $(
+		impl Floating for $t {
 			type Raw = $u;
 
 			const RADIX: u32 = core::$t::RADIX;
@@ -1490,11 +1620,29 @@ macro_rules! impl_for {
 	)+ };
 }
 
-impl_for!(IsNumber => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
-impl_for!(IsInteger => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
-impl_for!(IsSigned => i8, i16, i32, i64, i128, isize);
-impl_for!(IsUnsigned => u8, u16, u32, u64, u128, usize);
-impl_for!(IsFloat => f32 | u32, f64 | u64);
+impl_for!(Fundamental =>
+	bool => |this: bool| !this,
+	char => |this| this != '\0',
+	i8 => |this| this != 0,
+	i16 => |this| this != 0,
+	i32 => |this| this != 0,
+	i64 => |this| this != 0,
+	i128 => |this| this != 0,
+	isize => |this| this != 0,
+	u8 => |this| this != 0,
+	u16 => |this| this != 0,
+	u32 => |this| this != 0,
+	u64 => |this| this != 0,
+	u128 => |this| this != 0,
+	usize => |this| this != 0,
+	f32 => |this: f32| (-Self::EPSILON ..= Self::EPSILON).contains(&this),
+	f64 => |this: f64| (-Self::EPSILON ..= Self::EPSILON).contains(&this),
+);
+impl_for!(Numeric => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+impl_for!(Integral => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+impl_for!(Signed => i8, i16, i32, i64, i128, isize);
+impl_for!(Unsigned => u8, u16, u32, u64, u128, usize);
+impl_for!(Floating => f32 | u32, f64 | u64);
 
 impl_for!(Is8 => i8, u8);
 impl_for!(Is16 => i16, u16);
@@ -1547,20 +1695,23 @@ mod tests {
 	use super::*;
 	use static_assertions::*;
 
-	assert_impl_all!(i8: IsInteger, IsSigned, Is8);
-	assert_impl_all!(i16: IsInteger, IsSigned, Is16);
-	assert_impl_all!(i32: IsInteger, IsSigned, Is32);
-	assert_impl_all!(i64: IsInteger, IsSigned, Is64);
-	assert_impl_all!(i128: IsInteger, IsSigned, Is128);
-	assert_impl_all!(isize: IsInteger, IsSigned);
+	assert_impl_all!(bool: Fundamental);
+	assert_impl_all!(char: Fundamental);
 
-	assert_impl_all!(u8: IsInteger, IsUnsigned, Is8);
-	assert_impl_all!(u16: IsInteger, IsUnsigned, Is16);
-	assert_impl_all!(u32: IsInteger, IsUnsigned, Is32);
-	assert_impl_all!(u64: IsInteger, IsUnsigned, Is64);
-	assert_impl_all!(u128: IsInteger, IsUnsigned, Is128);
-	assert_impl_all!(usize: IsInteger, IsUnsigned);
+	assert_impl_all!(i8: Integral, Signed, Is8);
+	assert_impl_all!(i16: Integral, Signed, Is16);
+	assert_impl_all!(i32: Integral, Signed, Is32);
+	assert_impl_all!(i64: Integral, Signed, Is64);
+	assert_impl_all!(i128: Integral, Signed, Is128);
+	assert_impl_all!(isize: Integral, Signed);
 
-	assert_impl_all!(f32: IsFloat, Is32);
-	assert_impl_all!(f64: IsFloat, Is64);
+	assert_impl_all!(u8: Integral, Unsigned, Is8);
+	assert_impl_all!(u16: Integral, Unsigned, Is16);
+	assert_impl_all!(u32: Integral, Unsigned, Is32);
+	assert_impl_all!(u64: Integral, Unsigned, Is64);
+	assert_impl_all!(u128: Integral, Unsigned, Is128);
+	assert_impl_all!(usize: Integral, Unsigned);
+
+	assert_impl_all!(f32: Floating, Is32);
+	assert_impl_all!(f64: Floating, Is64);
 }

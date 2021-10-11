@@ -4,6 +4,18 @@ All notable changes will be documented in this file.
 
 This document is written according to the [Keep a Changelog][kac] style.
 
+## 2.0
+
+The `Is{Characteristic}` traits were renamed to be adjectives, rather than
+statements of being, to fit the Rust style.
+
+In addition, a new baseline trait, `Fundamental`, generalizes over **all** the
+Rust fundamentals, including `bool` and `char`, and provides conversions between
+them. The remaining trait hierarchy, as implemented only on the numerics,
+remains in place.
+
+This does not lift the MSRV; 1.46 is still supported.
+
 ## 1.2.1, 1.1.1, and 1.0.1
 
 `IsNumber` now requires a `'static` lifetime. This is not a breaking change, as

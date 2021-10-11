@@ -11,11 +11,11 @@ build:
 
 # Checks the library for syntax and HIR errors.
 check:
-	cargo check --no-default-features
-	cargo check --all-features
+	cargo clippy --no-default-features
+	cargo clippy --all-features
 
 # Runs all of the recipes necessary for pre-publish.
-checkout: format check lint build doc test package
+checkout: format check build doc test package
 
 # Continually runs the development routines.
 ci:
@@ -26,7 +26,7 @@ clean:
 	cargo clean
 
 # Runs the development routines.
-dev: format lint doc test
+dev: format doc test
 
 # Builds the crate documentation.
 doc:
@@ -34,12 +34,7 @@ doc:
 
 # Runs the formatter on all Rust files.
 format:
-	cargo +nightly fmt -- --config-path rustfmt-nightly.toml
-
-# Runs the linter.
-lint: check
-	cargo clippy --no-default-features
-	cargo clippy --all-features
+	cargo +nightly fmt
 
 # Continually runs some recipe from this file.
 loop action:
@@ -57,6 +52,6 @@ publish: checkout
 	cargo publish
 
 # Runs the test suites.
-test: check lint
+test: check
 	cargo test --no-default-features
 	cargo test --all-features

@@ -1,8 +1,8 @@
-use funty::IsUnsigned;
+use funty::Unsigned;
 
 #[test]
 fn readme() {
-	fn invert_some_bits<T: IsUnsigned>(num: T) -> T {
+	fn invert_some_bits<T: Unsigned>(num: T) -> T {
 		let mask = (!T::ZERO).wrapping_shl(2).wrapping_shr(4).wrapping_shl(2);
 		num ^ mask
 	}
