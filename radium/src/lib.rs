@@ -133,6 +133,7 @@ pub trait Radium {
     /// See also: [`AtomicUsize::compare_and_swap`].
     ///
     /// [`AtomicUsize::compare_and_swap`]: core::sync::atomic::AtomicUsize::compare_and_swap
+    #[deprecated = "Use `compare_exchange` or `compare_exchange_weak` instead"]
     fn compare_and_swap(&self, current: Self::Item, new: Self::Item, order: Ordering)
         -> Self::Item;
 
@@ -387,6 +388,7 @@ macro_rules! radium {
         }
 
         #[inline]
+        #[allow(deprecated)]
         fn compare_and_swap(&self, current: $base, new: $base, order: Ordering) -> $base {
             self.compare_and_swap(current, new, order)
         }
