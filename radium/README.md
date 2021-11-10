@@ -25,6 +25,17 @@ on atomic availability.
 
 This crate is `#![no_std]`-compatible, and uses no non-core types.
 
+## Versioning
+
+Each change of supported target architecture will result in a new minor version.
+Furthermore, `radium` is by definition attached to the Rust standard library.
+As the atomic API evolves, `radium` will follow it. MSRV raising is always at
+least a minor-version increase.
+
+If you require a backport of architecture discovery to older Rust versions,
+please file an issue. We will happily backport upon request, but we do not
+proactively guarantee support for compilers older than ~six months.
+
 ## Target Architecture Compatibility
 
 Because the compiler does not expose this information to libraries, `radium`
@@ -37,6 +48,14 @@ If `radium` does not work for your architecture, please update the build script
 to handle your target string and submit a pull request. We write the build
 script on an as-needed basis; it is not proactively filled with all of the
 information listed in the compiler.
+
+**NOTE**: The build script receives information through two variables: `TARGET`
+and `CARGO_CFG_TARGET_ARCH`. The latter is equivalent to the value in
+`cfg!(target_arch =)`; however, this value **does not** contain enough
+information to fully disambiguate the target. The build script attempts to do
+rudimentary parsing of the `env!(TARGET)` string; if this does not work for your
+target, consider using the `TARGET_ARCH` matcher, or match on the full `TARGET`
+string rather than the parse attempt.
 
 ---
 
