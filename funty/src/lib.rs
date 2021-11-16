@@ -1,6 +1,6 @@
 /*! `fun`damental `ty`pes
 
-This crate provides trait unification of the Rust fundamental numbers, allowing
+This crate provides trait unification of the Rust fundamental items, allowing
 users to declare the behavior they want from a number without committing to a
 single particular numeric type.
 
@@ -14,7 +14,7 @@ implemented by all the numeric fundamentals, and includes only the traits that
 they all implement. This is an already-large amount: basic memory management,
 comparison, rendering, and numeric arithmetic.
 
-The numbers are then split into [`Integral`] and [`Floating`]. The former fills
+The numbers are then split into [`Floating`] and [`Integral`]. The former fills
 out the API of `f32` and `f64`, while the latter covers all of the `iN` and `uN`
 numbers.
 
@@ -1327,46 +1327,62 @@ pub trait AtMost64: Numeric {}
 /// Declare that a type is one hundred twenty-eight or fewer bits wide.
 pub trait AtMost128: Numeric {}
 
+/// Creates new wrapper functions that forward to inherents of the same name and
+/// signature.
 macro_rules! func {
-	( $name:ident ( self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		fn $name ( self $(, $arg : $t )* ) $( -> $ret )?
-		{ <Self>:: $name ( self $(, $arg )* )}
-	};
-	( $name:ident ( &self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		fn $name ( &self $(, $arg : $t )* ) $( -> $ret )?
-		{ <Self>:: $name ( &self $(, $arg )* )}
-	};
-	( $name:ident ( &mut self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		fn $name ( &mut self $(, $arg : $t )* ) $( -> $ret )?
-		{ <Self>:: $name ( &mut self $(, $arg )* )}
-	};
-	( $name:ident ( $($arg:ident : $t:ty),* ) $( -> $ret:ty )? ) => {
-		fn $name ( $($arg : $t ),* ) $( -> $ret )?
-		{ <Self>:: $name ( $( $arg ),* )}
-	};
-}
+	(
+		$(@$std:literal)?
+		$name:ident (self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
+		$($tt:tt)*
+	) => {
+		$(#[cfg(feature = $std)])?
+		fn $name(self$(, $arg: $t)*) $(-> $ret)?
+		{
+			<Self>::$name(self$(, $arg)*)
+		}
 
-macro_rules! stdfunc {
-	( $name:ident ( self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		#[cfg(feature = "std")]
-		fn $name ( self $(, $arg : $t )* ) $( -> $ret )?
-		{ <Self>:: $name ( self $(, $arg )* )}
+		func!($($tt)*);
 	};
-	( $name:ident ( &self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		#[cfg(feature = "std")]
-		fn $name ( &self $(, $arg : $t )* ) $( -> $ret )?
-		{ <Self>:: $name ( &self $(, $arg )* )}
+	(
+		$(@$std:literal)?
+		$name:ident(&self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
+		$($tt:tt)*
+	) => {
+		$(#[cfg(feature = $std)])?
+		fn $name(&self$(, $arg: $t)*) $(-> $ret)?
+		{
+			<Self>::$name(&self$(, $arg )*)
+		}
+
+		func!($($tt)*);
 	};
-	( $name:ident ( &mut self $(, $arg:ident : $t:ty)* ) $( -> $ret:ty )? ) => {
-		#[cfg(feature = "std")]
-		fn $name ( &mut self $(, $arg : $t )* ) $( -> $ret )?
-		{ <Self>:: $name ( &mut self $(, $arg )* )}
+	(
+		$(@$std:literal)?
+		$name:ident(&mut self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
+		$($tt:tt)*
+	) => {
+		$(#[cfg(feature = $std)])?
+		fn $name(&mut self$(, $arg: $t)*) $(-> $ret)?
+		{
+			<Self>::$name(&mut self$(, $arg)*)
+		}
+
+		func!($($tt)*);
 	};
-	( $name:ident ( $($arg:ident : $t:ty),* ) $( -> $ret:ty )? ) => {
-		#[cfg(feature = "std")]
-		fn $name ( $($arg : $t ),* ) $( -> $ret )?
-		{ <Self>:: $name ( $( $arg ),* )}
+	(
+		$(@$std:literal)?
+		$name:ident($($arg:ident: $t:ty),* $(,)?) $(-> $ret:ty)?;
+		$($tt:tt)*
+	) => {
+		$(#[cfg(feature = $std)])?
+		fn $name($($arg: $t),*) $(-> $ret)?
+		{
+			<Self>::$name($($arg),*)
+		}
+
+		func!($($tt)*);
 	};
+	() => {};
 }
 
 macro_rules! impl_for {
@@ -1432,12 +1448,14 @@ macro_rules! impl_for {
 			//  stabilizes in the standard library.
 			const BITS: u32 = core::mem::size_of::<Self>() as u32 * 8;
 
-			func!(to_be_bytes(self) -> Self::Bytes);
-			func!(to_le_bytes(self) -> Self::Bytes);
-			func!(to_ne_bytes(self) -> Self::Bytes);
-			func!(from_be_bytes(bytes: Self::Bytes) -> Self);
-			func!(from_le_bytes(bytes: Self::Bytes) -> Self);
-			func!(from_ne_bytes(bytes: Self::Bytes) -> Self);
+			func! {
+				to_be_bytes(self) -> Self::Bytes;
+				to_le_bytes(self) -> Self::Bytes;
+				to_ne_bytes(self) -> Self::Bytes;
+				from_be_bytes(bytes: Self::Bytes) -> Self;
+				from_le_bytes(bytes: Self::Bytes) -> Self;
+				from_ne_bytes(bytes: Self::Bytes) -> Self;
+			}
 		}
 	)+ };
 	( Integral => $($t:ty),+ $(,)? ) => { $(
@@ -1447,81 +1465,87 @@ macro_rules! impl_for {
 			const MIN: Self = <Self>::min_value();
 			const MAX: Self = <Self>::max_value();
 
-			func!(min_value() -> Self);
-			func!(max_value() -> Self);
-			func!(from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>);
-			func!(count_ones(self) -> u32);
-			func!(count_zeros(self) -> u32);
-			func!(leading_zeros(self) -> u32);
-			func!(trailing_zeros(self) -> u32);
-			func!(leading_ones(self) -> u32);
-			func!(trailing_ones(self) -> u32);
-			func!(rotate_left(self, n: u32) -> Self);
-			func!(rotate_right(self, n: u32) -> Self);
-			func!(swap_bytes(self) -> Self);
-			func!(reverse_bits(self) -> Self);
-			func!(from_be(self) -> Self);
-			func!(from_le(self) -> Self);
-			func!(to_be(self) -> Self);
-			func!(to_le(self) -> Self);
-			func!(checked_add(self, rhs: Self) -> Option<Self>);
-			func!(checked_sub(self, rhs: Self) -> Option<Self>);
-			func!(checked_mul(self, rhs: Self) -> Option<Self>);
-			func!(checked_div(self, rhs: Self) -> Option<Self>);
-			func!(checked_div_euclid(self, rhs: Self) -> Option<Self>);
-			func!(checked_rem(self, rhs: Self) -> Option<Self>);
-			func!(checked_rem_euclid(self, rhs: Self) -> Option<Self>);
-			func!(checked_neg(self) -> Option<Self>);
-			func!(checked_shl(self, rhs: u32) -> Option<Self>);
-			func!(checked_shr(self, rhs: u32) -> Option<Self>);
-			func!(checked_pow(self, rhs: u32) -> Option<Self>);
-			func!(saturating_add(self, rhs: Self) -> Self);
-			func!(saturating_sub(self, rhs: Self) -> Self);
-			func!(saturating_mul(self, rhs: Self) -> Self);
-			func!(saturating_pow(self, rhs: u32) -> Self);
-			func!(wrapping_add(self, rhs: Self) -> Self);
-			func!(wrapping_sub(self, rhs: Self) -> Self);
-			func!(wrapping_mul(self, rhs: Self) -> Self);
-			func!(wrapping_div(self, rhs: Self) -> Self);
-			func!(wrapping_div_euclid(self, rhs: Self) -> Self);
-			func!(wrapping_rem(self, rhs: Self) -> Self);
-			func!(wrapping_rem_euclid(self, rhs: Self) -> Self);
-			func!(wrapping_neg(self) -> Self);
-			func!(wrapping_shl(self, rhs: u32) -> Self);
-			func!(wrapping_shr(self, rhs: u32) -> Self);
-			func!(wrapping_pow(self, rhs: u32) -> Self);
-			func!(overflowing_add(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_sub(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_mul(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_div(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_div_euclid(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_rem(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_rem_euclid(self, rhs: Self) -> (Self, bool));
-			func!(overflowing_neg(self) -> (Self, bool));
-			func!(overflowing_shl(self, rhs: u32) -> (Self, bool));
-			func!(overflowing_shr(self, rhs: u32) -> (Self, bool));
-			func!(overflowing_pow(self, rhs: u32) -> (Self, bool));
-			func!(pow(self, rhs: u32) -> Self);
-			func!(div_euclid(self, rhs: Self) -> Self);
-			func!(rem_euclid(self, rhs: Self) -> Self);
+			func! {
+				min_value() -> Self;
+				max_value() -> Self;
+				from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>;
+				count_ones(self) -> u32;
+				count_zeros(self) -> u32;
+				leading_zeros(self) -> u32;
+				trailing_zeros(self) -> u32;
+				leading_ones(self) -> u32;
+				trailing_ones(self) -> u32;
+				rotate_left(self, n: u32) -> Self;
+				rotate_right(self, n: u32) -> Self;
+				swap_bytes(self) -> Self;
+				reverse_bits(self) -> Self;
+				from_be(self) -> Self;
+				from_le(self) -> Self;
+				to_be(self) -> Self;
+				to_le(self) -> Self;
+				checked_add(self, rhs: Self) -> Option<Self>;
+				checked_sub(self, rhs: Self) -> Option<Self>;
+				checked_mul(self, rhs: Self) -> Option<Self>;
+				checked_div(self, rhs: Self) -> Option<Self>;
+				checked_div_euclid(self, rhs: Self) -> Option<Self>;
+				checked_rem(self, rhs: Self) -> Option<Self>;
+				checked_rem_euclid(self, rhs: Self) -> Option<Self>;
+				checked_neg(self) -> Option<Self>;
+				checked_shl(self, rhs: u32) -> Option<Self>;
+				checked_shr(self, rhs: u32) -> Option<Self>;
+				checked_pow(self, rhs: u32) -> Option<Self>;
+				saturating_add(self, rhs: Self) -> Self;
+				saturating_sub(self, rhs: Self) -> Self;
+				saturating_mul(self, rhs: Self) -> Self;
+				saturating_pow(self, rhs: u32) -> Self;
+				wrapping_add(self, rhs: Self) -> Self;
+				wrapping_sub(self, rhs: Self) -> Self;
+				wrapping_mul(self, rhs: Self) -> Self;
+				wrapping_div(self, rhs: Self) -> Self;
+				wrapping_div_euclid(self, rhs: Self) -> Self;
+				wrapping_rem(self, rhs: Self) -> Self;
+				wrapping_rem_euclid(self, rhs: Self) -> Self;
+				wrapping_neg(self) -> Self;
+				wrapping_shl(self, rhs: u32) -> Self;
+				wrapping_shr(self, rhs: u32) -> Self;
+				wrapping_pow(self, rhs: u32) -> Self;
+				overflowing_add(self, rhs: Self) -> (Self, bool);
+				overflowing_sub(self, rhs: Self) -> (Self, bool);
+				overflowing_mul(self, rhs: Self) -> (Self, bool);
+				overflowing_div(self, rhs: Self) -> (Self, bool);
+				overflowing_div_euclid(self, rhs: Self) -> (Self, bool);
+				overflowing_rem(self, rhs: Self) -> (Self, bool);
+				overflowing_rem_euclid(self, rhs: Self) -> (Self, bool);
+				overflowing_neg(self) -> (Self, bool);
+				overflowing_shl(self, rhs: u32) -> (Self, bool);
+				overflowing_shr(self, rhs: u32) -> (Self, bool);
+				overflowing_pow(self, rhs: u32) -> (Self, bool);
+				pow(self, rhs: u32) -> Self;
+				div_euclid(self, rhs: Self) -> Self;
+				rem_euclid(self, rhs: Self) -> Self;
+			}
 		}
 	)+ };
 	( Signed => $($t:ty),+ $(,)? ) => { $(
 		impl Signed for $t {
-			func!(checked_abs(self) -> Option<Self>);
-			func!(wrapping_abs(self) -> Self);
-			func!(overflowing_abs(self) -> (Self, bool));
-			func!(abs(self) -> Self);
-			func!(signum(self) -> Self);
-			func!(is_positive(self) -> bool);
-			func!(is_negative(self) -> bool);
+			func! {
+				checked_abs(self) -> Option<Self>;
+				wrapping_abs(self) -> Self;
+				overflowing_abs(self) -> (Self, bool);
+				abs(self) -> Self;
+				signum(self) -> Self;
+				is_positive(self) -> bool;
+				is_negative(self) -> bool;
+			}
 		}
 	)+ };
 	( Unsigned => $($t:ty),+ $(,)? ) => { $(
 		impl Unsigned for $t {
-			func!(is_power_of_two(self) -> bool);
-			func!(next_power_of_two(self) -> Self);
-			func!(checked_next_power_of_two(self) -> Option<Self>);
+			func! {
+				is_power_of_two(self) -> bool;
+				next_power_of_two(self) -> Self;
+				checked_next_power_of_two(self) -> Option<Self>;
+			}
 		}
 	)+ };
 	( Floating => $($t:ident | $u:ty),+ $(,)? ) => { $(
@@ -1560,59 +1584,60 @@ macro_rules! impl_for {
 			const LN_2: Self = core::$t::consts::LN_2;
 			const LN_10: Self = core::$t::consts::LN_10;
 
-			stdfunc!(floor(self) -> Self);
-			stdfunc!(ceil(self) -> Self);
-			stdfunc!(round(self) -> Self);
-			stdfunc!(trunc(self) -> Self);
-			stdfunc!(fract(self) -> Self);
-			stdfunc!(abs(self) -> Self);
-			stdfunc!(signum(self) -> Self);
-			stdfunc!(copysign(self, sign: Self) -> Self);
-			stdfunc!(mul_add(self, a: Self, b: Self) -> Self);
-			stdfunc!(div_euclid(self, rhs: Self) -> Self);
-			stdfunc!(rem_euclid(self, rhs: Self) -> Self);
-			stdfunc!(powi(self, n: i32) -> Self);
-			stdfunc!(powf(self, n: Self) -> Self);
-			stdfunc!(sqrt(self) -> Self);
-			stdfunc!(exp(self) -> Self);
-			stdfunc!(exp2(self) -> Self);
-			stdfunc!(ln(self) -> Self);
-			stdfunc!(log(self, base: Self) -> Self);
-			stdfunc!(log2(self) -> Self);
-			stdfunc!(log10(self) -> Self);
-			stdfunc!(cbrt(self) -> Self);
-			stdfunc!(hypot(self, other: Self) -> Self);
-			stdfunc!(sin(self) -> Self);
-			stdfunc!(cos(self) -> Self);
-			stdfunc!(tan(self) -> Self);
-			stdfunc!(asin(self) -> Self);
-			stdfunc!(acos(self) -> Self);
-			stdfunc!(atan(self) -> Self);
-			stdfunc!(atan2(self, other: Self) -> Self);
-			stdfunc!(sin_cos(self) -> (Self, Self));
-			stdfunc!(exp_m1(self) -> Self);
-			stdfunc!(ln_1p(self) -> Self);
-			stdfunc!(sinh(self) -> Self);
-			stdfunc!(cosh(self) -> Self);
-			stdfunc!(tanh(self) -> Self);
-			stdfunc!(asinh(self) -> Self);
-			stdfunc!(acosh(self) -> Self);
-			stdfunc!(atanh(self) -> Self);
-
-			func!(is_nan(self) -> bool);
-			func!(is_infinite(self) -> bool);
-			func!(is_finite(self) -> bool);
-			func!(is_normal(self) -> bool);
-			func!(classify(self) -> FpCategory);
-			func!(is_sign_positive(self) -> bool);
-			func!(is_sign_negative(self) -> bool);
-			func!(recip(self) -> Self);
-			func!(to_degrees(self) -> Self);
-			func!(to_radians(self) -> Self);
-			func!(max(self, other: Self) -> Self);
-			func!(min(self, other: Self) -> Self);
-			func!(to_bits(self) -> Self::Raw);
-			func!(from_bits(bits: Self::Raw) -> Self);
+			func! {
+				@"std" floor(self) -> Self;
+				@"std" ceil(self) -> Self;
+				@"std" round(self) -> Self;
+				@"std" trunc(self) -> Self;
+				@"std" fract(self) -> Self;
+				@"std" abs(self) -> Self;
+				@"std" signum(self) -> Self;
+				@"std" copysign(self, sign: Self) -> Self;
+				@"std" mul_add(self, a: Self, b: Self) -> Self;
+				@"std" div_euclid(self, rhs: Self) -> Self;
+				@"std" rem_euclid(self, rhs: Self) -> Self;
+				@"std" powi(self, n: i32) -> Self;
+				@"std" powf(self, n: Self) -> Self;
+				@"std" sqrt(self) -> Self;
+				@"std" exp(self) -> Self;
+				@"std" exp2(self) -> Self;
+				@"std" ln(self) -> Self;
+				@"std" log(self, base: Self) -> Self;
+				@"std" log2(self) -> Self;
+				@"std" log10(self) -> Self;
+				@"std" cbrt(self) -> Self;
+				@"std" hypot(self, other: Self) -> Self;
+				@"std" sin(self) -> Self;
+				@"std" cos(self) -> Self;
+				@"std" tan(self) -> Self;
+				@"std" asin(self) -> Self;
+				@"std" acos(self) -> Self;
+				@"std" atan(self) -> Self;
+				@"std" atan2(self, other: Self) -> Self;
+				@"std" sin_cos(self) -> (Self, Self);
+				@"std" exp_m1(self) -> Self;
+				@"std" ln_1p(self) -> Self;
+				@"std" sinh(self) -> Self;
+				@"std" cosh(self) -> Self;
+				@"std" tanh(self) -> Self;
+				@"std" asinh(self) -> Self;
+				@"std" acosh(self) -> Self;
+				@"std" atanh(self) -> Self;
+				is_nan(self) -> bool;
+				is_infinite(self) -> bool;
+				is_finite(self) -> bool;
+				is_normal(self) -> bool;
+				classify(self) -> FpCategory;
+				is_sign_positive(self) -> bool;
+				is_sign_negative(self) -> bool;
+				recip(self) -> Self;
+				to_degrees(self) -> Self;
+				to_radians(self) -> Self;
+				max(self, other: Self) -> Self;
+				min(self, other: Self) -> Self;
+				to_bits(self) -> Self::Raw;
+				from_bits(bits: Self::Raw) -> Self;
+			}
 		}
 	)+ };
 	( $which:ty => $($t:ty),+ $(,)? ) => { $(
