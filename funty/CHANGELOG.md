@@ -14,7 +14,8 @@ Rust fundamentals, including `bool` and `char`, and provides conversions between
 them. The remaining trait hierarchy, as implemented only on the numerics,
 remains in place.
 
-This does not lift the MSRV; 1.46 is still supported.
+The MSRV is now 1.53, with introduction of the `::BITS` constant in the standard
+library.
 
 ## 1.2.1, 1.1.1, and 1.0.1
 

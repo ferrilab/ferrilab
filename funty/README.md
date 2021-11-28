@@ -17,12 +17,15 @@ Prior to `1.0`, Rust had traits for the numeric primitive types to permit code
 to generalize over which specific type it accepted. This was never stabilized,
 and eventually removed.
 
-This library reïnstates these traits.
+This library provides a set of traits that abstract over common API surfaces of
+the primitive types, so that properties such as numeric behavior, register
+width, or signedness can be represented in the trait system.
 
 ## MSRV
 
-Each minor version of this library raises the MSRV to the current stable at the
-time of release.
+The current MSRV is 1.53, which added the `::BITS` constant. This version may
+raise in **minor** versions. You should use `"^X.Y"` constraints when depending
+on this crate.
 
 ## Functionality Traits
 

@@ -195,9 +195,6 @@ pub trait Numeric:
 	/// The `[u8; N]` byte array that stores values of `Self`.
 	type Bytes;
 
-	/// The size of this numeric type in bits.
-	const BITS: u32;
-
 	/// Return the memory representation of this number as a byte array in
 	/// big-endian (network) byte order.
 	fn to_be_bytes(self) -> Self::Bytes;
@@ -388,6 +385,9 @@ pub trait Integral:
 
 	/// The type’s maximum value.
 	const MAX: Self;
+
+	/// The size of this type in bits.
+	const BITS: u32;
 
 	/// Returns the smallest value that can be represented by this integer type.
 	fn min_value() -> Self;
@@ -1327,8 +1327,8 @@ pub trait AtMost64: Numeric {}
 /// Declare that a type is one hundred twenty-eight or fewer bits wide.
 pub trait AtMost128: Numeric {}
 
-/// Creates new wrapper functions that forward to inherents of the same name and
-/// signature.
+/// Creates new wrapper functions that forward to inherent items of the same
+/// name and signature.
 macro_rules! func {
 	(
 		$(@$std:literal)?
@@ -1444,10 +1444,6 @@ macro_rules! impl_for {
 		impl Numeric for $t {
 			type Bytes = [u8; core::mem::size_of::<Self>()];
 
-			//  This can be replaced with the `::BITS` inherent once it
-			//  stabilizes in the standard library.
-			const BITS: u32 = core::mem::size_of::<Self>() as u32 * 8;
-
 			func! {
 				to_be_bytes(self) -> Self::Bytes;
 				to_le_bytes(self) -> Self::Bytes;
@@ -1464,6 +1460,8 @@ macro_rules! impl_for {
 			const ONE: Self = 1;
 			const MIN: Self = <Self>::min_value();
 			const MAX: Self = <Self>::max_value();
+
+			const BITS: u32 = <Self>::BITS;
 
 			func! {
 				min_value() -> Self;
