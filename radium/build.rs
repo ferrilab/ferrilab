@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // If for some reason splitting fails, use the whole target string.
-    let tgt_arch = target.split("-").next().unwrap_or(&target);
+    let tgt_arch = target.split('-').next().unwrap_or(&target);
     // Additionally, the `cfg!(target_arch)` value may be of use for some
     // targets. Note that it does **not** carry distinguishing information in
     // all cases! `armv5te` and `armv7` targets are both
