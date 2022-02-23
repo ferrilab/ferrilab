@@ -79,30 +79,25 @@ pub trait Numeric:
 	/// The `[u8; N]` byte array that stores values of `Self`.
 	type Bytes;
 
-	/// Return the memory representation of this number as a byte array in
-	/// big-endian (network) byte order.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.to_be_bytes>.
 	fn to_be_bytes(self) -> Self::Bytes;
 
-	/// Return the memory representation of this number as a byte array in
-	/// little-endian byte order.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.to_le_bytes>.
 	fn to_le_bytes(self) -> Self::Bytes;
 
-	/// Return the memory representation of this number as a byte array in
-	/// native byte order.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.to_ne_bytes>.
 	fn to_ne_bytes(self) -> Self::Bytes;
 
-	/// Create a numeric value from its representation as a byte array in big
-	/// endian.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.from_be_bytes>.
 	fn from_be_bytes(bytes: Self::Bytes) -> Self;
 
-	/// Create a numeric value from its representation as a byte array in little
-	/// endian.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.from_le_bytes>.
 	fn from_le_bytes(bytes: Self::Bytes) -> Self;
 
-	/// Create a numeric value from its memory representation as a byte array in
-	/// native endianness.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.from_ne_bytes>.
 	fn from_ne_bytes(bytes: Self::Bytes) -> Self;
 }
+
 /// Declare that a type is a fixed-point integer.
 ///
 /// This unifies all of the signed and unsigned integral types.
@@ -263,502 +258,226 @@ pub trait Integral:
 	/// The type’s step value.
 	const ONE: Self;
 
-	/// The type’s minimum value. This is zero for unsigned integers.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#associatedconstant.MIN>.
 	const MIN: Self;
 
-	/// The type’s maximum value.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#associatedconstant.MAX>.
 	const MAX: Self;
 
-	/// The size of this type in bits.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#associatedconstant.BITS>.
 	const BITS: u32;
 
-	/// Returns the smallest value that can be represented by this integer type.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.min_value>.
+	#[deprecated = "Deprecating in a future Rust version: replaced by the `MIN` \
+	                associated constant on this type"]
 	fn min_value() -> Self;
 
-	/// Returns the largest value that can be represented by this integer type.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.max_value>.
+	#[deprecated = "Deprecating in a future Rust version: replaced by the `MAX` \
+	                associated constant on this type"]
 	fn max_value() -> Self;
 
-	/// Converts a string slice in a given base to an integer.
-	///
-	/// The string is expected to be an optional `+` or `-` sign followed by
-	/// digits. Leading and trailing whitespace represent an error. Digits are a
-	/// subset of these characters, depending on `radix`:
-	///
-	/// - `0-9`
-	/// - `a-z`
-	/// - `A-Z`
-	///
-	/// # Panics
-	///
-	/// This function panics if `radix` is not in the range from 2 to 36.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.from_str_radix>.
 	fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>;
 
-	/// Returns the number of ones in the binary representation of `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.count_ones>.
 	fn count_ones(self) -> u32;
 
-	/// Returns the number of zeros in the binary representation of `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.count_zeros>.
 	fn count_zeros(self) -> u32;
 
-	/// Returns the number of leading zeros in the binary representation of
-	/// `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.leading_zeros>.
 	fn leading_zeros(self) -> u32;
 
-	/// Returns the number of trailing zeros in the binary representation of
-	/// `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.trailing_zeros>.
 	fn trailing_zeros(self) -> u32;
 
-	/// Returns the number of leading ones in the binary representation of
-	/// `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.leading_ones>.
 	fn leading_ones(self) -> u32;
 
-	/// Returns the number of trailing ones in the binary representation of
-	/// `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.trailing_ones>.
 	fn trailing_ones(self) -> u32;
 
-	/// Shifts the bits to the left by a specified amount, `n`, wrapping the
-	/// truncated bits to the end of the resulting integer.
-	///
-	/// Please note this isn’t the same operation as the `<<` shifting operator!
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.rotate_left>.
 	fn rotate_left(self, n: u32) -> Self;
 
-	/// Shifts the bits to the right by a specified amount, `n`, wrapping the
-	/// truncated bits to the beginning of the resulting integer.
-	///
-	/// Please note this isn’t the same operation as the `>>` shifting operator!
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.rotate_right>.
 	fn rotate_right(self, n: u32) -> Self;
 
-	/// Reverses the byte order of the integer.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.swap_bytes>.
 	fn swap_bytes(self) -> Self;
 
-	/// Reverses the bit pattern of the integer.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.reverse_bits>.
 	fn reverse_bits(self) -> Self;
 
-	/// Converts an integer from big endian to the target’s endianness.
-	///
-	/// On big endian this is a no-op. On little endian the bytes are swapped.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.from_be>.
 	#[allow(clippy::wrong_self_convention)]
 	fn from_be(self) -> Self;
 
-	/// Converts an integer frm little endian to the target’s endianness.
-	///
-	/// On little endian this is a no-op. On big endian the bytes are swapped.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.from_le>.
 	#[allow(clippy::wrong_self_convention)]
 	fn from_le(self) -> Self;
 
-	/// Converts `self` to big endian from the target’s endianness.
-	///
-	/// On big endian this is a no-op. On little endian the bytes are swapped.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.to_be>.
 	fn to_be(self) -> Self;
 
-	/// Converts `self` to little endian from the target’s endianness.
-	///
-	/// On little endian this is a no-op. On big endian the bytes are swapped.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.to_le>.
 	fn to_le(self) -> Self;
 
-	/// Checked integer addition. Computes `self + rhs`, returning `None` if
-	/// overflow occurred.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_add>.
 	fn checked_add(self, rhs: Self) -> Option<Self>;
 
-	/// Checked integer subtraction. Computes `self - rhs`, returning `None` if
-	/// overflow occurred.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_sub>.
 	fn checked_sub(self, rhs: Self) -> Option<Self>;
 
-	/// Checked integer multiplication. Computes `self * rhs`, returning `None`
-	/// if overflow occurred.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_mul>.
 	fn checked_mul(self, rhs: Self) -> Option<Self>;
 
-	/// Checked integer division. Computes `self / rhs`, returning `None` if
-	/// `rhs == 0` or the division results in overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_div>.
 	fn checked_div(self, rhs: Self) -> Option<Self>;
 
-	/// Checked Euclidean division. Computes `self.div_euclid(rhs)`, returning
-	/// `None` if `rhs == 0` or the division results in overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_div_euclid>.
 	fn checked_div_euclid(self, rhs: Self) -> Option<Self>;
 
-	/// Checked integer remainder. Computes `self % rhs`, returning `None` if
-	/// `rhs == 0` or the division results in overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_rem>.
 	fn checked_rem(self, rhs: Self) -> Option<Self>;
 
-	/// Checked Euclidean remainder. Computes `self.rem_euclid(rhs)`, returning
-	/// `None` if `rhs == 0` or the division results in overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_rem_euclid>.
 	fn checked_rem_euclid(self, rhs: Self) -> Option<Self>;
 
-	/// Checked negation. Computes `-self`, returning `None` if `self == MIN`.
-	///
-	/// Note that negating any positive integer will overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_neg>.
 	fn checked_neg(self) -> Option<Self>;
 
-	/// Checked shift left. Computes `self << rhs`, returning `None` if `rhs` is
-	/// larger than or equal to the number of bits in `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_shl>.
 	fn checked_shl(self, rhs: u32) -> Option<Self>;
 
-	/// Checked shift right. Computes `self >> rhs`, returning `None` if `rhs`
-	/// is larger than or equal to the number of bits in `self`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_shr>.
 	fn checked_shr(self, rhs: u32) -> Option<Self>;
 
-	/// Checked exponentiation. Computes `self.pow(exp)`, returning `None` if
-	/// overflow occurred.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_pow>.
 	fn checked_pow(self, rhs: u32) -> Option<Self>;
 
-	/// Saturating integer addition. Computes `self + rhs`, saturating at the
-	/// numeric bounds instead of overflowing.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.saturating_add>.
 	fn saturating_add(self, rhs: Self) -> Self;
 
-	/// Saturating integer subtraction. Computes `self - rhs`, saturating at the
-	/// numeric bounds instead of overflowing.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.saturating_sub>.
 	fn saturating_sub(self, rhs: Self) -> Self;
 
-	/// Saturating integer multiplication. Computes `self * rhs`, saturating at
-	/// the numeric bounds instead of overflowing.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.saturating_mul>.
 	fn saturating_mul(self, rhs: Self) -> Self;
 
-	/// Saturating integer exponentiation. Computes `self.pow(exp)`, saturating
-	/// at the numeric bounds instead of overflowing.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.saturating_pow>.
 	fn saturating_pow(self, rhs: u32) -> Self;
 
-	/// Wrapping (modular) addition. Computes `self + rhs`, wrapping around at
-	/// the boundary of the type.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_add>.
 	fn wrapping_add(self, rhs: Self) -> Self;
 
-	/// Wrapping (modular) subtraction. Computes `self - rhs`, wrapping around
-	/// at the boundary of the type.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_sub>.
 	fn wrapping_sub(self, rhs: Self) -> Self;
 
-	/// Wrapping (modular) multiplication. Computes `self * rhs`, wrapping
-	/// around at the boundary of the type.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_mul>.
 	fn wrapping_mul(self, rhs: Self) -> Self;
 
-	/// Wrapping (modular) division. Computes `self / rhs`, wrapping around at
-	/// the boundary of the type.
-	///
-	/// # Signed Integers
-	///
-	/// The only case where such wrapping can occur is when one divides
-	/// `MIN / -1` on a signed type (where `MIN` is the negative minimal value
-	/// for the type); this is equivalent to `-MIN`, a positive value that is
-	/// too large to represent in the type. In such a case, this function
-	/// returns `MIN` itself.
-	///
-	/// # Unsigned Integers
-	///
-	/// Wrapping (modular) division. Computes `self / rhs`. Wrapped division on
-	/// unsigned types is just normal division. There’s no way wrapping could
-	/// ever happen. This function exists, so that all operations are accounted
-	/// for in the wrapping operations.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_div>.
 	fn wrapping_div(self, rhs: Self) -> Self;
 
-	/// Wrapping Euclidean division. Computes `self.div_euclid(rhs)`, wrapping
-	/// around at the boundary of the type.
-	///
-	/// # Signed Types
-	///
-	/// Wrapping will only occur in `MIN / -1` on a signed type (where `MIN` is
-	/// the negative minimal value for the type). This is equivalent to `-MIN`,
-	/// a positive value that is too large to represent in the type. In this
-	/// case, this method returns `MIN` itself.
-	///
-	/// # Unsigned Types
-	///
-	/// Wrapped division on unsigned types is just normal division. There’s no
-	/// way wrapping could ever happen. This function exists, so that all
-	/// operations are accounted for in the wrapping operations. Since, for the
-	/// positive integers, all common definitions of division are equal, this is
-	/// exactly equal to `self.wrapping_div(rhs)`.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_div_euclid>.
 	fn wrapping_div_euclid(self, rhs: Self) -> Self;
 
-	/// Wrapping (modular) remainder. Computes `self % rhs`, wrapping around at
-	/// the boundary of the type.
-	///
-	/// # Signed Integers
-	///
-	/// Such wrap-around never actually occurs mathematically; implementation
-	/// artifacts make `x % y` invalid for `MIN / -1` on a signed type (where
-	/// `MIN` is the negative minimal value). In such a case, this function
-	/// returns `0`.
-	///
-	/// # Unsigned Integers
-	///
-	/// Wrapped remainder calculation on unsigned types is just the regular
-	/// remainder calculation. There’s no way wrapping could ever happen. This
-	/// function exists, so that all operations are accounted for in the
-	/// wrapping operations.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_rem>.
 	fn wrapping_rem(self, rhs: Self) -> Self;
 
-	/// Wrapping Euclidean remainder. Computes `self.rem_euclid(rhs)`, wrapping
-	/// around at the boundary of the type.
-	///
-	/// # Signed Integers
-	///
-	/// Wrapping will only occur in `MIN % -1` on a signed type (where `MIN` is
-	/// the negative minimal value for the type). In this case, this method
-	/// returns 0.
-	///
-	/// # Unsigned Integers
-	///
-	/// Wrapped modulo calculation on unsigned types is just the regular
-	/// remainder calculation. There’s no way wrapping could ever happen. This
-	/// function exists, so that all operations are accounted for in the
-	/// wrapping operations. Since, for the positive integers, all common
-	/// definitions of division are equal, this is exactly equal to
-	/// `self.wrapping_rem(rhs)`.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_rem_euclid>.
 	fn wrapping_rem_euclid(self, rhs: Self) -> Self;
 
-	/// Wrapping (modular) negation. Computes `-self`, wrapping around at the
-	/// boundary of the type.
-	///
-	/// # Signed Integers
-	///
-	/// The  only case where such wrapping can occur is when one negates `MIN`
-	/// on a signed type (where `MIN` is the negative minimal value for the
-	/// type); this is a positive value that is too large to represent in the
-	/// type. In such a case, this function returns `MIN` itself.
-	///
-	/// # Unsigned Integers
-	///
-	/// Since unsigned types do not have negative equivalents all applications
-	/// of this function will wrap (except for `-0`). For values smaller than
-	/// the corresponding signed type’s maximum the result is the same as
-	/// casting the corresponding signed value. Any larger values are equivalent
-	/// to `MAX + 1 - (val - MAX - 1)` where `MAX` is the corresponding signed
-	/// type’s maximum.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_neg>.
 	fn wrapping_neg(self) -> Self;
 
-	/// Panic-free bitwise shift-left; yields `self << mask(rhs)`, where `mask`
-	/// removes any high-order bits of `rhs` that would cause the shift to
-	/// exceed the bit-width of the type.
-	///
-	/// Note that this is not the same as a rotate-left; the RHS of a wrapping
-	/// shift-left is restricted to the range of the type, rather than the bits
-	/// shifted out of the LHS being returned to the other end. The primitive
-	/// integer types all implement a `rotate_left` function, which may be what
-	/// you want instead.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_shl>.
 	fn wrapping_shl(self, rhs: u32) -> Self;
 
-	/// Panic-free bitwise shift-right; yields `self >> mask(rhs)`, where `mask`
-	/// removes any high-order bits of `rhs` that would cause the shift to
-	/// exceed the bit-width of the type.
-	///
-	/// Note that this is not the same as a rotate-right; the RHS of a wrapping
-	/// shift-right is restricted to the range of the type, rather than the bits
-	/// shifted out of the LHS being returned to the other end. The primitive
-	/// integer types all implement a `rotate_right` function, which may be what
-	/// you want instead.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_shr>.
 	fn wrapping_shr(self, rhs: u32) -> Self;
 
-	/// Wrapping (modular) exponentiation. Computes `self.pow(exp)`, wrapping
-	/// around at the boundary of the type.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_pow>.
 	fn wrapping_pow(self, rhs: u32) -> Self;
 
-	/// Calculates `self + rhs`
-	///
-	/// Returns a tuple of the addition along with a boolean indicating whether
-	/// an arithmetic overflow would occur. If an overflow would have occurred
-	/// then the wrapped value is returned.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_add>.
 	fn overflowing_add(self, rhs: Self) -> (Self, bool);
 
-	/// Calculates `self - rhs`
-	///
-	/// Returns a tuple of the subtraction along with a boolean indicating
-	/// whether an arithmetic overflow would occur. If an overflow would have
-	/// occurred then the wrapped value is returned.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_sub>.
 	fn overflowing_sub(self, rhs: Self) -> (Self, bool);
 
-	/// Calculates the multiplication of `self` and `rhs`.
-	///
-	/// Returns a tuple of the multiplication along with a boolean indicating
-	/// whether an arithmetic overflow would occur. If an overflow would have
-	/// occurred then the wrapped value is returned.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_mul>.
 	fn overflowing_mul(self, rhs: Self) -> (Self, bool);
 
-	/// Calculates the divisor when `self` is divided by `rhs`.
-	///
-	/// Returns a tuple of the divisor along with a boolean indicating whether
-	/// an arithmetic overflow would occur. If an overflow would occur then self
-	/// is returned.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_div>.
 	fn overflowing_div(self, rhs: Self) -> (Self, bool);
 
-	/// Calculates the quotient of Euclidean division `self.div_euclid(rhs)`.
-	///
-	/// Returns a tuple of the divisor along with a boolean indicating whether
-	/// an arithmetic overflow would occur. If an overflow would occur then self
-	/// is returned.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_div_euclid>.
 	fn overflowing_div_euclid(self, rhs: Self) -> (Self, bool);
 
-	/// Calculates the remainder when `self` is divided by `rhs`.
-	///
-	/// Returns a tuple of the remainder after dividing along with a boolean
-	/// indicating whether an arithmetic overflow would occur. If an overflow
-	/// would occur then 0 is returned.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_rem>.
 	fn overflowing_rem(self, rhs: Self) -> (Self, bool);
 
-	/// Overflowing Euclidean remainder. Calculates `self.rem_euclid(rhs)`.
-	///
-	/// Returns a tuple of the remainder after dividing along with a boolean
-	/// indicating whether an arithmetic overflow would occur. If an overflow
-	/// would occur then 0 is returned.
-	///
-	/// # Panics
-	///
-	/// This function will panic if rhs is 0.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_rem_euclid>.
 	fn overflowing_rem_euclid(self, rhs: Self) -> (Self, bool);
 
-	/// Negates self, overflowing if this is equal to the minimum value.
-	///
-	/// Returns a tuple of the negated version of self along with a boolean
-	/// indicating whether an overflow happened. If `self` is the minimum value
-	/// (e.g., `i32::MIN` for values of type `i32`), then the minimum value will
-	/// be returned again and `true` will be returned for an overflow happening.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_neg>.
 	fn overflowing_neg(self) -> (Self, bool);
 
-	/// Shifts self left by `rhs` bits.
-	///
-	/// Returns a tuple of the shifted version of self along with a boolean
-	/// indicating whether the shift value was larger than or equal to the
-	/// number of bits. If the shift value is too large, then value is masked
-	/// (N-1) where N is the number of bits, and this value is then used to
-	/// perform the shift.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_shl>.
 	fn overflowing_shl(self, rhs: u32) -> (Self, bool);
 
-	/// Shifts self right by `rhs` bits.
-	///
-	/// Returns a tuple of the shifted version of self along with a boolean
-	/// indicating whether the shift value was larger than or equal to the
-	/// number of bits. If the shift value is too large, then value is masked
-	/// (N-1) where N is the number of bits, and this value is then used to
-	/// perform the shift.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_shr>.
 	fn overflowing_shr(self, rhs: u32) -> (Self, bool);
 
-	/// Raises self to the power of `exp`, using exponentiation by squaring.
-	///
-	/// Returns a tuple of the exponentiation along with a bool indicating
-	/// whether an overflow happened.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_pow>.
 	fn overflowing_pow(self, rhs: u32) -> (Self, bool);
 
-	/// Raises self to the power of `exp`, using exponentiation by squaring.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.pow>.
 	fn pow(self, rhs: u32) -> Self;
 
-	/// Calculates the quotient of Euclidean division of self by rhs.
-	///
-	/// This computes the integer `n` such that
-	/// `self = n * rhs + self.rem_euclid(rhs)`, with
-	/// `0 <= self.rem_euclid(rhs) < rhs`.
-	///
-	/// In other words, the result is `self / rhs` rounded to the integer `n`
-	/// such that `self >= n * rhs`. If `self > 0`, this is equal to round
-	/// towards zero (the default in Rust); if `self < 0`, this is equal to
-	/// round towards +/- infinity.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0 or the division results in
-	/// overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.div_euclid>.
 	fn div_euclid(self, rhs: Self) -> Self;
 
-	/// Calculates the least nonnegative remainder of `self (mod rhs)`.
-	///
-	/// This is done as if by the Euclidean division algorithm -- given
-	/// `r = self.rem_euclid(rhs)`, `self = rhs * self.div_euclid(rhs) + r`, and
-	/// `0 <= r < abs(rhs)`.
-	///
-	/// # Panics
-	///
-	/// This function will panic if `rhs` is 0 or the division results in
-	/// overflow.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.rem_euclid>.
 	fn rem_euclid(self, rhs: Self) -> Self;
 }
 
 /// Declare that a type is a signed integer.
 pub trait Signed: Integral + Neg {
-	/// Checked absolute value. Computes `self.abs()`, returning `None` if
-	/// `self == MIN`.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.checked_abs>.
 	fn checked_abs(self) -> Option<Self>;
 
-	/// Wrapping (modular) absolute value. Computes `self.abs()`, wrapping
-	/// around at the boundary of the type.
-	///
-	/// The only case where such wrapping can occur is when one takes the
-	/// absolute value of the negative minimal value for the type this is a
-	/// positive value that is too large to represent in the type. In such a
-	/// case, this function returns `MIN` itself.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.wrapping_abs>.
 	fn wrapping_abs(self) -> Self;
 
-	/// Computes the absolute value of `self`.
-	///
-	/// Returns a tuple of the absolute version of self along with a boolean
-	/// indicating whether an overflow happened. If self is the minimum value
-	/// (e.g., iN::MIN for values of type iN), then the minimum value will be
-	/// returned again and true will be returned for an overflow happening.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.overflowing_abs>.
 	fn overflowing_abs(self) -> (Self, bool);
 
-	//// Computes the absolute value of self.
-	///
-	/// # Overflow behavior
-	///
-	/// The absolute value of `iN::min_value()` cannot be represented as an
-	/// `iN`, and attempting to calculate it will cause an overflow. This means
-	/// that code in debug mode will trigger a panic on this case and optimized
-	/// code will return `iN::min_value()` without a panic.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.abs>.
 	fn abs(self) -> Self;
 
-	/// Returns a number representing sign of `self`.
-	///
-	/// - `0` if the number is zero
-	/// - `1` if the number is positive
-	/// - `-1` if the number is negative
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.signum>.
 	fn signum(self) -> Self;
 
-	/// Returns `true` if `self` is positive and `false` if the number is zero
-	/// or negative.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.is_positive>.
 	fn is_positive(self) -> bool;
 
-	/// Returns `true` if `self` is negative and `false` if the number is zero
-	/// or positive.
+	/// See <https://doc.rust-lang.org/std/primitive.i32.html#method.is_negative>.
 	fn is_negative(self) -> bool;
 }
 
 /// Declare that a type is an unsigned integer.
 pub trait Unsigned: Integral {
-	/// Returns `true` if and only if `self == 2^k` for some `k`.
+	/// See <https://doc.rust-lang.org/std/primitive.u32.html#method.is_power_of_two>.
 	fn is_power_of_two(self) -> bool;
 
-	/// Returns the smallest power of two greater than or equal to `self`.
-	///
-	/// When return value overflows (i.e., `self > (1 << (N-1))` for type `uN`),
-	/// it panics in debug mode and return value is wrapped to 0 in release mode
-	/// (the only situation in which method can return 0).
+	/// See <https://doc.rust-lang.org/std/primitive.u32.html#method.next_power_of_tow>.
 	fn next_power_of_two(self) -> Self;
 
-	/// Returns the smallest power of two greater than or equal to `n`. If the
-	/// next power of two is greater than the type’s maximum value, `None` is
-	/// returned, otherwise the power of two is wrapped in `Some`.
+	/// See <https://doc.rust-lang.org/std/primitive.u32.html#method.checked_next_power_of_two>.
 	fn checked_next_power_of_two(self) -> Option<Self>;
 }
 
@@ -777,390 +496,290 @@ pub trait Floating:
 	/// The unsigned integer type of the same width as `Self`.
 	type Raw: Unsigned;
 
-	/// The radix or base of the internal representation of `f32`.
+	/// See <https://doc.rust-lang.org/std/primitive.i64.html#associatedconstant.RADIX>.
 	const RADIX: u32;
 
-	/// Number of significant digits in base 2.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MANTISSA_DIGITS>.
 	const MANTISSA_DIGITS: u32;
 
-	/// Approximate number of significant digits in base 10.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.DIGITS>.
 	const DIGITS: u32;
 
-	/// [Machine epsilon] value for `f32`.
-	///
-	/// This is the difference between `1.0` and the next larger representable
-	/// number.
-	///
-	/// [Machine epsilon]: https://en.wikipedia.org/wiki/Machine_epsilon
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.EPSILON>.
 	const EPSILON: Self;
 
-	/// Smallest finite `f32` value.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MIN>.
 	const MIN: Self;
 
-	/// Smallest positive normal `f32` value.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MIN_POSITIVE>.
 	const MIN_POSITIVE: Self;
 
-	/// Largest finite `f32` value.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MAX>.
 	const MAX: Self;
 
-	/// One greater than the minimum possible normal power of 2 exponent.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MIN_EXP>.
 	const MIN_EXP: i32;
 
-	/// Maximum possible power of 2 exponent.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MAX_EXP>.
 	const MAX_EXP: i32;
 
-	/// Minimum possible normal power of 10 exponent.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MIN_10_EXP>.
 	const MIN_10_EXP: i32;
 
-	/// Maximum possible power of 10 exponent.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.MAX_10_EXP>.
 	const MAX_10_EXP: i32;
 
-	/// Not a Number (NaN).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.NAN>.
 	const NAN: Self;
 
-	/// Infinity (∞).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.INFINITY>.
 	const INFINITY: Self;
 
-	/// Negative infinity (−∞).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.NEG_INFINITY>.
 	const NEG_INFINITY: Self;
 
-	/// Archimedes' constant (π)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.PI>.
 	const PI: Self;
 
-	/// π/2
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_PI_2>.
 	const FRAC_PI_2: Self;
 
-	/// π/3
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_PI_3>.
 	const FRAC_PI_3: Self;
 
-	/// π/4
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_PI_4>.
 	const FRAC_PI_4: Self;
 
-	/// π/6
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_PI_6>.
 	const FRAC_PI_6: Self;
 
-	/// π/8
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_PI_8>.
 	const FRAC_PI_8: Self;
 
-	/// 1/π
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_1_PI>.
 	const FRAC_1_PI: Self;
 
-	/// 2/π
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_2_PI>.
 	const FRAC_2_PI: Self;
 
-	/// 2/sqrt(π)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_2_SQRT_PI>.
 	const FRAC_2_SQRT_PI: Self;
 
-	/// sqrt(2)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.SQRT_2>.
 	const SQRT_2: Self;
 
-	/// 1/sqrt(2)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.FRAC_1_SQRT_2>.
 	const FRAC_1_SQRT_2: Self;
 
-	/// Euler’s number (e)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.E>.
 	const E: Self;
 
-	/// log<sub>2</sub>(e)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.LOG2_E>.
 	const LOG2_E: Self;
 
-	/// log<sub>10</sub>(e)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.LOG10_E>.
 	const LOG10_E: Self;
 
-	/// ln(2)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.LN_2>.
 	const LN_2: Self;
 
-	/// ln(10)
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#associated_constant.LN_10>.
 	const LN_10: Self;
 
 	//  These functions are only available in `std`, because they rely on the
 	//  system math library `libm` which is not provided by `core`.
 
-	/// Returns the largest integer less than or equal to a number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.floor>.
 	#[cfg(feature = "std")]
 	fn floor(self) -> Self;
 
-	/// Returns the smallest integer greater than or equal to a number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.ceil>.
 	#[cfg(feature = "std")]
 	fn ceil(self) -> Self;
 
-	/// Returns the nearest integer to a number. Round half-way cases away from
-	/// `0.0`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.round>.
 	#[cfg(feature = "std")]
 	fn round(self) -> Self;
 
-	/// Returns the integer part of a number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.trunc>.
 	#[cfg(feature = "std")]
 	fn trunc(self) -> Self;
 
-	/// Returns the fractional part of a number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.fract>.
 	#[cfg(feature = "std")]
 	fn fract(self) -> Self;
 
-	/// Computes the absolute value of `self`. Returns `NAN` if the
-	/// number is `NAN`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.abs>.
 	#[cfg(feature = "std")]
 	fn abs(self) -> Self;
 
-	/// Returns a number that represents the sign of `self`.
-	///
-	/// - `1.0` if the number is positive, `+0.0` or `INFINITY`
-	/// - `-1.0` if the number is negative, `-0.0` or `NEG_INFINITY`
-	/// - `NAN` if the number is `NAN`
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.signum>.
 	#[cfg(feature = "std")]
 	fn signum(self) -> Self;
 
-	/// Returns a number composed of the magnitude of `self` and the sign of
-	/// `sign`.
-	///
-	/// Equal to `self` if the sign of `self` and `sign` are the same, otherwise
-	/// equal to `-self`. If `self` is a `NAN`, then a `NAN` with the sign of
-	/// `sign` is returned.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.copysign>.
 	#[cfg(feature = "std")]
 	fn copysign(self, sign: Self) -> Self;
 
-	/// Fused multiply-add. Computes `(self * a) + b` with only one rounding
-	/// error, yielding a more accurate result than an un-fused multiply-add.
-	///
-	/// Using `mul_add` can be more performant than an un-fused multiply-add if
-	/// the target architecture has a dedicated `fma` CPU instruction.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.mul_add>.
 	#[cfg(feature = "std")]
 	fn mul_add(self, a: Self, b: Self) -> Self;
 
-	/// Calculates Euclidean division, the matching method for `rem_euclid`.
-	///
-	/// This computes the integer `n` such that
-	/// `self = n * rhs + self.rem_euclid(rhs)`.
-	/// In other words, the result is `self / rhs` rounded to the integer `n`
-	/// such that `self >= n * rhs`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.div_euclid>.
 	#[cfg(feature = "std")]
 	fn div_euclid(self, rhs: Self) -> Self;
 
-	/// Calculates the least nonnegative remainder of `self (mod rhs)`.
-	///
-	/// In particular, the return value `r` satisfies `0.0 <= r < rhs.abs()` in
-	/// most cases. However, due to a floating point round-off error it can
-	/// result in `r == rhs.abs()`, violating the mathematical definition, if
-	/// `self` is much smaller than `rhs.abs()` in magnitude and `self < 0.0`.
-	/// This result is not an element of the function's codomain, but it is the
-	/// closest floating point number in the real numbers and thus fulfills the
-	/// property `self == self.div_euclid(rhs) * rhs + self.rem_euclid(rhs)`
-	/// approximatively.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.rem_euclid>.
 	#[cfg(feature = "std")]
 	fn rem_euclid(self, rhs: Self) -> Self;
 
-	/// Raises a number to an integer power.
-	///
-	/// Using this function is generally faster than using `powf`
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.powi>.
 	#[cfg(feature = "std")]
 	fn powi(self, n: i32) -> Self;
 
-	/// Raises a number to a floating point power.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.powf>.
 	#[cfg(feature = "std")]
 	fn powf(self, n: Self) -> Self;
 
-	/// Returns the square root of a number.
-	///
-	/// Returns NaN if `self` is a negative number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.sqrt>.
 	#[cfg(feature = "std")]
 	fn sqrt(self) -> Self;
 
-	/// Returns `e^(self)`, (the exponential function).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.exp>.
 	#[cfg(feature = "std")]
 	fn exp(self) -> Self;
 
-	/// Returns `2^(self)`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.exp2>.
 	#[cfg(feature = "std")]
 	fn exp2(self) -> Self;
 
-	/// Returns the natural logarithm of the number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.ln>.
 	#[cfg(feature = "std")]
 	fn ln(self) -> Self;
 
-	/// Returns the logarithm of the number with respect to an arbitrary base.
-	///
-	/// The result may not be correctly rounded owing to implementation details;
-	/// `self.log2()` can produce more accurate results for base 2, and
-	/// `self.log10()` can produce more accurate results for base 10.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.log>.
 	#[cfg(feature = "std")]
 	fn log(self, base: Self) -> Self;
 
-	/// Returns the base 2 logarithm of the number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.log2>.
 	#[cfg(feature = "std")]
 	fn log2(self) -> Self;
 
-	/// Returns the base 10 logarithm of the number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.log10>.
 	#[cfg(feature = "std")]
 	fn log10(self) -> Self;
 
-	/// Returns the cubic root of a number.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.cbrt>.
 	#[cfg(feature = "std")]
 	fn cbrt(self) -> Self;
 
-	/// Computes the sine of a number (in radians).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.hypot>.
 	#[cfg(feature = "std")]
 	fn hypot(self, other: Self) -> Self;
 
-	/// Computes the sine of a number (in radians).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.sin>.
 	#[cfg(feature = "std")]
 	fn sin(self) -> Self;
 
-	/// Computes the cosine of a number (in radians).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.cos>.
 	#[cfg(feature = "std")]
 	fn cos(self) -> Self;
 
-	/// Computes the tangent of a number (in radians).
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.tan>.
 	#[cfg(feature = "std")]
 	fn tan(self) -> Self;
 
-	/// Computes the arcsine of a number. Return value is in radians in the
-	/// range [-pi/2, pi/2] or NaN if the number is outside the range [-1, 1].
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.asin>.
 	#[cfg(feature = "std")]
 	fn asin(self) -> Self;
 
-	/// Computes the arccosine of a number. Return value is in radians in the
-	/// range [0, pi] or NaN if the number is outside the range [-1, 1].
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.acos>.
 	#[cfg(feature = "std")]
 	fn acos(self) -> Self;
 
-	/// Computes the arctangent of a number. Return value is in radians in the
-	/// range [-pi/2, pi/2];
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.atan>.
 	#[cfg(feature = "std")]
 	fn atan(self) -> Self;
 
-	/// Computes the four quadrant arctangent of `self` (`y`) and `other` (`x`)
-	/// in radians.
-	///
-	/// - `x = 0`, `y = 0`: `0`
-	/// - `x >= 0`: `arctan(y/x)` -> `[-pi/2, pi/2]`
-	/// - `y >= 0`: `arctan(y/x) + pi` -> `(pi/2, pi]`
-	/// - `y < 0`: `arctan(y/x) - pi` -> `(-pi, -pi/2)`
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.atan2>.
 	#[cfg(feature = "std")]
 	fn atan2(self, other: Self) -> Self;
 
-	/// Simultaneously computes the sine and cosine of the number, `x`. Returns
-	/// `(sin(x), cos(x))`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.sin_cos>.
 	#[cfg(feature = "std")]
 	fn sin_cos(self) -> (Self, Self);
 
-	/// Returns `e^(self) - 1` in a way that is accurate even if the number is
-	/// close to zero.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.exp_m1>.
 	#[cfg(feature = "std")]
 	fn exp_m1(self) -> Self;
 
-	/// Returns `ln(1+n)` (natural logarithm) more accurately than if the
-	/// operations were performed separately.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.ln_1p>.
 	#[cfg(feature = "std")]
 	fn ln_1p(self) -> Self;
 
-	/// Hyperbolic sine function.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.sinh>.
 	#[cfg(feature = "std")]
 	fn sinh(self) -> Self;
 
-	/// Hyperbolic cosine function.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.cosh>.
 	#[cfg(feature = "std")]
 	fn cosh(self) -> Self;
 
-	/// Hyperbolic tangent function.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.tanh>.
 	#[cfg(feature = "std")]
 	fn tanh(self) -> Self;
 
-	/// Inverse hyperbolic sine function.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.asinh>.
 	#[cfg(feature = "std")]
 	fn asinh(self) -> Self;
 
-	/// Inverse hyperbolic cosine function.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.acosh>.
 	#[cfg(feature = "std")]
 	fn acosh(self) -> Self;
 
-	/// Inverse hyperbolic tangent function.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.atanh>.
 	#[cfg(feature = "std")]
 	fn atanh(self) -> Self;
 
-	/// Returns `true` if this value is `NaN`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.is_nan>.
 	fn is_nan(self) -> bool;
 
-	/// Returns `true` if this value is positive infinity or negative infinity,
-	/// and `false` otherwise.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.is_infinite>.
 	fn is_infinite(self) -> bool;
 
-	/// Returns `true` if this number is neither infinite nor `NaN`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.is_finite>.
 	fn is_finite(self) -> bool;
 
-	/// Returns `true` if the number is neither zero, infinite, [subnormal], or
-	/// `NaN`.
-	///
-	/// [subnormal]: https://en.wixipedia.org/wiki/Denormal_number
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.is_normal>.
 	fn is_normal(self) -> bool;
 
-	/// Returns the floating point category of the number. If only one property
-	/// is going to be tested, it is generally faster to use the specific
-	/// predicate instead.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.classify>.
 	fn classify(self) -> FpCategory;
 
-	/// Returns `true` if `self` has a positive sign, including `+0.0`, `NaN`s
-	/// with positive sign bit and positive infinity.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.is_sign_positive>.
 	fn is_sign_positive(self) -> bool;
 
-	/// Returns `true` if `self` has a negative sign, including `-0.0`, `NaN`s
-	/// with negative sign bit and negative infinity.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.is_sign_negative>.
 	fn is_sign_negative(self) -> bool;
 
-	/// Takes the reciprocal (inverse) of a number, `1/x`.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.recip>.
 	fn recip(self) -> Self;
 
-	/// Converts radians to degrees.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.to_degrees>.
 	fn to_degrees(self) -> Self;
 
-	/// Converts degrees to radians.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.to_radians>.
 	fn to_radians(self) -> Self;
 
-	/// Returns the maximum of the two numbers.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.max>.
 	fn max(self, other: Self) -> Self;
 
-	/// Returns the minimum of the two numbers.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.min>.
 	fn min(self, other: Self) -> Self;
 
-	/// Raw transmutation to `u32`.
-	///
-	/// This is currently identical to `transmute::<f32, u32>(self)` on all
-	/// platforms.
-	///
-	/// See `from_bits` for some discussion of the portability of this operation
-	/// (there are almost no issues).
-	///
-	/// Note that this function is distinct from `as` casting, which attempts to
-	/// preserve the *numeric* value, and not the bitwise value.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.to_bits>.
 	fn to_bits(self) -> Self::Raw;
 
-	/// Raw transmutation from `u32`.
-	///
-	/// This is currently identical to `transmute::<u32, f32>(v)` on all
-	/// platforms. It turns out this is incredibly portable, for two reasons:
-	///
-	/// - Floats and Ints have the same endianness on all supported platforms.
-	/// - IEEE-754 very precisely specifies the bit layout of floats.
-	///
-	/// However there is one caveat: prior to the 2008 version of IEEE-754, how
-	/// to interpret the NaN signaling bit wasn't actually specified. Most
-	/// platforms (notably x86 and ARM) picked the interpretation that was
-	/// ultimately standardized in 2008, but some didn't (notably MIPS). As a
-	/// result, all signaling NaNs on MIPS are quiet NaNs on x86, and
-	/// vice-versa.
-	///
-	/// Rather than trying to preserve signaling-ness cross-platform, this
-	/// implementation favors preserving the exact bits. This means that
-	/// any payloads encoded in NaNs will be preserved even if the result of
-	/// this method is sent over the network from an x86 machine to a MIPS one.
-	///
-	/// If the results of this method are only manipulated by the same
-	/// architecture that produced them, then there is no portability concern.
-	///
-	/// If the input isn't NaN, then there is no portability concern.
-	///
-	/// If you don't care about signalingness (very likely), then there is no
-	/// portability concern.
-	///
-	/// Note that this function is distinct from `as` casting, which attempts to
-	/// preserve the *numeric* value, and not the bitwise value.
+	/// See <https://doc.rust-lang.org/std/primitive.f64.html#method.from_bits>.
 	fn from_bits(bits: Self::Raw) -> Self;
 }

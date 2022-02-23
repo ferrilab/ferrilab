@@ -15,6 +15,7 @@ use core::{
 };
 
 pub mod num;
+
 pub use self::num::{
 	Floating,
 	Integral,
@@ -139,57 +140,90 @@ pub trait AtMost128: Fundamental {}
 /// name and signature.
 macro_rules! func {
 	(
+		$typ:ty =>
 		$(@$std:literal)?
 		$name:ident (self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
 		$($tt:tt)*
 	) => {
+		#[doc = concat!(
+			"See <https://doc.rust-lang.org/std/primitive.",
+			stringify!($typ),
+			".html#method.",
+			stringify!($name),
+			">.",
+		)]
 		$(#[cfg(feature = $std)])?
 		fn $name(self$(, $arg: $t)*) $(-> $ret)?
 		{
 			<Self>::$name(self$(, $arg)*)
 		}
 
-		func!($($tt)*);
+		func!($typ => $($tt)*);
 	};
 	(
+		$typ:ty =>
 		$(@$std:literal)?
 		$name:ident(&self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
 		$($tt:tt)*
 	) => {
+		#[doc = concat!(
+			"See <https://doc.rust-lang.org/std/primitive.",
+			stringify!($typ),
+			".html#method.",
+			stringify!($name),
+			">.",
+		)]
 		$(#[cfg(feature = $std)])?
 		fn $name(&self$(, $arg: $t)*) $(-> $ret)?
 		{
 			<Self>::$name(&self$(, $arg )*)
 		}
 
-		func!($($tt)*);
+		func!($typ => $($tt)*);
 	};
 	(
+		$typ:ty =>
 		$(@$std:literal)?
 		$name:ident(&mut self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
 		$($tt:tt)*
 	) => {
+		#[doc = concat!(
+			"See <https://doc.rust-lang.org/std/primitive.",
+			stringify!($typ),
+			".html#method.",
+			stringify!($name),
+			">.",
+		)]
 		$(#[cfg(feature = $std)])?
 		fn $name(&mut self$(, $arg: $t)*) $(-> $ret)?
 		{
 			<Self>::$name(&mut self$(, $arg)*)
 		}
 
-		func!($($tt)*);
+		func!($typ => $($tt)*);
 	};
 	(
+		$typ:ty =>
 		$(@$std:literal)?
 		$name:ident($($arg:ident: $t:ty),* $(,)?) $(-> $ret:ty)?;
 		$($tt:tt)*
 	) => {
+		#[doc = concat!(
+			"See <https://doc.rust-lang.org/std/primitive.",
+			stringify!($typ),
+			".html#method.",
+			stringify!($name),
+			">.",
+		)]
 		$(#[cfg(feature = $std)])?
 		fn $name($($arg: $t),*) $(-> $ret)?
 		{
 			<Self>::$name($($arg),*)
 		}
 
-		func!($($tt)*);
+		func!($typ => $($tt)*);
 	};
+	($typ:ty =>) => {};
 	() => {};
 }
 
@@ -253,6 +287,7 @@ macro_rules! impl_for {
 			type Bytes = [u8; core::mem::size_of::<Self>()];
 
 			func! {
+				$t =>
 				to_be_bytes(self) -> Self::Bytes;
 				to_le_bytes(self) -> Self::Bytes;
 				to_ne_bytes(self) -> Self::Bytes;
@@ -266,12 +301,30 @@ macro_rules! impl_for {
 		impl Integral for $t {
 			const ZERO: Self = 0;
 			const ONE: Self = 1;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MIN",
+			)]
 			const MIN: Self = <Self>::min_value();
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MAX",
+			)]
 			const MAX: Self = <Self>::max_value();
 
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.BITS",
+			)]
 			const BITS: u32 = <Self>::BITS;
 
 			func! {
+				$t =>
 				min_value() -> Self;
 				max_value() -> Self;
 				from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>;
@@ -335,6 +388,7 @@ macro_rules! impl_for {
 	( Signed => $($t:ty),+ $(,)? ) => { $(
 		impl Signed for $t {
 			func! {
+				$t =>
 				checked_abs(self) -> Option<Self>;
 				wrapping_abs(self) -> Self;
 				overflowing_abs(self) -> (Self, bool);
@@ -348,6 +402,7 @@ macro_rules! impl_for {
 	( Unsigned => $($t:ty),+ $(,)? ) => { $(
 		impl Unsigned for $t {
 			func! {
+				$t =>
 				is_power_of_two(self) -> bool;
 				next_power_of_two(self) -> Self;
 				checked_next_power_of_two(self) -> Option<Self>;
@@ -358,39 +413,218 @@ macro_rules! impl_for {
 		impl Floating for $t {
 			type Raw = $u;
 
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.RADIX",
+			)]
 			const RADIX: u32 = core::$t::RADIX;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MANTISSA_DIGITS",
+			)]
 			const MANTISSA_DIGITS: u32 = core::$t::MANTISSA_DIGITS;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.DIGITS",
+			)]
 			const DIGITS: u32 = core::$t::DIGITS;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.EPSILON",
+			)]
 			const EPSILON: Self = core::$t::EPSILON;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MIN",
+			)]
 			const MIN: Self = core::$t::MIN;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MIN_POSITIVE",
+			)]
 			const MIN_POSITIVE: Self = core::$t::MIN_POSITIVE;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MAX",
+			)]
 			const MAX: Self = core::$t::MAX;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MIN_EXP",
+			)]
 			const MIN_EXP: i32 = core::$t::MIN_EXP;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MAX_EXP",
+			)]
 			const MAX_EXP: i32 = core::$t::MAX_EXP;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MIN_10_EXP",
+			)]
 			const MIN_10_EXP: i32 = core::$t::MIN_10_EXP;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.MAX_10_EXP",
+			)]
 			const MAX_10_EXP: i32 = core::$t::MAX_10_EXP;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.NAN",
+			)]
 			const NAN: Self = core::$t::NAN;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.INFINITY",
+			)]
 			const INFINITY: Self = core::$t::INFINITY;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.NEG_INFINITY",
+			)]
 			const NEG_INFINITY: Self = core::$t::NEG_INFINITY;
 
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.PI",
+			)]
 			const PI: Self = core::$t::consts::PI;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_PI_2",
+			)]
 			const FRAC_PI_2: Self = core::$t::consts::FRAC_PI_2;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_PI_3",
+			)]
 			const FRAC_PI_3: Self = core::$t::consts::FRAC_PI_3;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_PI_4",
+			)]
 			const FRAC_PI_4: Self = core::$t::consts::FRAC_PI_4;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_PI_6",
+			)]
 			const FRAC_PI_6: Self = core::$t::consts::FRAC_PI_6;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_PI_8",
+			)]
 			const FRAC_PI_8: Self = core::$t::consts::FRAC_PI_8;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_1_PI",
+			)]
 			const FRAC_1_PI: Self = core::$t::consts::FRAC_1_PI;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_2_PI",
+			)]
 			const FRAC_2_PI: Self = core::$t::consts::FRAC_2_PI;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_2_SQRT_PI",
+			)]
 			const FRAC_2_SQRT_PI: Self = core::$t::consts::FRAC_2_SQRT_PI;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.SQRT_2",
+			)]
 			const SQRT_2: Self = core::$t::consts::SQRT_2;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.FRAC_1_SQRT_2",
+			)]
 			const FRAC_1_SQRT_2: Self = core::$t::consts::FRAC_1_SQRT_2;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.E",
+			)]
 			const E: Self = core::$t::consts::E;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.LOG2_E",
+			)]
 			const LOG2_E: Self = core::$t::consts::LOG2_E;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.LOG10_E",
+			)]
 			const LOG10_E: Self = core::$t::consts::LOG10_E;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.LN_2",
+			)]
 			const LN_2: Self = core::$t::consts::LN_2;
+
+			#[doc = concat!(
+				"See <https://doc.rust-lang.org/std/primitive.",
+				stringify!($t),
+				".html#associatedconstant.LN_10",
+			)]
 			const LN_10: Self = core::$t::consts::LN_10;
 
 			func! {
+				$t =>
 				@"std" floor(self) -> Self;
 				@"std" ceil(self) -> Self;
 				@"std" round(self) -> Self;
