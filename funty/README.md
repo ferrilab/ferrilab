@@ -23,9 +23,7 @@ width, or signedness can be represented in the trait system.
 
 ## MSRV
 
-The current MSRV is 1.53, which added the `::BITS` constant. This version may
-raise in **minor** versions. You should use `"^X.Y"` constraints when depending
-on this crate.
+The current MSRV is 1.56.
 
 ## Functionality Traits
 
