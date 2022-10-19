@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // both `target_arch = "riscv32", and have no stable `cfg`-discoverable
         // distinction. As such, the non-atomic RISC-V targets must be
         // discovered here.
-        "riscv32i" | "riscv32imc" | "thumbv6m" => atomics = Atomics::NONE,
+        "riscv32i" | "riscv32im" | "riscv32imc" | "thumbv6m" => atomics = Atomics::NONE,
         _ => {}
     }
     #[allow(clippy::match_single_binding, clippy::single_match)]
