@@ -1,78 +1,228 @@
-//! Best-effort atomic types
+//! Type definitions
 //!
-//! This module exports `RadiumType` aliases that map to the `AtomicType` on
-//! targets that have it, or `Cell<type>` on targets that do not. This alias can
-//! be used as a consistent name for crates that need portable names for
-//! non-portable types.
+//! This module provides `RadiumT` aliases that correspond to `AtomicT` from the
+//! standard library, and resolve to `AtomicT` when it exists and `Cell<T>` when
+//! it does not. In addition, newtype structs `Atom<T>` and `Isotope<T>`
+//! correspond to (and contain) `AtomicT` and `RadiumT`, respectively. These
+//! newtypes are designed to be used in cases where you are generic over a
+//! primitive and want to plug it into a shared-mutable wrapper type without
+//! having to specifically name one of the `AtomicT` or `RadiumT` individual
+//! names.
 
-/// Best-effort atomic `bool` type.
-pub type RadiumBool = if_atomic! {
-    if atomic(bool) { core::sync::atomic::AtomicBool }
-    else { core::cell::Cell<bool> }
+#[allow(unused_imports)]
+use core::{
+    cell::Cell,
+    fmt::{self, Debug, Formatter},
+    sync::atomic::*,
 };
 
-/// Best-effort atomic `i8` type.
-pub type RadiumI8 = if_atomic! {
-    if atomic(8) { core::sync::atomic::AtomicI8 }
-    else { core::cell::Cell<i8> }
+use crate::{
+    marker::{Atomic, Nuclear},
+    Radium,
 };
 
-/// Best-effort atomic `u8` type.
-pub type RadiumU8 = if_atomic! {
-    if atomic(8) { core::sync::atomic::AtomicU8 }
-    else { core::cell::Cell<u8> }
-};
+#[repr(transparent)]
+#[doc = include_str!("../doc/atom.md")]
+pub struct Atom<T>
+where
+    T: Atomic,
+    T::Atom: Radium<Item = T>,
+{
+    pub(crate) inner: T::Atom,
+}
 
-/// Best-effort atomic `i16` type.
-pub type RadiumI16 = if_atomic! {
-    if atomic(16) { core::sync::atomic::AtomicI16 }
-    else { core::cell::Cell<i16> }
-};
+impl<T> Debug for Atom<T>
+where
+    T: Atomic,
+    T::Atom: Radium<Item = T> + Debug,
+{
+    #[inline]
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        Debug::fmt(&self.inner, fmt)
+    }
+}
 
-/// Best-effort atomic `u16` type.
-pub type RadiumU16 = if_atomic! {
-    if atomic(16) { core::sync::atomic::AtomicU16 }
-    else { core::cell::Cell<u16> }
-};
+impl<T> Default for Atom<T>
+where
+    T: Atomic,
+    T::Atom: Radium<Item = T> + Default,
+{
+    #[inline]
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
 
-/// Best-effort atomic `i32` type.
-pub type RadiumI32 = if_atomic! {
-    if atomic(32) { core::sync::atomic::AtomicI32 }
-    else { core::cell::Cell<i32> }
-};
+impl<T> From<T> for Atom<T>
+where
+    T: Atomic,
+    T::Atom: Radium<Item = T> + From<T>,
+{
+    #[inline]
+    fn from(val: T) -> Self {
+        Self {
+            inner: From::from(val),
+        }
+    }
+}
 
-/// Best-effort atomic `u32` type.
-pub type RadiumU32 = if_atomic! {
-    if atomic(32) { core::sync::atomic::AtomicU32 }
-    else { core::cell::Cell<u32> }
-};
+#[repr(transparent)]
+#[doc = include_str!("../doc/isotope.md")]
+pub struct Isotope<T>
+where
+    T: Nuclear,
+    T::Nucleus: Radium<Item = T>,
+{
+    pub(crate) inner: T::Nucleus,
+}
 
-/// Best-effort atomic `i64` type.
-pub type RadiumI64 = if_atomic! {
-    if atomic(64) { core::sync::atomic::AtomicI64 }
-    else { core::cell::Cell<i64> }
-};
+impl<T> Debug for Isotope<T>
+where
+    T: Nuclear,
+    T::Nucleus: Radium<Item = T> + Debug,
+{
+    #[inline]
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        Debug::fmt(&self.inner, fmt)
+    }
+}
 
-/// Best-effort atomic `u64` type.
-pub type RadiumU64 = if_atomic! {
-    if atomic(64) { core::sync::atomic::AtomicU64 }
-    else { core::cell::Cell<u64> }
-};
+impl<T> Default for Isotope<T>
+where
+    T: Nuclear,
+    T::Nucleus: Radium<Item = T> + Default,
+{
+    #[inline]
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
 
-/// Best-effort atomic `isize` type.
-pub type RadiumIsize = if_atomic! {
-    if atomic(size) { core::sync::atomic::AtomicIsize }
-    else { core::cell::Cell<isize> }
-};
+impl<T> From<T> for Isotope<T>
+where
+    T: Nuclear,
+    T::Nucleus: Radium<Item = T> + From<T>,
+{
+    #[inline]
+    fn from(val: T) -> Self {
+        Self {
+            inner: From::from(val),
+        }
+    }
+}
 
-/// Best-effort atomic `usize` type.
-pub type RadiumUsize = if_atomic! {
-    if atomic(size) { core::sync::atomic::AtomicUsize }
-    else { core::cell::Cell<usize> }
-};
+/// Creates type aliases that resolve to either `AtomicT` or `Cell<T>` depending
+/// on availability.
+macro_rules! alias {
+    ($($width:expr => { $(
+        $(@<$t:ident>)? $base:ty => $radium:ident => $atom:ident
+    );+ $(;)? })+) => { $( $(
+        // Create a `RadiumT` type alias to either `AtomicT` or `Cell<T>`.
 
-/// Best-effort atomic pointer type.
-pub type RadiumPtr<T> = if_atomic! {
-    if atomic(ptr) { core::sync::atomic::AtomicPtr<T> }
-    else { core::cell::Cell<*mut T> }
-};
+        #[doc = concat!("Best-effort atomicity for `", stringify!($base), "`.")]
+        ///
+        /// This target has the required atomic support.
+        #[cfg(target_has_atomic = $width)]
+        pub type $radium$(<$t>)? = $atom$(<$t>)?;
+
+        #[doc = concat!("Best-effort atomicity for `", stringify!($base), "`.")]
+        ///
+        /// This target does not have the required atomic support, and is
+        /// falling back to `Cell`.
+        #[cfg(not(target_has_atomic = $width))]
+        pub type $radium$(<$t>)? = Cell<$base>;
+
+        // If the atomic variant exists, create `Atom<T>`.
+        #[cfg(target_has_atomic = $width)]
+        impl$(<$t>)? Atomic for $base {
+            type Atom = $atom$(<$t>)?;
+        }
+
+        // Create `Isotope<T>` with the generated alias.
+        impl$(<$t>)? Nuclear for $base {
+            type Nucleus = $radium$(<$t>)?;
+        }
+    )+ )+ };
+}
+
+alias! {
+    "8" => {
+        bool => RadiumBool => AtomicBool;
+        i8 => RadiumI8 => AtomicI8;
+        u8 => RadiumU8 => AtomicU8;
+    }
+    "16" => {
+        i16 => RadiumI16 => AtomicI16;
+        u16 => RadiumU16 => AtomicU16;
+    }
+    "32" => {
+        i32 => RadiumI32 => AtomicI32;
+        u32 => RadiumU32 => AtomicU32;
+    }
+    "64" => {
+        i64 => RadiumI64 => AtomicI64;
+        u64 => RadiumU64 => AtomicU64;
+    }
+    "ptr" => {
+        isize => RadiumIsize => AtomicIsize;
+        usize => RadiumUsize => AtomicUsize;
+        @<T> *mut T => RadiumPtr => AtomicPtr;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::*;
+
+    #[test]
+    fn atom_impls() {
+        #[cfg(target_has_atomic = "8")]
+        {
+            assert_impl_all!(Atom<bool>: Debug, Default, From<bool>);
+            assert_impl_all!(Atom<i8>: Debug, Default, From<i8>);
+            assert_impl_all!(Atom<u8>: Debug, Default, From<u8>);
+        }
+        #[cfg(target_has_atomic = "16")]
+        {
+            assert_impl_all!(Atom<i16>: Debug, Default, From<i16>);
+            assert_impl_all!(Atom<u16>: Debug, Default, From<u16>);
+        }
+        #[cfg(target_has_atomic = "32")]
+        {
+            assert_impl_all!(Atom<i32>: Debug, Default, From<i32>);
+            assert_impl_all!(Atom<u32>: Debug, Default, From<u32>);
+        }
+        #[cfg(target_has_atomic = "64")]
+        {
+            assert_impl_all!(Atom<i64>: Debug, Default, From<i64>);
+            assert_impl_all!(Atom<u64>: Debug, Default, From<u64>);
+        }
+        #[cfg(target_has_atomic = "ptr")]
+        {
+            assert_impl_all!(Atom<isize>: Debug, Default, From<isize>);
+            assert_impl_all!(Atom<usize>: Debug, Default, From<usize>);
+            assert_impl_all!(Atom<*mut ()>: Debug, Default, From<*mut ()>);
+        }
+    }
+
+    #[test]
+    fn isotope_impls() {
+        assert_impl_all!(Isotope<bool>: Debug, Default, From<bool>);
+        assert_impl_all!(Isotope<i8>: Debug, Default, From<i8>);
+        assert_impl_all!(Isotope<u8>: Debug, Default, From<u8>);
+        assert_impl_all!(Isotope<i16>: Debug, Default, From<i16>);
+        assert_impl_all!(Isotope<u16>: Debug, Default, From<u16>);
+        assert_impl_all!(Isotope<i32>: Debug, Default, From<i32>);
+        assert_impl_all!(Isotope<u32>: Debug, Default, From<u32>);
+        assert_impl_all!(Isotope<i64>: Debug, Default, From<i64>);
+        assert_impl_all!(Isotope<u64>: Debug, Default, From<u64>);
+        assert_impl_all!(Isotope<isize>: Debug, Default, From<isize>);
+        assert_impl_all!(Isotope<usize>: Debug, Default, From<usize>);
+        assert_impl_all!(Isotope<*mut ()>: Debug, Default, From<*mut ()>);
+    }
+}
