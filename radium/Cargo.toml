@@ -1,9 +1,9 @@
 [package]
 name = "radium"
-version = "1.0.0"
+version = "1.0.0-rc1"
 authors = [
     "Nika Layzell <nika@thelayzells.com>",
-    "myrrlyn <self@myrrlyn.dev>"
+    "myrrlyn <self@myrrlyn.dev>",
 ]
 license = "MIT"
 readme = "README.md"
@@ -14,11 +14,17 @@ description = "Portable interfaces for maybe-atomic types"
 keywords = ["atomic", "cell", "sync", "generic", "trait"]
 categories = ["concurrency", "no-std"]
 
-include = ["src/**/*.rs", "Cargo.toml", "README.md", "LICENSE.txt", "build.rs"]
+include = [
+    "Cargo.toml",
+    "src/**/*.rs",
+    "README.md",
+    "doc/**/*.md",
+    "LICENSE.txt",
+]
 
 edition = "2018"
 
 [dependencies]
 
 [dev-dependencies]
-static_assertions = "1"
+static_assertions = "1.1"
