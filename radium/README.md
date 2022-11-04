@@ -3,11 +3,12 @@
 # Radium
 
 [![Latest Version][version_img]][crate_link]
+[![MSRV][msrv_img]][crate_link]
+
 [![Documentation][docs_img]][docs_link]
+[![Crate Downloads][downloads_img]][crate_link]
 
 </div>
-
-**MSRV: 1.60**
 
 Radium provides abstractions and graceful degradation for behavior that *must*
 be shared-mutable, but merely *may* use atomic instructions to do so.
@@ -76,6 +77,8 @@ string rather than the parse attempt.
 
 ----
 
+## Project Origins
+
 **@kneecaw** - <https://twitter.com/kneecaw/status/1132695060812849154>
 > Feelin' lazy: Has someone already written a helper trait abstracting
 > operations over `AtomicUsize` and `Cell<usize>` for generic code which may
@@ -90,7 +93,9 @@ string rather than the parse attempt.
 [crate_link]: https://crates.io/crates/raidum "Crates.io package"
 [docs_img]: https://img.shields.io/docsrs/radium/latest.svg?style=for-the-badge "Radium documentation badge"
 [docs_link]: https://docs.rs/radium "Radium documentation"
-[version_img]: https://img.shields.io/crates/v/radium.svg?logo=rust&style=for-the-badge "Radium version badge"
+[downloads_img]: https://img.shields.io/crates/dv/radium.svg?style=for-the-badge "Crate downloads"
+[msrv_img]: https://img.shields.io/badge/MSRV-1.60-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.60"
+[version_img]: https://img.shields.io/crates/v/radium?color=f46623&style=for-the-badge "Radium version badge"
 
 <!-- Documentation -->
 [`Atom<T>`]: https://docs.rs/radium/latest/radium/types/struct.Atom.html
