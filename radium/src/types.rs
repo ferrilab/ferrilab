@@ -118,17 +118,32 @@ where
 /// Creates type aliases that resolve to either `AtomicT` or `Cell<T>` depending
 /// on availability.
 macro_rules! alias {
-    ($($width:expr => { $(
-        $(@<$t:ident>)? $base:ty => $radium:ident => $atom:ident
+    ($($width:literal => { $(
+        $(@<$t:ident>)? $base:ty => $radium:ident $(=> $atom:ident)?
     );+ $(;)? })+) => { $( $(
-        // Create a `RadiumT` type alias to either `AtomicT` or `Cell<T>`.
+        alias!(atom $width $(@<$t>)? $base => $radium $(=> $atom)?);
 
+        alias!(cell $width $(@<$t>)? $base => $radium $(=> $atom)?);
+    )+ )+ };
+
+    (atom $width:literal $(@<$t:ident>)? $base:ty => $radium:ident) => {};
+
+    (atom $width:literal $(@<$t:ident>)? $base:ty => $radium:ident => $atom:ident) => {
         #[doc = concat!("Best-effort atomicity for `", stringify!($base), "`.")]
         ///
         /// This target has the required atomic support.
         #[cfg(target_has_atomic = $width)]
         pub type $radium$(<$t>)? = $atom$(<$t>)?;
 
+        // If the atomic variant exists, create `Atom<T>`.
+        #[cfg(target_has_atomic = $width)]
+        impl$(<$t>)? Atomic for $base {
+            type Atom = $atom$(<$t>)?;
+        }
+    };
+
+    // When an atom is provided, be conditional on target atomics.
+    (cell $width:literal $(@<$t:ident>)? $base:ty => $radium:ident => $atom:ident) => {
         #[doc = concat!("Best-effort atomicity for `", stringify!($base), "`.")]
         ///
         /// This target does not have the required atomic support, and is
@@ -136,17 +151,28 @@ macro_rules! alias {
         #[cfg(not(target_has_atomic = $width))]
         pub type $radium$(<$t>)? = Cell<$base>;
 
-        // If the atomic variant exists, create `Atom<T>`.
-        #[cfg(target_has_atomic = $width)]
-        impl$(<$t>)? Atomic for $base {
-            type Atom = $atom$(<$t>)?;
-        }
-
         // Create `Isotope<T>` with the generated alias.
         impl$(<$t>)? Nuclear for $base {
             type Nucleus = $radium$(<$t>)?;
         }
-    )+ )+ };
+    };
+
+    // When an atom is not provided, unconditionally create the alias.
+    (cell $width:literal $(@<$t:ident>)? $base:ty => $radium:ident) => {
+        #[doc = concat!("Best-effort atomicity for `", stringify!($base), "`.")]
+        ///
+        /// The required atomic support is not stabilized in `core`, so this is
+        /// unconditionally a `Cell`.
+        pub type $radium$(<$t>)? = Cell<$base>;
+
+        /// Note: the standard library has an unstable atomic for this type.
+        /// `radium` commits to operating on the stable release series, and so
+        /// will not use its atomic variant, but is willing to prepare for
+        /// assumed stabilization by acting on the `Cell`.
+        impl$(<$t>)? Nuclear for $base {
+            type Nucleus = $radium$(<$t>)?;
+        }
+    };
 }
 
 alias! {
@@ -167,6 +193,10 @@ alias! {
         i64 => RadiumI64 => AtomicI64;
         u64 => RadiumU64 => AtomicU64;
     }
+    "128" => {
+        i128 => RadiumI128; // => AtomicI128; // when this stabilizes
+        u128 => RadiumU128; // => AtomicU128; // when this stabilizes
+    }
     "ptr" => {
         isize => RadiumIsize => AtomicIsize;
         usize => RadiumUsize => AtomicUsize;
@@ -183,30 +213,30 @@ mod tests {
     fn atom_impls() {
         #[cfg(target_has_atomic = "8")]
         {
-            assert_impl_all!(Atom<bool>: Debug, Default, From<bool>);
-            assert_impl_all!(Atom<i8>: Debug, Default, From<i8>);
-            assert_impl_all!(Atom<u8>: Debug, Default, From<u8>);
+            assert_impl_all!(Atom<bool>: Debug, Default, From<bool>, Sync);
+            assert_impl_all!(Atom<i8>: Debug, Default, From<i8>, Sync);
+            assert_impl_all!(Atom<u8>: Debug, Default, From<u8>, Sync);
         }
         #[cfg(target_has_atomic = "16")]
         {
-            assert_impl_all!(Atom<i16>: Debug, Default, From<i16>);
-            assert_impl_all!(Atom<u16>: Debug, Default, From<u16>);
+            assert_impl_all!(Atom<i16>: Debug, Default, From<i16>, Sync);
+            assert_impl_all!(Atom<u16>: Debug, Default, From<u16>, Sync);
         }
         #[cfg(target_has_atomic = "32")]
         {
-            assert_impl_all!(Atom<i32>: Debug, Default, From<i32>);
-            assert_impl_all!(Atom<u32>: Debug, Default, From<u32>);
+            assert_impl_all!(Atom<i32>: Debug, Default, From<i32>, Sync);
+            assert_impl_all!(Atom<u32>: Debug, Default, From<u32>, Sync);
         }
         #[cfg(target_has_atomic = "64")]
         {
-            assert_impl_all!(Atom<i64>: Debug, Default, From<i64>);
-            assert_impl_all!(Atom<u64>: Debug, Default, From<u64>);
+            assert_impl_all!(Atom<i64>: Debug, Default, From<i64>, Sync);
+            assert_impl_all!(Atom<u64>: Debug, Default, From<u64>, Sync);
         }
         #[cfg(target_has_atomic = "ptr")]
         {
-            assert_impl_all!(Atom<isize>: Debug, Default, From<isize>);
-            assert_impl_all!(Atom<usize>: Debug, Default, From<usize>);
-            assert_impl_all!(Atom<*mut ()>: Debug, Default, From<*mut ()>);
+            assert_impl_all!(Atom<isize>: Debug, Default, From<isize>, Sync);
+            assert_impl_all!(Atom<usize>: Debug, Default, From<usize>, Sync);
+            assert_impl_all!(Atom<*mut ()>: Debug, Default, From<*mut ()>, Sync);
         }
     }
 
@@ -221,8 +251,76 @@ mod tests {
         assert_impl_all!(Isotope<u32>: Debug, Default, From<u32>);
         assert_impl_all!(Isotope<i64>: Debug, Default, From<i64>);
         assert_impl_all!(Isotope<u64>: Debug, Default, From<u64>);
+        assert_impl_all!(Isotope<i128>: Debug, Default, From<i128>);
+        assert_impl_all!(Isotope<u128>: Debug, Default, From<u128>);
         assert_impl_all!(Isotope<isize>: Debug, Default, From<isize>);
         assert_impl_all!(Isotope<usize>: Debug, Default, From<usize>);
         assert_impl_all!(Isotope<*mut ()>: Debug, Default, From<*mut ()>);
+    }
+
+    #[test]
+    fn isotope_atomic() {
+        #[cfg(target_has_atomic = "8")]
+        {
+            assert_impl_all!(Isotope<bool>: Sync);
+            assert_impl_all!(Isotope<i8>: Sync);
+            assert_impl_all!(Isotope<u8>: Sync);
+        }
+        #[cfg(not(target_has_atomic = "8"))]
+        {
+            assert_not_impl_any!(Isotope<bool>: Sync);
+            assert_not_impl_any!(Isotope<i8>: Sync);
+            assert_not_impl_any!(Isotope<u8>: Sync);
+        }
+
+        #[cfg(target_has_atomic = "16")]
+        {
+            assert_impl_all!(Isotope<i16>: Sync);
+            assert_impl_all!(Isotope<u16>: Sync);
+        }
+        #[cfg(not(target_has_atomic = "16"))]
+        {
+            assert_not_impl_any!(Isotope<i16>: Sync);
+            assert_not_impl_any!(Isotope<u16>: Sync);
+        }
+
+        #[cfg(target_has_atomic = "32")]
+        {
+            assert_impl_all!(Isotope<i32>: Sync);
+            assert_impl_all!(Isotope<u32>: Sync);
+        }
+        #[cfg(not(target_has_atomic = "32"))]
+        {
+            assert_not_impl_any!(Isotope<i32>: Sync);
+            assert_not_impl_any!(Isotope<u32>: Sync);
+        }
+
+        #[cfg(target_has_atomic = "64")]
+        {
+            assert_impl_all!(Isotope<i64>: Sync);
+            assert_impl_all!(Isotope<u64>: Sync);
+        }
+        #[cfg(not(target_has_atomic = "64"))]
+        {
+            assert_not_impl_any!(Isotope<i64>: Sync);
+            assert_not_impl_any!(Isotope<u64>: Sync);
+        }
+
+        #[cfg(target_has_atomic = "ptr")]
+        {
+            assert_impl_all!(Isotope<isize>: Sync);
+            assert_impl_all!(Isotope<usize>: Sync);
+            assert_impl_all!(Isotope<*mut ()>: Sync);
+        }
+        #[cfg(not(target_has_atomic = "ptr"))]
+        {
+            assert_not_impl_any!(Isotope<isize>: Sync);
+            assert_not_impl_any!(Isotope<usize>: Sync);
+            assert_not_impl_any!(Isotope<*mut ()>: Sync);
+        }
+
+        // These are always non-atomic until `Atomic*128` stabilizes.
+        assert_not_impl_any!(Isotope<i128>: Sync);
+        assert_not_impl_any!(Isotope<u128>: Sync);
     }
 }

@@ -14,23 +14,30 @@ macro_rules! mark {
     }
 
 mark! {
-    BitOps => bool, i8, u8, i16, u16, i32, u32, i64, u64, isize, usize;
-    NumericOps => i8, u8, i16, u16, i32, u32, i64, u64, isize, usize;
+    BitOps => bool, i8, u8, i16, u16, i32, u32, i64, u64, i128, u128, isize, usize;
+    NumericOps => i8, u8, i16, u16, i32, u32, i64, u64, i128, u128, isize, usize;
 }
 
 /// Relates a primitive type to its corresponding atomic type.
 ///
 /// This is only implemented when the corresponding atomic type exists.
 pub trait Atomic: Sealed {
-    /// The `core::sync::atomic` type corresponding to `Self`.
-    type Atom: Radium<Item = Self>;
+    /// The `AtomicT` type corresponding to `Self`.
+    type Atom: Radium<Item = Self> + Send + Sync;
 }
 
 /// Relates a primitive type to its corresponding best-effort atomic type.
 ///
 /// This is always implemented; however, because `Nucleus` uses `RadiumT` rather
 /// than `AtomicT`, the destination type might wind up being `Cell<T>`.
+///
+/// ## Behind the Name
+///
+/// Atoms and (eukaryotic) cells both have a nucleus. Technically each
+/// *implementor* of this trait is the nucleus, and the destination of the
+/// associated type is the nuclear thing that possesses a nucleus. Sorry this
+/// codebase isn’t a perfect reflection of biology and physics.
 pub trait Nuclear: Sealed {
-    /// The `radium` type corresponding to `Self`.
-    type Nucleus: Radium<Item = Self>;
+    /// The `RadiumT` type corresponding to `Self`.
+    type Nucleus: Radium<Item = Self> + Send;
 }

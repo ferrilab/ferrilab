@@ -254,9 +254,22 @@ pub trait Radium: seal::Sealed {
 
 /// Generates `Radium` implementation bodies.
 macro_rules! radium {
-    ($($width:expr => $bit:ident $num:ident => {
-        $($(@ <$t:ident>)? $base:ty => $atom:ident);+ $(;)?
+    ($($width:literal => $bit:ident $num:ident => {
+        $($(@<$t:ident>)? $base:ty $(=> $atom:ident)?;)+
     } )+) => { $( $(
+        radium!(atom $width $bit $num $(@<$t>)? $base $(=> $atom)?);
+
+        radium!(cell $width $bit $num $(@<$t>)? $base);
+    )+ )+ };
+
+    // Trap the branch that has no named atom.
+    (atom $width:literal $bit:ident $num:ident $(@<$t:ident>)? $base:ty) => {};
+
+    // Generate an implementation for the named atom.
+    (
+        atom $width:literal $bit:ident $num:ident
+        $(@<$t:ident>)? $base:ty => $atom:ident
+    ) => {
         #[cfg(target_has_atomic = $width)]
         impl$(<$t>)? Radium for $atom$(<$t>)? {
             type Item = $base;
@@ -352,7 +365,10 @@ macro_rules! radium {
                 $atom::fetch_update(self, set_order, fetch_order, func)
             }
         }
+    };
 
+    // Generate an implementation for the Cell.
+    (cell $width:literal $bit:ident $num:ident $(@<$t:ident>)? $base:ty) => {
         impl$(<$t>)? Radium for Cell<$base> {
             type Item = $base;
 
@@ -452,7 +468,7 @@ macro_rules! radium {
                 }
             }
         }
-    )+ )+ };
+    };
 
     // Forward to the atomic RMU functions.
 
@@ -767,6 +783,10 @@ radium! {
         i64 => AtomicI64;
         u64 => AtomicU64;
     }
+    "128" => bit num => {
+        i128; // => AtomicI128; // when this stabilizes
+        u128; // => AtomicU128; // when this stabilizes
+    }
     "ptr" => bit num => {
         isize => AtomicIsize;
         usize => AtomicUsize;
@@ -807,6 +827,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::*;
     #[allow(unused_imports)]
     use core::sync::atomic::*;
     use static_assertions::*;

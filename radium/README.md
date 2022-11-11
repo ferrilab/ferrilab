@@ -43,14 +43,18 @@ This crate is `#![no_std]`-compatible, as it relies solely on the
 
 ## Versioning
 
-Each change of supported target architecture will result in a new minor version.
-Furthermore, `radium` is by definition attached to the Rust standard library.
-As the atomic API evolves, `radium` will follow it. MSRV raising is always at
-least a minor-version increase.
+`radium` is by definition attached to the Rust standard library. As the atomic
+API evolves, `radium` will follow it. MSRV raising is always at least a
+minor-version increase.
 
-If you require a backport of architecture discovery to older Rust versions,
-please file an issue. We will happily backport upon request, but we do not
-proäctively guarantee support for compilers older than ~six months.
+As of Rust 1.60, support for 128-bit atomics is unstable. Since `radium` commits
+to being usable on the stable release series, it does not support 128-bit
+atomics. As a compromise, `Cell<{i,u}128>` *is* integrated with `radium` to
+prepare for stabilization in the future.
+
+If 128-bit atomics are removed from the standard library without stabilization,
+`radium` will similarly remove support for `Cell<{i,u}128>` in a major-version
+increase.
 
 ----
 

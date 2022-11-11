@@ -8,13 +8,16 @@ use core::{cell::Cell, sync::atomic::*};
 pub trait Sealed {}
 
 macro_rules! sealed {
-    ($($w:expr => { $($(@<$g:ident>)? $t:ty),+; $($(@<$g2:ident>)? $a:ident),+; })+) => { $( $(
+    ($($w:expr => {
+        $($(@<$g:ident>)? $t:ty),+;
+        $($($(@<$g2:ident>)? $a:ident),+;)?
+    })+) => { $( $(
         impl$(<$g>)? Sealed for $t {}
         impl$(<$g>)? Sealed for Cell<$t> {}
-    )+ $(
+    )+ $($(
         #[cfg(target_has_atomic = $w)]
         impl$(<$g2>)? Sealed for $a$(<$g2>)? {}
-    )+ )+ };
+    )+)? )+ };
 }
 
 sealed! {
@@ -33,6 +36,9 @@ sealed! {
     "64" => {
         i64, u64;
         AtomicI64, AtomicU64;
+    }
+    "128" => {
+        i128, u128;
     }
     "ptr" => {
         isize, usize, @<T> *mut T;
