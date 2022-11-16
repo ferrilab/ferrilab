@@ -21,7 +21,7 @@ mark! {
 /// Relates a primitive type to its corresponding atomic type.
 ///
 /// This is only implemented when the corresponding atomic type exists.
-pub trait Atomic: Sealed {
+pub trait Atomic: Copy + Sealed {
     /// The `AtomicT` type corresponding to `Self`.
     type Atom: Radium<Item = Self> + Send + Sync;
 }
@@ -37,7 +37,7 @@ pub trait Atomic: Sealed {
 /// *implementor* of this trait is the nucleus, and the destination of the
 /// associated type is the nuclear thing that possesses a nucleus. Sorry this
 /// codebase isn’t a perfect reflection of biology and physics.
-pub trait Nuclear: Sealed {
+pub trait Nuclear: Copy + Sealed {
     /// The `RadiumT` type corresponding to `Self`.
     type Nucleus: Radium<Item = Self> + Send;
 }

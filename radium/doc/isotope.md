@@ -10,5 +10,8 @@ This type implements the [`Radium`] API, as well as the `Debug`, `Default`, and
 `From<T>` traits that the standard library atomics implement. It has no other
 API surface, and in particular *does not* attempt to follow the `Cell` API.
 
+See also [`Radon<T>`], which is always strictly non-atomic.
+
 [`Atom<T>`]: crate::types::Atom
 [`Radium`]: crate::Radium
+[`Radon<T>`]: crate::types::Radon

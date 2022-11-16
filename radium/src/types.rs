@@ -2,12 +2,40 @@
 //!
 //! This module provides `RadiumT` aliases that correspond to `AtomicT` from the
 //! standard library, and resolve to `AtomicT` when it exists and `Cell<T>` when
-//! it does not. In addition, newtype structs `Atom<T>` and `Isotope<T>`
-//! correspond to (and contain) `AtomicT` and `RadiumT`, respectively. These
-//! newtypes are designed to be used in cases where you are generic over a
-//! primitive and want to plug it into a shared-mutable wrapper type without
-//! having to specifically name one of the `AtomicT` or `RadiumT` individual
-//! names.
+//! it does not.
+//!
+//! In addition, newtype structs `Atom<T>` and `Isotope<T>` correspond to (and
+//! contain) `AtomicT` and `RadiumT`, respectively. These newtypes are designed
+//! to be used in cases where you are generic over a primitive and want to plug
+//! it into a shared-mutable wrapper type without having to specifically name
+//! one of the `AtomicT` or `RadiumT` individual names.
+//!
+//! Lastly, the `Radon<T>` newtype struct wraps `Cell<T>` and only implements
+//! the `Radium` API, mirroring `Atom<T>` and `Isotope<T>`. This type exists so
+//! that client crates can switch out types based on a crate feature to disable
+//! atomics, and guarantee that their API will continue to function in every
+//! regard (except for losing `Sync` impls).
+//!
+//! ## Examples
+//!
+//! ```rust
+//! use radium::types::*;
+//!
+//! #[cfg(target_has_atomic = "ptr")]
+//! let a = Atom::new(0usize);
+//!
+//! let b = Isotope::new(1usize);
+//!
+//! let c = Radon::new(2usize);
+//!
+//! // when atomics are not disabled, use best-effort
+//! #[cfg(feature = "atomics")]
+//! pub type MyIsotope<T> = Isotope<T>;
+//!
+//! // when atomics are fully disabled, enforce use of `Cell`
+//! #[cfg(not(feature = "atomics"))]
+//! pub type MyIsotope<T> = Radon<T>;
+//! ```
 
 #[allow(unused_imports)]
 use core::{
@@ -33,7 +61,7 @@ where
 
 impl<T> Debug for Atom<T>
 where
-    T: Atomic,
+    T: Atomic + Debug,
     T::Atom: Radium<Item = T> + Debug,
 {
     #[inline]
@@ -44,7 +72,7 @@ where
 
 impl<T> Default for Atom<T>
 where
-    T: Atomic,
+    T: Atomic + Default,
     T::Atom: Radium<Item = T> + Default,
 {
     #[inline]
@@ -80,7 +108,7 @@ where
 
 impl<T> Debug for Isotope<T>
 where
-    T: Nuclear,
+    T: Nuclear + Debug,
     T::Nucleus: Radium<Item = T> + Debug,
 {
     #[inline]
@@ -91,7 +119,7 @@ where
 
 impl<T> Default for Isotope<T>
 where
-    T: Nuclear,
+    T: Nuclear + Default,
     T::Nucleus: Radium<Item = T> + Default,
 {
     #[inline]
@@ -106,6 +134,53 @@ impl<T> From<T> for Isotope<T>
 where
     T: Nuclear,
     T::Nucleus: Radium<Item = T> + From<T>,
+{
+    #[inline]
+    fn from(val: T) -> Self {
+        Self {
+            inner: From::from(val),
+        }
+    }
+}
+
+#[repr(transparent)]
+#[doc = include_str!("../doc/radon.md")]
+pub struct Radon<T>
+where
+    T: Nuclear,
+    Cell<T>: Radium<Item = T>,
+{
+    pub(crate) inner: Cell<T>,
+}
+
+impl<T> Debug for Radon<T>
+where
+    T: Nuclear + Debug,
+    Cell<T>: Radium<Item = T> + Debug,
+{
+    #[inline]
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        Debug::fmt(&self.inner, fmt)
+    }
+}
+
+impl<T> Default for Radon<T>
+where
+    T: Nuclear + Default,
+    Cell<T>: Radium<Item = T> + Default,
+{
+    #[inline]
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
+impl<T> From<T> for Radon<T>
+where
+    T: Nuclear,
+    Cell<T>: Radium<Item = T> + From<T>,
 {
     #[inline]
     fn from(val: T) -> Self {
@@ -236,7 +311,7 @@ mod tests {
         {
             assert_impl_all!(Atom<isize>: Debug, Default, From<isize>, Sync);
             assert_impl_all!(Atom<usize>: Debug, Default, From<usize>, Sync);
-            assert_impl_all!(Atom<*mut ()>: Debug, Default, From<*mut ()>, Sync);
+            assert_impl_all!(Atom<*mut ()>: Debug, From<*mut ()>, Sync);
         }
     }
 
@@ -255,7 +330,40 @@ mod tests {
         assert_impl_all!(Isotope<u128>: Debug, Default, From<u128>);
         assert_impl_all!(Isotope<isize>: Debug, Default, From<isize>);
         assert_impl_all!(Isotope<usize>: Debug, Default, From<usize>);
-        assert_impl_all!(Isotope<*mut ()>: Debug, Default, From<*mut ()>);
+        assert_impl_all!(Isotope<*mut ()>: Debug, From<*mut ()>);
+    }
+
+    #[test]
+    fn radon_impls() {
+        assert_impl_all!(Radon<bool>: Debug, Default, From<bool>);
+        assert_impl_all!(Radon<i8>: Debug, Default, From<i8>);
+        assert_impl_all!(Radon<u8>: Debug, Default, From<u8>);
+        assert_impl_all!(Radon<i16>: Debug, Default, From<i16>);
+        assert_impl_all!(Radon<u16>: Debug, Default, From<u16>);
+        assert_impl_all!(Radon<i32>: Debug, Default, From<i32>);
+        assert_impl_all!(Radon<u32>: Debug, Default, From<u32>);
+        assert_impl_all!(Radon<i64>: Debug, Default, From<i64>);
+        assert_impl_all!(Radon<u64>: Debug, Default, From<u64>);
+        assert_impl_all!(Radon<i128>: Debug, Default, From<i128>);
+        assert_impl_all!(Radon<u128>: Debug, Default, From<u128>);
+        assert_impl_all!(Radon<isize>: Debug, Default, From<isize>);
+        assert_impl_all!(Radon<usize>: Debug, Default, From<usize>);
+        assert_impl_all!(Radon<*mut ()>: Debug, From<*mut ()>);
+
+        assert_not_impl_any!(Radon<bool>: Sync);
+        assert_not_impl_any!(Radon<i8>: Sync);
+        assert_not_impl_any!(Radon<u8>: Sync);
+        assert_not_impl_any!(Radon<i16>: Sync);
+        assert_not_impl_any!(Radon<u16>: Sync);
+        assert_not_impl_any!(Radon<i32>: Sync);
+        assert_not_impl_any!(Radon<u32>: Sync);
+        assert_not_impl_any!(Radon<i64>: Sync);
+        assert_not_impl_any!(Radon<u64>: Sync);
+        assert_not_impl_any!(Radon<i128>: Sync);
+        assert_not_impl_any!(Radon<u128>: Sync);
+        assert_not_impl_any!(Radon<isize>: Sync);
+        assert_not_impl_any!(Radon<usize>: Sync);
+        assert_not_impl_any!(Radon<*mut ()>: Sync);
     }
 
     #[test]

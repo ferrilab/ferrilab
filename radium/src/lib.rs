@@ -6,7 +6,7 @@ pub mod marker;
 mod seal;
 pub mod types;
 
-pub use crate::types::{Atom, Isotope};
+pub use crate::types::{Atom, Isotope, Radon};
 
 use crate::marker::*;
 use core::{cell::Cell, sync::atomic::*};
@@ -820,6 +820,18 @@ where
     fn fence(order: Ordering) {
         <T::Nucleus as Radium>::fence(order);
     }
+
+    radium!(wrappers);
+}
+
+impl<T> Radium for Radon<T>
+where
+    T: Nuclear,
+    Cell<T>: Radium<Item = T>,
+{
+    type Item = T;
+
+    fn fence(_: Ordering) {}
 
     radium!(wrappers);
 }

@@ -1,4 +1,4 @@
-use crate::{Atom, Atomic, Isotope, Nuclear, Radium};
+use crate::{Atom, Atomic, Isotope, Nuclear, Radium, Radon};
 use core::{cell::Cell, sync::atomic::*};
 
 /// Forbid external implementation of `radium` traits. This crate *only* works
@@ -57,5 +57,12 @@ impl<T> Sealed for Isotope<T>
 where
     T: Nuclear,
     T::Nucleus: Radium<Item = T>,
+{
+}
+
+impl<T> Sealed for Radon<T>
+where
+    T: Nuclear,
+    Cell<T>: Radium<Item = T>,
 {
 }
