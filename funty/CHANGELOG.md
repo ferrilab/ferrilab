@@ -4,6 +4,20 @@ All notable changes will be documented in this file.
 
 This document is written according to the [Keep a Changelog][kac] style.
 
+## 3.0
+
+Added `Integral::Signed` and `Integral::Unsigned` associated types, as some
+arithmetic functions (`abs_diff`) perform a sign change.
+
+The `Pointer` and `NonNullPtr` newtypes generalize over `*const`/`*mut` pointers
+and allow users to be generic over write permissions. In addition, the
+`Reference` type alias allows the same patterns to be written with references
+(which do not need a newtype, as references have no inherent behavior and must
+remain dereferenceäble).
+
+The MSRV is now 1.65, as the pointer system requires the Generic Associated
+Types functionality.
+
 ## 2.0
 
 The `Is{Characteristic}` traits were renamed to be adjectives, rather than

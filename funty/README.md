@@ -1,15 +1,15 @@
-<div class="title-block" style="text-align: center;" align="center">
+<div style="text-align: center;" align="center">
 
 # `funty` <!-- omit in toc -->
 
 ## `Fun`damental `Ty`pe Unification <!-- omit in toc -->
 
-[![Crate][crate_img]][crate]
-[![Documentation][docs_img]][docs]
+[![Latest Version][version_img]][crate_link]
+[![MSRV][msrv_img]][crate_link]
 [![License][license_img]][license_file]
 
-[![Crate Downloads][downloads_img]][crate]
-[![Crate Size][loc_img]][loc]
+[![Documentation][docs_img]][docs_link]
+[![Crate Downloads][downloads_img]][crate_link]
 
 </div>
 
@@ -21,9 +21,19 @@ This library provides a set of traits that abstract over common API surfaces of
 the primitive types, so that properties such as numeric behavior, register
 width, or signedness can be represented in the trait system.
 
-## MSRV
+## Pointer Unification
 
-The current MSRV is 1.56.
+`*const T` and `*mut T` are unified under the `Pointer<T, Shared | Unique>`
+type. The `Permission` trait allows code to be generic over write permissions,
+and manages propagating, downgrading, and upgrading permissions correctly
+without risking violations of Rust’s provenance tracking rules.
+
+In particular, `Pointer` uses the associated-type system to internally wrap
+either `*const T` or `*mut T` according to the `Permission` type parameter it is
+given, so user code is never able to (safely) improperly upgrade write
+permissions on a pointer that is derived from a read-only provenance history.
+
+See the [`ptr`] module for more details.
 
 ## Functionality Traits
 
@@ -77,17 +87,19 @@ are compiling to a `#![no_std]` target, depend on this library with
 
 ```toml
 [dependencies.funty]
-version = "1"
+version = "3"
 default-features = false
 ```
 
 <!-- Badges -->
-[crate]: https://crates.io/crates/funty "Crate Link"
-[crate_img]: https://img.shields.io/crates/v/funty.svg?logo=rust "Crate Page"
-[docs]: https://docs.rs/funty "Documentation"
-[docs_img]: https://docs.rs/funty/badge.svg "Documentation Display"
-[downloads_img]: https://img.shields.io/crates/dv/funty.svg?logo=rust "Crate Downloads"
-[license_file]: https://github.com/myrrlyn/funty/blob/master/LICENSE.txt "License File"
-[license_img]: https://img.shields.io/crates/l/funty.svg "License Display"
-[loc]: https://github.com/myrrlyn/funty "Repository"
-[loc_img]: https://tokei.rs/b1/github/myrrlyn/funty?category=code "Repository Size"
+[crate_link]: https://crates.io/crates/funty "Crate Link"
+[docs_link]: https://docs.rs/funty/latest/funty "Documentation"
+[docs_img]: https://img.shields.io/docsrs/funty/latest.svg?style=for-the-badge "Documentation Display"
+[downloads_img]: https://img.shields.io/crates/dv/funty.svg?style=for-the-badge "Crate Downloads"
+[license_file]: https://github.com/bitvecto-rs/funty/blob/master/LICENSE.txt "License File"
+[license_img]: https://img.shields.io/crates/l/funty.svg?style=for-the-badge "License Display"
+[msrv_img]: https://img.shields.io/badge/MSRV-1.60-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.60"
+[version_img]: https://img.shields.io/crates/v/funty?color=f46623&style=for-the-badge "Funty version badge"
+
+<!-- Documentation -->
+[`ptr`]: https://docs.rs/funty/latest/funty/ptr "The `ptr` module API docs"

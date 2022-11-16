@@ -14,17 +14,30 @@ use core::{
 	str::FromStr,
 };
 
-pub mod num;
+#[macro_use]
+mod macros;
 
-pub use self::num::{
-	Floating,
-	Integral,
-	Numeric,
-	Signed,
-	Unsigned,
+pub mod num;
+pub mod ptr;
+
+pub use crate::{
+	num::{
+		Floating,
+		Integral,
+		Numeric,
+		Signed,
+		Unsigned,
+	},
+	ptr::{
+		Permission,
+		Pointer,
+		Reference,
+		Shared,
+		Unique,
+	},
 };
 
-/// Declare that a type is one of the language fundamental types.
+/// Declares that a type is one of the language fundamental types.
 pub trait Fundamental:
 	'static
 	+ Sized
@@ -91,144 +104,53 @@ pub trait Fundamental:
 	fn as_f64(self) -> f64;
 }
 
-/// Declare that a type is exactly eight bits wide.
+/// Declares that a type is exactly eight bits wide.
 pub trait Is8: Fundamental {}
 
-/// Declare that a type is exactly sixteen bits wide.
+/// Declares that a type is exactly sixteen bits wide.
 pub trait Is16: Fundamental {}
 
-/// Declare that a type is exactly thirty-two bits wide.
+/// Declares that a type is exactly thirty-two bits wide.
 pub trait Is32: Fundamental {}
 
-/// Declare that a type is exactly sixty-four bits wide.
+/// Declares that a type is exactly sixty-four bits wide.
 pub trait Is64: Fundamental {}
 
-/// Declare that a type is exactly one hundred twenty-eight bits wide.
+/// Declares that a type is exactly one hundred twenty-eight bits wide.
 pub trait Is128: Fundamental {}
 
-/// Declare that a type is eight or more bits wide.
+/// Declares that a type is eight or more bits wide.
 pub trait AtLeast8: Fundamental {}
 
-/// Declare that a type is sixteen or more bits wide.
+/// Declares that a type is sixteen or more bits wide.
 pub trait AtLeast16: Fundamental {}
 
-/// Declare that a type is thirty-two or more bits wide.
+/// Declares that a type is thirty-two or more bits wide.
 pub trait AtLeast32: Fundamental {}
 
-/// Declare that a type is sixty-four or more bits wide.
+/// Declares that a type is sixty-four or more bits wide.
 pub trait AtLeast64: Fundamental {}
 
-/// Declare that a type is one hundred twenty-eight or more bits wide.
+/// Declares that a type is one hundred twenty-eight or more bits wide.
 pub trait AtLeast128: Fundamental {}
 
-/// Declare that a type is eight or fewer bits wide.
+/// Declares that a type is eight or fewer bits wide.
 pub trait AtMost8: Fundamental {}
 
-/// Declare that a type is sixteen or fewer bits wide.
+/// Declares that a type is sixteen or fewer bits wide.
 pub trait AtMost16: Fundamental {}
 
-/// Declare that a type is thirty-two or fewer bits wide.
+/// Declares that a type is thirty-two or fewer bits wide.
 pub trait AtMost32: Fundamental {}
 
-/// Declare that a type is sixty-four or fewer bits wide.
+/// Declares that a type is sixty-four or fewer bits wide.
 pub trait AtMost64: Fundamental {}
 
-/// Declare that a type is one hundred twenty-eight or fewer bits wide.
+/// Declares that a type is one hundred twenty-eight or fewer bits wide.
 pub trait AtMost128: Fundamental {}
 
-/// Creates new wrapper functions that forward to inherent items of the same
-/// name and signature.
-macro_rules! func {
-	(
-		$typ:ty =>
-		$(@$std:literal)?
-		$name:ident (self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
-		$($tt:tt)*
-	) => {
-		#[doc = concat!(
-			"See <https://doc.rust-lang.org/std/primitive.",
-			stringify!($typ),
-			".html#method.",
-			stringify!($name),
-			">.",
-		)]
-		$(#[cfg(feature = $std)])?
-		fn $name(self$(, $arg: $t)*) $(-> $ret)?
-		{
-			<Self>::$name(self$(, $arg)*)
-		}
-
-		func!($typ => $($tt)*);
-	};
-	(
-		$typ:ty =>
-		$(@$std:literal)?
-		$name:ident(&self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
-		$($tt:tt)*
-	) => {
-		#[doc = concat!(
-			"See <https://doc.rust-lang.org/std/primitive.",
-			stringify!($typ),
-			".html#method.",
-			stringify!($name),
-			">.",
-		)]
-		$(#[cfg(feature = $std)])?
-		fn $name(&self$(, $arg: $t)*) $(-> $ret)?
-		{
-			<Self>::$name(&self$(, $arg )*)
-		}
-
-		func!($typ => $($tt)*);
-	};
-	(
-		$typ:ty =>
-		$(@$std:literal)?
-		$name:ident(&mut self$(, $arg:ident: $t:ty)*) $(-> $ret:ty)?;
-		$($tt:tt)*
-	) => {
-		#[doc = concat!(
-			"See <https://doc.rust-lang.org/std/primitive.",
-			stringify!($typ),
-			".html#method.",
-			stringify!($name),
-			">.",
-		)]
-		$(#[cfg(feature = $std)])?
-		fn $name(&mut self$(, $arg: $t)*) $(-> $ret)?
-		{
-			<Self>::$name(&mut self$(, $arg)*)
-		}
-
-		func!($typ => $($tt)*);
-	};
-	(
-		$typ:ty =>
-		$(@$std:literal)?
-		$name:ident($($arg:ident: $t:ty),* $(,)?) $(-> $ret:ty)?;
-		$($tt:tt)*
-	) => {
-		#[doc = concat!(
-			"See <https://doc.rust-lang.org/std/primitive.",
-			stringify!($typ),
-			".html#method.",
-			stringify!($name),
-			">.",
-		)]
-		$(#[cfg(feature = $std)])?
-		fn $name($($arg: $t),*) $(-> $ret)?
-		{
-			<Self>::$name($($arg),*)
-		}
-
-		func!($typ => $($tt)*);
-	};
-	($typ:ty =>) => {};
-	() => {};
-}
-
 macro_rules! impl_for {
-	( Fundamental => $($t:ty => $is_zero:expr),+ $(,)? ) => { $(
+	(Fundamental => $($t:ty => $is_zero:expr),+ $(,)?) => { $(
 		impl Fundamental for $t {
 			#[inline(always)]
 			#[allow(clippy::redundant_closure_call)]
@@ -282,405 +204,223 @@ macro_rules! impl_for {
 			fn as_f64(self) -> f64 { self as f64 }
 		}
 	)+ };
-	( Numeric => $($t:ty),+ $(,)? ) => { $(
+	(Numeric => $($t:ty),+ $(,)?) => { $(
 		impl Numeric for $t {
 			type Bytes = [u8; core::mem::size_of::<Self>()];
 
-			func! {
-				$t =>
-				to_be_bytes(self) -> Self::Bytes;
-				to_le_bytes(self) -> Self::Bytes;
-				to_ne_bytes(self) -> Self::Bytes;
-				from_be_bytes(bytes: Self::Bytes) -> Self;
-				from_le_bytes(bytes: Self::Bytes) -> Self;
-				from_ne_bytes(bytes: Self::Bytes) -> Self;
+			items! { $t =>
+				fn to_be_bytes(self) -> Self::Bytes;
+				fn to_le_bytes(self) -> Self::Bytes;
+				fn to_ne_bytes(self) -> Self::Bytes;
+			}
+			items! { $t =>
+				fn from_be_bytes(bytes: Self::Bytes) -> Self;
+				fn from_le_bytes(bytes: Self::Bytes) -> Self;
+				fn from_ne_bytes(bytes: Self::Bytes) -> Self;
 			}
 		}
 	)+ };
-	( Integral => $($t:ty),+ $(,)? ) => { $(
+	(Integral => { $($t:ty, $s:ty, $u:ty);+ $(;)? }) => { $(
 		impl Integral for $t {
+			type Signed = $s;
+			type Unsigned = $u;
+
 			const ZERO: Self = 0;
 			const ONE: Self = 1;
 
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MIN",
-			)]
-			const MIN: Self = <Self>::min_value();
+			items! { $t =>
+				const MIN: Self;
+				const MAX: Self;
+				const BITS: u32;
+			}
 
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MAX",
-			)]
-			const MAX: Self = <Self>::max_value();
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.BITS",
-			)]
-			const BITS: u32 = <Self>::BITS;
-
-			func! {
-				$t =>
-				min_value() -> Self;
-				max_value() -> Self;
-				from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>;
-				count_ones(self) -> u32;
-				count_zeros(self) -> u32;
-				leading_zeros(self) -> u32;
-				trailing_zeros(self) -> u32;
-				leading_ones(self) -> u32;
-				trailing_ones(self) -> u32;
-				rotate_left(self, n: u32) -> Self;
-				rotate_right(self, n: u32) -> Self;
-				swap_bytes(self) -> Self;
-				reverse_bits(self) -> Self;
-				from_be(self) -> Self;
-				from_le(self) -> Self;
-				to_be(self) -> Self;
-				to_le(self) -> Self;
-				checked_add(self, rhs: Self) -> Option<Self>;
-				checked_sub(self, rhs: Self) -> Option<Self>;
-				checked_mul(self, rhs: Self) -> Option<Self>;
-				checked_div(self, rhs: Self) -> Option<Self>;
-				checked_div_euclid(self, rhs: Self) -> Option<Self>;
-				checked_rem(self, rhs: Self) -> Option<Self>;
-				checked_rem_euclid(self, rhs: Self) -> Option<Self>;
-				checked_neg(self) -> Option<Self>;
-				checked_shl(self, rhs: u32) -> Option<Self>;
-				checked_shr(self, rhs: u32) -> Option<Self>;
-				checked_pow(self, rhs: u32) -> Option<Self>;
-				saturating_add(self, rhs: Self) -> Self;
-				saturating_sub(self, rhs: Self) -> Self;
-				saturating_mul(self, rhs: Self) -> Self;
-				saturating_pow(self, rhs: u32) -> Self;
-				wrapping_add(self, rhs: Self) -> Self;
-				wrapping_sub(self, rhs: Self) -> Self;
-				wrapping_mul(self, rhs: Self) -> Self;
-				wrapping_div(self, rhs: Self) -> Self;
-				wrapping_div_euclid(self, rhs: Self) -> Self;
-				wrapping_rem(self, rhs: Self) -> Self;
-				wrapping_rem_euclid(self, rhs: Self) -> Self;
-				wrapping_neg(self) -> Self;
-				wrapping_shl(self, rhs: u32) -> Self;
-				wrapping_shr(self, rhs: u32) -> Self;
-				wrapping_pow(self, rhs: u32) -> Self;
-				overflowing_add(self, rhs: Self) -> (Self, bool);
-				overflowing_sub(self, rhs: Self) -> (Self, bool);
-				overflowing_mul(self, rhs: Self) -> (Self, bool);
-				overflowing_div(self, rhs: Self) -> (Self, bool);
-				overflowing_div_euclid(self, rhs: Self) -> (Self, bool);
-				overflowing_rem(self, rhs: Self) -> (Self, bool);
-				overflowing_rem_euclid(self, rhs: Self) -> (Self, bool);
-				overflowing_neg(self) -> (Self, bool);
-				overflowing_shl(self, rhs: u32) -> (Self, bool);
-				overflowing_shr(self, rhs: u32) -> (Self, bool);
-				overflowing_pow(self, rhs: u32) -> (Self, bool);
-				pow(self, rhs: u32) -> Self;
-				div_euclid(self, rhs: Self) -> Self;
-				rem_euclid(self, rhs: Self) -> Self;
+			items! { $t =>
+				fn min_value() -> Self;
+				fn max_value() -> Self;
+				fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>;
+			}
+			items! { $t =>
+				fn count_ones(self) -> u32;
+				fn count_zeros(self) -> u32;
+				fn leading_zeros(self) -> u32;
+				fn trailing_zeros(self) -> u32;
+				fn leading_ones(self) -> u32;
+				fn trailing_ones(self) -> u32;
+				fn rotate_left(self, n: u32) -> Self;
+				fn rotate_right(self, n: u32) -> Self;
+				fn swap_bytes(self) -> Self;
+				fn reverse_bits(self) -> Self;
+				fn from_be(self) -> Self;
+				fn from_le(self) -> Self;
+				fn to_be(self) -> Self;
+				fn to_le(self) -> Self;
+				fn checked_add(self, rhs: Self) -> Option<Self>;
+				fn checked_sub(self, rhs: Self) -> Option<Self>;
+				fn checked_mul(self, rhs: Self) -> Option<Self>;
+				fn checked_div(self, rhs: Self) -> Option<Self>;
+				fn checked_div_euclid(self, rhs: Self) -> Option<Self>;
+				fn checked_rem(self, rhs: Self) -> Option<Self>;
+				fn checked_rem_euclid(self, rhs: Self) -> Option<Self>;
+				fn checked_neg(self) -> Option<Self>;
+				fn checked_shl(self, rhs: u32) -> Option<Self>;
+				fn checked_shr(self, rhs: u32) -> Option<Self>;
+				fn checked_pow(self, rhs: u32) -> Option<Self>;
+				fn saturating_add(self, rhs: Self) -> Self;
+				fn saturating_sub(self, rhs: Self) -> Self;
+				fn saturating_mul(self, rhs: Self) -> Self;
+				fn saturating_div(self, rhs: Self) -> Self;
+				fn saturating_pow(self, rhs: u32) -> Self;
+				fn wrapping_add(self, rhs: Self) -> Self;
+				fn wrapping_sub(self, rhs: Self) -> Self;
+				fn wrapping_mul(self, rhs: Self) -> Self;
+				fn wrapping_div(self, rhs: Self) -> Self;
+				fn wrapping_div_euclid(self, rhs: Self) -> Self;
+				fn wrapping_rem(self, rhs: Self) -> Self;
+				fn wrapping_rem_euclid(self, rhs: Self) -> Self;
+				fn wrapping_neg(self) -> Self;
+				fn wrapping_shl(self, rhs: u32) -> Self;
+				fn wrapping_shr(self, rhs: u32) -> Self;
+				fn wrapping_pow(self, rhs: u32) -> Self;
+				fn overflowing_add(self, rhs: Self) -> (Self, bool);
+				fn overflowing_sub(self, rhs: Self) -> (Self, bool);
+				fn abs_diff(self, rhs: Self) -> Self::Unsigned;
+				fn overflowing_mul(self, rhs: Self) -> (Self, bool);
+				fn overflowing_div(self, rhs: Self) -> (Self, bool);
+				fn overflowing_div_euclid(self, rhs: Self) -> (Self, bool);
+				fn overflowing_rem(self, rhs: Self) -> (Self, bool);
+				fn overflowing_rem_euclid(self, rhs: Self) -> (Self, bool);
+				fn overflowing_neg(self) -> (Self, bool);
+				fn overflowing_shl(self, rhs: u32) -> (Self, bool);
+				fn overflowing_shr(self, rhs: u32) -> (Self, bool);
+				fn overflowing_pow(self, rhs: u32) -> (Self, bool);
+				fn pow(self, rhs: u32) -> Self;
+				fn div_euclid(self, rhs: Self) -> Self;
+				fn rem_euclid(self, rhs: Self) -> Self;
 			}
 		}
 	)+ };
-	( Signed => $($t:ty),+ $(,)? ) => { $(
+	(Signed => $($t:ty),+ $(,)?) => { $(
 		impl Signed for $t {
-			func! {
-				$t =>
-				checked_abs(self) -> Option<Self>;
-				wrapping_abs(self) -> Self;
-				overflowing_abs(self) -> (Self, bool);
-				abs(self) -> Self;
-				signum(self) -> Self;
-				is_positive(self) -> bool;
-				is_negative(self) -> bool;
+			items! { $t =>
+				fn checked_abs(self) -> Option<Self>;
+				fn wrapping_abs(self) -> Self;
+				fn overflowing_abs(self) -> (Self, bool);
+				fn abs(self) -> Self;
+				fn signum(self) -> Self;
+				fn is_positive(self) -> bool;
+				fn is_negative(self) -> bool;
 			}
 		}
 	)+ };
-	( Unsigned => $($t:ty),+ $(,)? ) => { $(
+	(Unsigned => $($t:ty),+ $(,)?) => { $(
 		impl Unsigned for $t {
-			func! {
-				$t =>
-				is_power_of_two(self) -> bool;
-				next_power_of_two(self) -> Self;
-				checked_next_power_of_two(self) -> Option<Self>;
+			items! { $t =>
+				fn is_power_of_two(self) -> bool;
+				fn next_power_of_two(self) -> Self;
+				fn checked_next_power_of_two(self) -> Option<Self>;
 			}
 		}
 	)+ };
-	( Floating => $($t:ident | $u:ty),+ $(,)? ) => { $(
+	(Floating => $($t:ident | $u:ty),+ $(,)?) => { $(
 		impl Floating for $t {
 			type Raw = $u;
 
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.RADIX",
-			)]
-			const RADIX: u32 = core::$t::RADIX;
+			items! { $t =>
+				const RADIX: u32;
+				const MANTISSA_DIGITS: u32;
+				const DIGITS: u32;
+				const EPSILON: Self;
+				const MIN: Self;
+				const MIN_POSITIVE: Self;
+				const MAX: Self;
+				const MIN_EXP: i32;
+				const MAX_EXP: i32;
+				const MIN_10_EXP: i32;
+				const MAX_10_EXP: i32;
+				const NAN: Self;
+				const INFINITY: Self;
+				const NEG_INFINITY: Self;
+			}
 
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MANTISSA_DIGITS",
-			)]
-			const MANTISSA_DIGITS: u32 = core::$t::MANTISSA_DIGITS;
+			items! { $t =>
+				mod const PI: Self;
+				mod const FRAC_PI_2: Self;
+				mod const FRAC_PI_3: Self;
+				mod const FRAC_PI_4: Self;
+				mod const FRAC_PI_6: Self;
+				mod const FRAC_PI_8: Self;
+				mod const FRAC_1_PI: Self;
+				mod const FRAC_2_PI: Self;
+				mod const FRAC_2_SQRT_PI: Self;
+				mod const SQRT_2: Self;
+				mod const FRAC_1_SQRT_2: Self;
+				mod const E: Self;
+				mod const LOG2_E: Self;
+				mod const LOG10_E: Self;
+				mod const LN_2: Self;
+				mod const LN_10: Self;
+			}
 
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.DIGITS",
-			)]
-			const DIGITS: u32 = core::$t::DIGITS;
+			items! { $t =>
+				#[cfg(feature = "std")] fn floor(self) -> Self;
+				#[cfg(feature = "std")] fn ceil(self) -> Self;
+				#[cfg(feature = "std")] fn round(self) -> Self;
+				#[cfg(feature = "std")] fn trunc(self) -> Self;
+				#[cfg(feature = "std")] fn fract(self) -> Self;
+				#[cfg(feature = "std")] fn abs(self) -> Self;
+				#[cfg(feature = "std")] fn signum(self) -> Self;
+				#[cfg(feature = "std")] fn copysign(self, sign: Self) -> Self;
+				#[cfg(feature = "std")] fn mul_add(self, a: Self, b: Self) -> Self;
+				#[cfg(feature = "std")] fn div_euclid(self, rhs: Self) -> Self;
+				#[cfg(feature = "std")] fn rem_euclid(self, rhs: Self) -> Self;
+				#[cfg(feature = "std")] fn powi(self, n: i32) -> Self;
+				#[cfg(feature = "std")] fn powf(self, n: Self) -> Self;
+				#[cfg(feature = "std")] fn sqrt(self) -> Self;
+				#[cfg(feature = "std")] fn exp(self) -> Self;
+				#[cfg(feature = "std")] fn exp2(self) -> Self;
+				#[cfg(feature = "std")] fn ln(self) -> Self;
+				#[cfg(feature = "std")] fn log(self, base: Self) -> Self;
+				#[cfg(feature = "std")] fn log2(self) -> Self;
+				#[cfg(feature = "std")] fn log10(self) -> Self;
+				#[cfg(feature = "std")] fn cbrt(self) -> Self;
+				#[cfg(feature = "std")] fn hypot(self, other: Self) -> Self;
+				#[cfg(feature = "std")] fn sin(self) -> Self;
+				#[cfg(feature = "std")] fn cos(self) -> Self;
+				#[cfg(feature = "std")] fn tan(self) -> Self;
+				#[cfg(feature = "std")] fn asin(self) -> Self;
+				#[cfg(feature = "std")] fn acos(self) -> Self;
+				#[cfg(feature = "std")] fn atan(self) -> Self;
+				#[cfg(feature = "std")] fn atan2(self, other: Self) -> Self;
+				#[cfg(feature = "std")] fn sin_cos(self) -> (Self, Self);
+				#[cfg(feature = "std")] fn exp_m1(self) -> Self;
+				#[cfg(feature = "std")] fn ln_1p(self) -> Self;
+				#[cfg(feature = "std")] fn sinh(self) -> Self;
+				#[cfg(feature = "std")] fn cosh(self) -> Self;
+				#[cfg(feature = "std")] fn tanh(self) -> Self;
+				#[cfg(feature = "std")] fn asinh(self) -> Self;
+				#[cfg(feature = "std")] fn acosh(self) -> Self;
+				#[cfg(feature = "std")] fn atanh(self) -> Self;
 
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.EPSILON",
-			)]
-			const EPSILON: Self = core::$t::EPSILON;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MIN",
-			)]
-			const MIN: Self = core::$t::MIN;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MIN_POSITIVE",
-			)]
-			const MIN_POSITIVE: Self = core::$t::MIN_POSITIVE;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MAX",
-			)]
-			const MAX: Self = core::$t::MAX;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MIN_EXP",
-			)]
-			const MIN_EXP: i32 = core::$t::MIN_EXP;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MAX_EXP",
-			)]
-			const MAX_EXP: i32 = core::$t::MAX_EXP;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MIN_10_EXP",
-			)]
-			const MIN_10_EXP: i32 = core::$t::MIN_10_EXP;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.MAX_10_EXP",
-			)]
-			const MAX_10_EXP: i32 = core::$t::MAX_10_EXP;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.NAN",
-			)]
-			const NAN: Self = core::$t::NAN;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.INFINITY",
-			)]
-			const INFINITY: Self = core::$t::INFINITY;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.NEG_INFINITY",
-			)]
-			const NEG_INFINITY: Self = core::$t::NEG_INFINITY;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.PI",
-			)]
-			const PI: Self = core::$t::consts::PI;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_PI_2",
-			)]
-			const FRAC_PI_2: Self = core::$t::consts::FRAC_PI_2;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_PI_3",
-			)]
-			const FRAC_PI_3: Self = core::$t::consts::FRAC_PI_3;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_PI_4",
-			)]
-			const FRAC_PI_4: Self = core::$t::consts::FRAC_PI_4;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_PI_6",
-			)]
-			const FRAC_PI_6: Self = core::$t::consts::FRAC_PI_6;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_PI_8",
-			)]
-			const FRAC_PI_8: Self = core::$t::consts::FRAC_PI_8;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_1_PI",
-			)]
-			const FRAC_1_PI: Self = core::$t::consts::FRAC_1_PI;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_2_PI",
-			)]
-			const FRAC_2_PI: Self = core::$t::consts::FRAC_2_PI;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_2_SQRT_PI",
-			)]
-			const FRAC_2_SQRT_PI: Self = core::$t::consts::FRAC_2_SQRT_PI;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.SQRT_2",
-			)]
-			const SQRT_2: Self = core::$t::consts::SQRT_2;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.FRAC_1_SQRT_2",
-			)]
-			const FRAC_1_SQRT_2: Self = core::$t::consts::FRAC_1_SQRT_2;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.E",
-			)]
-			const E: Self = core::$t::consts::E;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.LOG2_E",
-			)]
-			const LOG2_E: Self = core::$t::consts::LOG2_E;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.LOG10_E",
-			)]
-			const LOG10_E: Self = core::$t::consts::LOG10_E;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.LN_2",
-			)]
-			const LN_2: Self = core::$t::consts::LN_2;
-
-			#[doc = concat!(
-				"See <https://doc.rust-lang.org/std/primitive.",
-				stringify!($t),
-				".html#associatedconstant.LN_10",
-			)]
-			const LN_10: Self = core::$t::consts::LN_10;
-
-			func! {
-				$t =>
-				@"std" floor(self) -> Self;
-				@"std" ceil(self) -> Self;
-				@"std" round(self) -> Self;
-				@"std" trunc(self) -> Self;
-				@"std" fract(self) -> Self;
-				@"std" abs(self) -> Self;
-				@"std" signum(self) -> Self;
-				@"std" copysign(self, sign: Self) -> Self;
-				@"std" mul_add(self, a: Self, b: Self) -> Self;
-				@"std" div_euclid(self, rhs: Self) -> Self;
-				@"std" rem_euclid(self, rhs: Self) -> Self;
-				@"std" powi(self, n: i32) -> Self;
-				@"std" powf(self, n: Self) -> Self;
-				@"std" sqrt(self) -> Self;
-				@"std" exp(self) -> Self;
-				@"std" exp2(self) -> Self;
-				@"std" ln(self) -> Self;
-				@"std" log(self, base: Self) -> Self;
-				@"std" log2(self) -> Self;
-				@"std" log10(self) -> Self;
-				@"std" cbrt(self) -> Self;
-				@"std" hypot(self, other: Self) -> Self;
-				@"std" sin(self) -> Self;
-				@"std" cos(self) -> Self;
-				@"std" tan(self) -> Self;
-				@"std" asin(self) -> Self;
-				@"std" acos(self) -> Self;
-				@"std" atan(self) -> Self;
-				@"std" atan2(self, other: Self) -> Self;
-				@"std" sin_cos(self) -> (Self, Self);
-				@"std" exp_m1(self) -> Self;
-				@"std" ln_1p(self) -> Self;
-				@"std" sinh(self) -> Self;
-				@"std" cosh(self) -> Self;
-				@"std" tanh(self) -> Self;
-				@"std" asinh(self) -> Self;
-				@"std" acosh(self) -> Self;
-				@"std" atanh(self) -> Self;
-				is_nan(self) -> bool;
-				is_infinite(self) -> bool;
-				is_finite(self) -> bool;
-				is_normal(self) -> bool;
-				classify(self) -> FpCategory;
-				is_sign_positive(self) -> bool;
-				is_sign_negative(self) -> bool;
-				recip(self) -> Self;
-				to_degrees(self) -> Self;
-				to_radians(self) -> Self;
-				max(self, other: Self) -> Self;
-				min(self, other: Self) -> Self;
-				to_bits(self) -> Self::Raw;
-				from_bits(bits: Self::Raw) -> Self;
+				fn is_nan(self) -> bool;
+				fn is_infinite(self) -> bool;
+				fn is_finite(self) -> bool;
+				fn is_normal(self) -> bool;
+				fn classify(self) -> FpCategory;
+				fn is_sign_positive(self) -> bool;
+				fn is_sign_negative(self) -> bool;
+				fn recip(self) -> Self;
+				fn to_degrees(self) -> Self;
+				fn to_radians(self) -> Self;
+				fn max(self, other: Self) -> Self;
+				fn min(self, other: Self) -> Self;
+				fn to_bits(self) -> Self::Raw;
+			}
+			items! { $t =>
+				fn from_bits(bits: Self::Raw) -> Self;
 			}
 		}
 	)+ };
-	( $which:ty => $($t:ty),+ $(,)? ) => { $(
+	($which:ty => $($t:ty),+ $(,)?) => { $(
 		impl $which for $t {}
 	)+ };
 }
@@ -866,10 +606,31 @@ impl_for!(Fundamental =>
 	f64 => |this: f64| (-Self::EPSILON ..= Self::EPSILON).contains(&this),
 );
 
-impl_for!(Numeric => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
-impl_for!(Integral => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+impl_for!(Numeric =>
+	i8, i16, i32, i64, i128, isize,
+	u8, u16, u32, u64, u128, usize,
+	f32, f64,
+);
+
+impl_for!(Integral => {
+	i8, i8, u8;
+	i16, i16, u16;
+	i32, i32, u32;
+	i64, i64, u64;
+	i128, i128, u128;
+	isize, isize, usize;
+	u8, i8, u8;
+	u16, i16, u16;
+	u32, i32, u32;
+	u64, i64, u64;
+	u128, i128, u128;
+	usize, isize, usize;
+});
+
 impl_for!(Signed => i8, i16, i32, i64, i128, isize);
+
 impl_for!(Unsigned => u8, u16, u32, u64, u128, usize);
+
 impl_for!(Floating => f32 | u32, f64 | u64);
 
 impl_for!(Is8 => i8, u8);
@@ -887,7 +648,11 @@ impl_for!(Is32 => isize, usize);
 #[cfg(target_pointer_width = "64")]
 impl_for!(Is64 => isize, usize);
 
-impl_for!(AtLeast8 => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+impl_for!(AtLeast8 =>
+	i8, i16, i32, i64, i128, isize,
+	u8, u16, u32, u64, u128, usize,
+	f32, f64,
+);
 impl_for!(AtLeast16 => i16, i32, i64, i128, u16, u32, u64, u128, f32, f64);
 impl_for!(AtLeast32 => i32, i64, i128, u32, u64, u128, f32, f64);
 impl_for!(AtLeast64 => i64, i128, u64, u128, f64);
@@ -909,8 +674,16 @@ impl_for!(AtLeast64 => isize, usize);
 impl_for!(AtMost8 => i8, u8);
 impl_for!(AtMost16 => i8, i16, u8, u16);
 impl_for!(AtMost32 => i8, i16, i32, u8, u16, u32, f32);
-impl_for!(AtMost64 => i8, i16, i32, i64, isize, u8, u16, u32, u64, usize, f32, f64);
-impl_for!(AtMost128 => i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+impl_for!(AtMost64 =>
+	i8, i16, i32, i64, isize,
+	u8, u16, u32, u64, usize,
+	f32, f64,
+);
+impl_for!(AtMost128 =>
+	i8, i16, i32, i64, i128, isize,
+	u8, u16, u32, u64, u128, usize,
+	f32, f64,
+);
 
 #[cfg(target_pointer_width = "16")]
 impl_for!(AtMost16 => isize, usize);

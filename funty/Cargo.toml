@@ -1,6 +1,6 @@
 [package]
 name = "funty"
-version = "3.0.0"
+version = "3.0.0-rc1"
 authors = [
 	"myrrlyn <self@myrrlyn.dev>",
 ]
@@ -13,17 +13,21 @@ documentation = "https://docs.rs/funty"
 edition = "2021"
 include = [
 	"Cargo.toml",
+	"README.md",
 	"LICENSE.txt",
-	"src/lib.rs",
+	"src/*.rs",
+	"doc/*.md",
 ]
 keywords = [
 	"numerics",
 	"primitives",
 	"traits",
+	"pointers",
 ]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/myrrlyn/funty"
+repository = "https://github.com/bitvecto-rs/funty"
+rust-version = "1.65"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
