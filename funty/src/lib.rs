@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(debug_assertions, warn(missing_docs))]
+#![cfg_attr(not(debug_assertions), deny(missing_docs))]
 #![deny(unconditional_recursion)]
 
 use core::{

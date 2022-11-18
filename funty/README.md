@@ -98,7 +98,7 @@ default-features = false
 [downloads_img]: https://img.shields.io/crates/dv/funty.svg?style=for-the-badge "Crate Downloads"
 [license_file]: https://github.com/bitvecto-rs/funty/blob/master/LICENSE.txt "License File"
 [license_img]: https://img.shields.io/crates/l/funty.svg?style=for-the-badge "License Display"
-[msrv_img]: https://img.shields.io/badge/MSRV-1.60-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.60"
+[msrv_img]: https://img.shields.io/badge/MSRV-1.65-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.65"
 [version_img]: https://img.shields.io/crates/v/funty?color=f46623&style=for-the-badge "Funty version badge"
 
 <!-- Documentation -->
