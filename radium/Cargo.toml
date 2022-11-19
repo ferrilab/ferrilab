@@ -2,8 +2,8 @@
 name = "radium"
 version = "1.0.0-rc3"
 authors = [
-    "Nika Layzell <nika@thelayzells.com>",
-    "myrrlyn <self@myrrlyn.dev>",
+	"Nika Layzell <nika@thelayzells.com>",
+	"myrrlyn <self@myrrlyn.dev>",
 ]
 license = "MIT"
 readme = "README.md"
@@ -11,15 +11,24 @@ repository = "https://github.com/bitvecto-rs/radium"
 homepage = "https://github.com/bitvecto-rs/radium"
 documentation = "https://docs.rs/radium"
 description = "Portable interfaces for maybe-atomic types"
-keywords = ["atomic", "cell", "sync", "generic", "trait"]
-categories = ["concurrency", "no-std"]
+keywords = [
+	"atomic",
+	"cell",
+	"sync",
+	"generic",
+	"trait",
+]
+categories = [
+	"concurrency",
+	"no-std",
+]
 
 include = [
-    "Cargo.toml",
-    "src/**/*.rs",
-    "README.md",
-    "doc/**/*.md",
-    "LICENSE.txt",
+	"Cargo.toml",
+	"src/**/*.rs",
+	"README.md",
+	"doc/**/*.md",
+	"LICENSE.txt",
 ]
 
 edition = "2018"
