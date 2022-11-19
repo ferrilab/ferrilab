@@ -1,3 +1,13 @@
 [workspace]
 members = [
+	"bitvec",
+	"funty",
+	"radium",
 ]
+
+# Allow developement to use the local workspace. `cargo package` ignores this
+# directive and always pulls from the registry.
+[patch.crates-io]
+bitvec = { path = "bitvec" }
+funty = { path = "funty" }
+radium = { path = "radium" }

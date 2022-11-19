@@ -1,0 +1,33 @@
+########################################################################
+#                     Rust Toolchain Configuration                     #
+#                                                                      #
+# Ferrilab expects to be developed with the stable toolchain, but does #
+# not specify a firmer version. Each crate inside it maintains its own #
+# MSRV, and *when published* must ensure that it adheres to its stated #
+# minimum version. However, by requiring "stable" in the project root, #
+# project-wide tools such as rust-analyzer are able to take advantage  #
+# of your existing toolchain installation.                             #
+########################################################################
+
+[toolchain]
+channel = "stable"
+profile = "default"
+components = [
+	"clippy",
+	"rustfmt",
+	"rust-analyzer",
+	"rust-src",
+]
+
+########################################################################
+#                           Additional Tools                           #
+#                                                                      #
+# - Install the `nightly` toolchain and the `miri` component           #
+#                                                                      #
+# Get the following with `cargo +nightly install`:                     #
+#                                                                      #
+# - `mdbook --vers 0.4.21`                                             #
+# - `cargo-tarpaulin --vers 0.23.1`                                    #
+# - `tokoi --vers 12.1.2`                                              #
+# - `cross --vers 0.2.1`                                               #
+########################################################################
