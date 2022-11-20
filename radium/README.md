@@ -24,7 +24,10 @@ guarantees of atomic behavior, respectively, while being generic over the
 underlying primitive type. `Atom<T>` will fail to compile when instantiated with
 a primitive which does not have a corresponding `AtomicT` type defined for the
 target, while `Isotope<T>` always compiles, and falls back to enclosing a
-`Cell<T>` when the required atomic support is missing.
+`Cell<T>` when the required atomic support is missing. Lastly, [`Radon<T>`] is
+a wrapper over `Cell<T>` that only implements the `Radium` API, so you can use
+it as a fallback when atomic behavior is disabled and know that you won’t have
+type substitution errors.
 
 Since the type symbols in the `atomic` module are conditionally defined
 according to the target architecture’s atomic support, portable code cannot use
@@ -106,6 +109,7 @@ string rather than the parse attempt.
 [`Cell<T>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
 [`Isotope<T>`]: https://docs.rs/radium/latest/radium/types/struct.Isotope.html
 [`Radium`]: https://docs.rs/radium/latest/radium/trait.Radium.html
+[`Radon<T>`]: https://docs.rs/radium/latest/radium/types/struct.Radon.html
 [`atomic`]: https://doc.rust-lang.org/core/sync/atomic
 
 <!-- External links -->
