@@ -1,6 +1,6 @@
 # Best-Effort Atomic Primitives
 
-This type takes a Rust primitive (`bool`, integer, or pointer) as a type
+This family takes a Rust primitive (`bool`, integer, or pointer) as a type
 parameter and acts as the corresponding `RadiumT` type. Unlike the [`Atom<T>`]
 sibling type, this type will never produce a compiler error when instantiated
 (with a valid primitive). When the requisite atomic support is missing on the

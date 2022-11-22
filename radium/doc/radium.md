@@ -1,8 +1,8 @@
 # Unified Shared-Mutable API
 
-The `Radium` type is a common interface for shared-mutable types. It is only
+The `Radium` trait is a common interface for shared-mutable types. It is only
 implemented by `AtomicT` and `Cell<T>` variants of Rust primitives, as well as
-the `radium` [alternative types][types]. It mirrors the API of the Rust [atomic]
+Radium’s [alternative types][types]. It mirrors the API of the Rust [atomic]
 types.
 
 You should consult the Rust standard library documentation for the correct usage
@@ -13,7 +13,7 @@ Some of the `Radium` methods are gated on marker types in order to prevent their
 use when the underlying primitive does not support them. For instance, pointers
 do not (at time of writing) support atomic bit-wise or numeric operations, and
 so cannot be used with any of the `.fetch_modify()` methods. Attempting to call
-these methods will cause a compiler error when the `Self::Item` type is
+these methods will cause a compiler error when the underlying primitive type is
 unsuitable.
 
 ## Usage
@@ -24,10 +24,10 @@ about what it is. You will likely want to specify the `Item` to be a known type,
 by writing this bound: `<R: Radium<Item = T>>` where `T` is another generic
 parameter or a named primitive.
 
-The `radium` project does *not* provide any unified trait system for the Rust
-primitives! If you want to accept `Radium::Item` as a generic parameter, you
-will need to use another crate (for instance, [`funty`]) to describe behavior
-over generic primitives.
+Radium does *not* provide any unified trait system for the Rust primitives! If
+you want to accept `Radium::Item` as a generic parameter, you will need to use
+another crate (for instance, [`funty`]) to describe behavior over generic
+primitives.
 
 ## Non-Usage
 

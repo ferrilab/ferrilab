@@ -1,13 +1,11 @@
 # Non-Atomic Primitives
 
-This type takes a Rust primitive (`bool`, integer, or pointer) as a type
+This family takes a Rust primitive (`bool`, integer, or pointer) as a type
 parameter and wraps it in a `Cell`. Like `Atom<T>` and `Isotope<T>`, it
-implements *only* the [`Radium`] API, and as such is suitable for cases where a
-crate wants to turn off atomic usage entirely, while guaranteeing that swapping
-out types will not cause a compilation failure.
-
-Like `Atom` and `Isotope`, this type also implements `Debug`, `Default`, and
-`From<T>`.
+implements *only* the [`Radium`] API (and `Debug`, `Default`, and `From<T>`),
+and as such is suitable for cases where a crate wants to turn off atomic usage
+entirely, while guaranteeing that swapping out types will not cause a
+compilation failure.
 
 ## Examples
 

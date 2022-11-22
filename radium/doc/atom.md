@@ -1,6 +1,6 @@
 # Atomic Primitives
 
-This type takes a Rust primitive (`bool`, integer, or pointer) as a type
+This family takes a Rust primitive (`bool`, integer, or pointer) as a type
 parameter and acts as the corresponding `AtomicT` type. Attempting to construct
 an `Atom<T>` on a target that has no `AtomicT` will cause a compilation failure
 stating that `T` does not implement the `Atomic` trait. The [`Isotope<T>`]

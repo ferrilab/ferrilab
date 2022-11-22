@@ -1,4 +1,4 @@
-# Non-Atomic Primitives
+# Aliases and Type Families
 
 This module provides `RadiumT` aliases that correspond to `AtomicT` from the
 standard library, and resolve to `AtomicT` when it exists and `Cell<T>` when it
