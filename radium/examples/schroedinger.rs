@@ -1,69 +1,85 @@
 //! This is a small example which demonstrates how a function which does not
 //! care about atomicity can be used to operate on a value.
-//!
-//! The context which *uses* such a function must still care about atomicity;
-//! `radium` does not suddenly permit `Cell` to cross threads. It just provides
-//! a unified trait interface for a cell and an atom of the same underlying
-//! type.
 
 use std::{
 	cell::Cell,
 	sync::atomic::{
-		AtomicU32,
+		AtomicU64,
 		Ordering,
 	},
 	thread,
 	time::Duration,
 };
 
-use radium::Radium;
+use radium::{
+	types::{
+		Atom,
+		Isotope,
+		RadiumU64,
+		Radon,
+	},
+	Radium,
+};
 
-/// Operates on a value, which might or might not be atomic.
-fn routine<R: Radium<Item = u32>>(obj: &R, ident: usize) {
-	println!(
-		"Entry {} observes value: {}",
-		ident,
-		obj.load(Ordering::Relaxed)
-	);
-	let added = obj.fetch_add(1, Ordering::Relaxed);
-	println!("Middle {} observes fetched value: {}", ident, added);
-	println!(
-		"Middle {} observes loaded value:  {}",
-		ident,
-		obj.load(Ordering::Relaxed)
-	);
-	thread::sleep(Duration::from_millis(
-		obj.load(Ordering::Relaxed) as u64 * 10,
-	));
-	let subbed = obj.fetch_sub(1, Ordering::Relaxed);
-	println!("Exit {} observes fetched value: {}", ident, subbed);
-	println!(
-		"Exit {} observes loaded value:  {}",
-		ident,
-		obj.load(Ordering::Relaxed)
-	);
+fn do_work<R: Radium<Item = u64>>(this: &R, ident: u8) {
+	let on_entry = this.load(Ordering::SeqCst);
+	println!("{: >2} step 0 sees: {: >2}", ident, on_entry);
+
+	let before_add = this.fetch_add(10, Ordering::SeqCst);
+	println!("{: >2} step 1 sees: {: >2}", ident, before_add);
+
+	let after_add = this.load(Ordering::SeqCst);
+	println!("{: >2} step 2 sees: {: >2}", ident, after_add);
+
+	thread::sleep(Duration::from_millis(after_add));
+
+	let before_sub = this.fetch_sub(3, Ordering::SeqCst);
+	println!("{: >2} step 3 sees: {: >2}", ident, before_sub);
+
+	let on_exit = this.load(Ordering::SeqCst);
+	println!("{: >2} step 4 sees: {: >2}", ident, on_exit);
 }
 
-/// Single value which will be contended by multiple threads
-static HOT: AtomicU32 = AtomicU32::new(0);
+fn run_thrice<R: Radium<Item = u64> + Sync>(item: &'static R, ident: u8) {
+	for th in
+		(ident .. (ident + 3)).map(|id| thread::spawn(move || do_work(item, id)))
+	{
+		let _ = th.join();
+	}
+}
+
+static ATOM: AtomicU64 = AtomicU64::new(0);
+static RADIUM: RadiumU64 = RadiumU64::new(0);
 
 fn main() {
-	//  This cannot cross a thread, so it is only accessed without contention in
-	//  an ordered call sequence.
-	let cold = Cell::new(0u32);
+	let cell = Cell::new(0u64);
 
-	routine(&cold, 0);
-	let one = thread::spawn(move || {
-		routine(&HOT, 1);
-	});
-	let two = thread::spawn(move || {
-		routine(&HOT, 2);
-	});
-	routine(&cold, 3);
+	let atom = Atom::new(0u64);
+	let isotope = Isotope::new(0u64);
+	let radon = Radon::new(0u64);
 
-	let _ = one.join();
-	let _ = two.join();
+	println!("atoms");
+	run_thrice(&ATOM, 0);
+	println!();
+	let atom = Box::leak(Box::new(atom));
+	run_thrice(atom, 3);
+	println!();
 
-	assert_eq!(HOT.load(Ordering::Relaxed), 0);
-	assert_eq!(cold.load(Ordering::Relaxed), 0);
+	println!("isotopes");
+	run_thrice(&RADIUM, 6);
+	println!();
+	for ident in 9 .. 12 {
+		do_work(&isotope, ident);
+	}
+	println!();
+
+	println!("cells");
+	for ident in 12 .. 15 {
+		do_work(&cell, ident);
+	}
+	println!();
+	for ident in 15 .. 18 {
+		do_work(&radon, ident);
+	}
+	println!();
 }

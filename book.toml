@@ -1,0 +1,16 @@
+[book]
+title = "A User’s Guide to the Ferrilab Project"
+authors = [
+	"myrrlyn <self@myrrlyn.dev>",
+]
+description = "A more thorough exploration of Ferrilab’s crates."
+src = "guide"
+
+[build]
+build-dir = "./target/guide"
+
+[output.html]
+mathjax-support = true
+
+[output.html.playpen]
+line-numbers = true
