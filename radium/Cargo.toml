@@ -1,24 +1,40 @@
 [package]
 name = "radium"
-version = "0.7.1"
+version = "1.0.0"
 authors = [
-    "Nika Layzell <nika@thelayzells.com>",
-    "myrrlyn <self@myrrlyn.dev>"
+	"Nika Layzell <nika@thelayzells.com>",
+	"myrrlyn <self@myrrlyn.dev>",
 ]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/bitvecto-rs/radium"
-homepage = "https://github.com/bitvecto-rs/radium"
+repository = "https://github.com/ferrilab/ferrilab"
+homepage = "https://ferrilab.github.io/ferrilab"
 documentation = "https://docs.rs/radium"
 description = "Portable interfaces for maybe-atomic types"
-keywords = ["atomic", "cell", "sync", "generic", "trait"]
-categories = ["concurrency", "no-std"]
+keywords = [
+	"atomic",
+	"cell",
+	"sync",
+	"generic",
+	"trait",
+]
+categories = [
+	"concurrency",
+	"no-std",
+]
 
-include = ["src/**/*.rs", "Cargo.toml", "README.md", "LICENSE.txt", "build.rs"]
+include = [
+	"Cargo.toml",
+	"src/**/*.rs",
+	"README.md",
+	"doc/**/*.md",
+	"LICENSE.txt",
+]
 
-edition = "2018"
+edition = "2021"
+rust-version = "1.60"
 
 [dependencies]
 
 [dev-dependencies]
-static_assertions = "1"
+static_assertions = "1.1"

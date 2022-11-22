@@ -1,0 +1,5 @@
+# Ignore these commit hashes with `git blame --ignore-revs-file`
+#
+# Set permanently with `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+
+e6fb506cb952fc812ab91e2d9249eb4b0f6cc7f8
