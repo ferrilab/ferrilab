@@ -24,7 +24,3 @@ components = [
 # - `cargo-tarpaulin --vers 0.19.1`
 # - `tokei --vers 12.1.2`
 # - `cross --vers 0.2.1`
-
-# Additional system tools:
-#
-# - Docker

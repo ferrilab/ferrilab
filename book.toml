@@ -1,13 +1,24 @@
+########################################################################
+#                 Ferrilab Project Guide Configuration                 #
+#                                                                      #
+# Controls `mdbook 0.4.21`, which builds the project’s user guide.     #
+########################################################################
+
 [book]
 title = "A User’s Guide to the Ferrilab Project"
 authors = [
 	"myrrlyn <self@myrrlyn.dev>",
 ]
 description = "A more thorough exploration of Ferrilab’s crates."
-src = "guide"
+src = "./guide"
+language = "en-US"
+
+[rust]
+edition = "2021"
 
 [build]
 build-dir = "./target/guide"
+create-missing = true
 
 [output.html]
 mathjax-support = true

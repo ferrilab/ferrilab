@@ -1,11 +1,11 @@
-################################################################################
-#                       GitHub Action – Pages Deployment                       #
-#                                                                              #
-# This file controls the GitHub Actions pipeline used to deploy static files   #
-# to GitHub Pages for public view.                                             #
-################################################################################
+########################################################################
+#                   GitHub Action – Pages Deployment                   #
+#                                                                      #
+# Controls the GitHub Actions pipeline used to compile the project     #
+# guide and deploy its static files to GitHub Pages for public view.   #
+########################################################################
 
-name: GitHub Pages
+name: user guide
 
 on:
   push:

@@ -1,8 +1,8 @@
 ########################################################################
 #                        Coverage Configuration                        #
 #                                                                      #
-# This file controls the behavior of `cargo-tarpaulin`, which produces #
-# test coverage reports for the project.                               #
+# Controls the behavior of `cargo-tarpaulin 0.22`, which produces test #
+# coverage reports for the project.                                    #
 ########################################################################
 
 [coverage]
@@ -20,4 +20,4 @@ out = [
 	"Lcov",
 	"Xml",
 ]
-output-dir = "target/tarpaulin"
+output-dir = "./target/tarpaulin"
