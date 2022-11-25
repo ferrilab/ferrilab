@@ -1319,6 +1319,7 @@ where
 	P: Permission,
 {
 }
+
 /// Unifying bridge over `*const T` and `*mut T`.
 #[doc(hidden)]
 pub trait RawPtr<T: ?Sized>: Copy {
@@ -1413,16 +1414,15 @@ impl_raw_ptr!(*const T, *mut T);
 #[doc(hidden)]
 pub trait RawRef<'a, T: ?Sized> {}
 
-impl<'a, T: 'a + ?Sized> RawRef<'a, T> for &'a T {
-}
+impl<'a, T: 'a + ?Sized> RawRef<'a, T> for &'a T {}
 
-impl<'a, T: 'a + ?Sized> RawRef<'a, T> for &'a mut T {
-}
+impl<'a, T: 'a + ?Sized> RawRef<'a, T> for &'a mut T {}
 
 #[cfg(test)]
 mod tests {
-	use super::*;
 	use static_assertions::*;
+
+	use super::*;
 
 	#[test]
 	fn permission_stack() {

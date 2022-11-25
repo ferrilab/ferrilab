@@ -1,6 +1,5 @@
 //! Traits for the numeric types.
 
-use crate::Fundamental;
 use core::{
 	fmt::{
 		Binary,
@@ -44,6 +43,8 @@ use core::{
 		SubAssign,
 	},
 };
+
+use crate::Fundamental;
 
 new_trait! {
 	/// Declares that a type is an abstract number.

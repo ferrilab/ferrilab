@@ -695,8 +695,9 @@ impl_for!(AtMost32 => isize, usize);
 
 #[cfg(test)]
 mod tests {
-	use super::*;
 	use static_assertions::*;
+
+	use super::*;
 
 	assert_impl_all!(bool: Fundamental);
 	assert_impl_all!(char: Fundamental);
