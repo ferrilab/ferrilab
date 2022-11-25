@@ -4,6 +4,8 @@
 
 1. [Introduction to Ferrilab](introduction.md)
 1. [Radium](radium.md)
+1. [`funty`](funty.md)
+   1. [Permission Changes](funty/permission-changes.md)
 
 <!--
 1. [Data Structures](data-structures.md)

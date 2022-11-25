@@ -19,7 +19,7 @@ for losing `Sync` impls).
 ## Examples
 
 ```rust
-use radium::types::*;
+use radium::{Radium, types::*};
 
 #[cfg(target_has_atomic = "ptr")]
 let a = Atom::new(0usize);

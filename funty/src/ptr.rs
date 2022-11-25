@@ -1084,6 +1084,20 @@ where
 	}
 }
 
+impl<T, P> NonNullPtr<T, (Shared, P)>
+where
+	T: ?Sized,
+	P: Permission,
+{
+	/// Removes the leading `Shared` from the permission stack.
+	pub fn cast_unshared(self) -> NonNullPtr<T, P> {
+		NonNullPtr {
+			inner: self.inner,
+			_perm: PhantomData,
+		}
+	}
+}
+
 impl<T, P> NonNullPtr<T, P>
 where
 	T: Sized,
