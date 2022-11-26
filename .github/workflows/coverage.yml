@@ -39,3 +39,10 @@ jobs:
           # The tarpaulin container does not have `git`, so pass this directly
           root_dir: .
           fail_ci_if_error: false
+
+      - name: Upload to coveralls.io
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # base-path: .
+          path-to-lcov: ./target/tarpaulin/lcov.info
