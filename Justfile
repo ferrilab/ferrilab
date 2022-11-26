@@ -26,7 +26,6 @@ cloc *ARGS:
 # Produces coverage reports for the test suite.
 cover *ARGS:
 	cargo +nightly tarpaulin --all-features -- {{ARGS}}
-	@just cloc
 
 cover_docker *ARGS:
 	docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin:0.22.0-slim cargo-tarpaulin tarpaulin -- {{ARGS}}
