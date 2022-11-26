@@ -28,14 +28,6 @@ check:
 # Runs all of the recipes necessary for pre-publish.
 checkout: format check build doc test package
 
-# Continually runs the development routines.
-ci:
-	just loop dev
-
-# Removes all build artifacts.
-clean:
-	cargo clean
-
 # Runs the cross-compile battery test.
 #
 # This is suitable for a development machine **only**, and should not run in CI.
@@ -62,36 +54,9 @@ cross_par: rustup_targets
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,std   < ci/target_check_no_serde.txt
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,alloc < ci/target_check_no_std.txt
 
-# Runs the development routines.
-dev: check doc test
-	echo miri cover | xargs -n1 -P2 just
-	@echo "Complete at $(date)"
-
-# Builds the crate documentation and user guide.
-doc:
-	cargo doc --all-features --document-private-items
-	mdbook build
-
-# Runs the formatter.
-format:
-	cargo +nightly fmt
-
-# Continually runs some recipe from this file.
-loop +ACTIONS:
-	watchexec -i target -- "just {{ACTIONS}}"
-
 # Looks for undefined behavior in the (non-doc) test suite.
-miri *ARGS: miri_install
+miri *ARGS:
 	cargo +nightly miri test --features atomic,serde,std -q --lib --tests {{ARGS}}
-
-# Installs Miri and ensures that it is able to run uninteractively.
-miri_install:
-	rustup toolchain add nightly --component miri
-	cargo +nightly miri setup
-
-# Packages the crate in preparation for publishing on crates.io
-package: build
-	cargo package --allow-dirty
 
 # Publishes the crate to crates.io
 publish: checkout
@@ -100,13 +65,6 @@ publish: checkout
 # Installs *every* target.
 rustup_targets:
 	xargs -P1 rustup target add < ci/targets.txt 2>&1 | grep -v "up to date" || true
-
-# Spawns an HTTP file server to easily view compiled artifacts.
-#
-# The API documentation, user manual, and code coverage reports all produce HTML
-# artifacts inside `target/`.
-serve:
-	miniserve . -p 7878 -Drzq
 
 # Run the test suite.
 #

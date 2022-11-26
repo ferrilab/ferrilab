@@ -1,0 +1,39 @@
+﻿########################################################################
+#                    GitHub Action -- Code Coverage                    #
+#                                                                      #
+# Controls the GitHub Actions pipeline used to collect test coverage   #
+# and publish the results to CodeCov.                                  #
+########################################################################
+
+name: coverage
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    name: coverage
+    runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:0.22.0-nightly-slim
+      options: --security-opt seccomp=unconfined
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install `just` runner
+        uses: extractions/setup-just@v1
+        with:
+          just-version: 1.8
+
+      - name: Generate code coverage
+        run: |
+          just bitvec/cover
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
+        with:
+          # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
+          directory: ./target/tarpaulin
+          fail_ci_if_error: false

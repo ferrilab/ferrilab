@@ -1,0 +1,15 @@
+﻿########################################################################
+#                    Configuration for `codecov.io`                    #
+#                                                                      #
+# Changes to this file can be validated by running this command:       #
+# curl -X POST --data-binary @codecov.yml https://codecov.io/validate  #
+########################################################################
+
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
