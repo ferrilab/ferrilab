@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en-US" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="dedication.html">Dedication</a></li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction to Ferrilab</a></li><li class="chapter-item expanded "><a href="radium.html"><strong aria-hidden="true">2.</strong> Radium</a></li><li class="chapter-item expanded affix "><a href="afterword.html">Afterword</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="dedication.html">Dedication</a></li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction to Ferrilab</a></li><li class="chapter-item expanded "><a href="radium.html"><strong aria-hidden="true">2.</strong> Radium</a></li><li class="chapter-item expanded "><a href="funty.html"><strong aria-hidden="true">3.</strong> funty</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="funty/permission-changes.html"><strong aria-hidden="true">3.1.</strong> Permission Changes</a></li></ol></li><li class="chapter-item expanded "><a href="afterword.html">Afterword</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -229,7 +229,7 @@ parallel.</p>
 <p>Note: Radium’s MSRV is 1.60, while the scoped-threads API used here stabilized
 in 1.63.</p>
 </blockquote>
-<pre><pre class="playground"><code class="language-rust">use radium::{Radium, types::{RadiumU64, Atom, Isotope, Radon}};
+<pre><pre class="playground"><code class="language-rust edition2021">use radium::{Radium, types::{RadiumU64, Atom, Isotope, Radon}};
 use std::{
   cell::Cell,
   sync::atomic::{AtomicU64, Ordering},
@@ -298,6 +298,96 @@ fn main() {
   println!();
 }
 </code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="funty"><a class="header" href="#funty"><code>funty</code></a></h1>
+<p>The <code>funty</code> crate (<em><strong>fun</strong></em>damental <em><strong>ty</strong></em>pes) provides traits that unify
+the Rust non-pointer primitives. It also unifies pointers and references by
+lifting access permissions into the trait system.</p>
+<h2 id="fundamental-unification"><a class="header" href="#fundamental-unification">Fundamental Unification</a></h2>
+<p>The Rust primitives implement the following trait hierarchy and replicate their
+standard-library inherent API and trait implementations.</p>
+<ul>
+<li><strong><code>Fundamental</code></strong>: this is implemented by all primitives: <code>bool</code>, <code>char</code>, all
+integers, and both floats. It requires all traits that <em>all</em> primitives
+implement, and provides <code>.as_other()</code> methods that can replace <code>as</code>-casts.
+<ul>
+<li><strong><code>Numeric</code></strong>: this is implemented by all integers and both floats. It adds
+the arithmetic operator traits, and methods for converting between the
+integer and its raw byte representation.
+<ul>
+<li><strong><code>Integral</code></strong>: this is implemented by all integers. It adds bit-wise
+operator traits, attempted conversions between the other integers, and
+bit-shifts. It also provides most of the integer inherent API, as most of
+these methods are sign-agnostic.
+<ul>
+<li><strong><code>Signed</code></strong>: this is implemented only by signed integers. It adds the
+absolute-value and sign-testing functions that unsigned integers don’t
+support.</li>
+<li><strong><code>Unsigned</code></strong>: this is implemented only by unsigned integers. It
+provides the <code>{is,next}_power_of_two</code> one-hot methods that only make
+sense on unsigned integers.</li>
+</ul>
+</li>
+<li><strong><code>Floating</code></strong>: this is implemented by the floating-point numbers. Unlike
+the integral traits, it has a great deal of methods that only exist when
+<code>cfg(feature = &quot;std&quot;)</code> is active, as they require the platform <code>libm</code>
+mathematics library and are not provided by Rust’s <code>core</code> crate. It also
+provides both all of the associated constants, as well as all of the
+constants stored in eponymous modules but <em>not</em> associated with the actual
+floating-point primitive types.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Additionally, <code>funty</code> provides marker traits for selecting bit-width: for <code>N</code>
+in <code>8</code>, <code>16</code>, <code>32</code>, <code>64</code>, and <code>128</code>, the <code>IsN</code> trait is implemented by types
+that are exactly that wide, <code>AtLeastN</code> is implemented by types that are that
+width or more, and <code>AtMostN</code> is implemented by types that are that width or
+less.</p>
+<p>You can use these traits as generic constraints in code that needs to accept a
+range of different primitives. The integral traits provide Peano constants (zero
+and one), and can be constructed from literals for non-<code>const</code> work.</p>
+<h2 id="pointer-unification"><a class="header" href="#pointer-unification">Pointer Unification</a></h2>
+<p>The <code>funty::ptr</code> module provides <code>Pointer</code> and <code>NonNullPtr</code> types which are
+replacements for raw pointers and <code>core::ptr::NonNull</code>, respectively. They work
+by lifting the <code>*const T</code>/<code>*mut T</code> distinction into the trait system, through
+the <code>Permission</code> trait and the <code>Shared</code>, <code>Unique</code>, and <code>(Shared, Unique)</code> types.</p>
+<p>The <code>Permission</code> trait and its implementors implement a less-capable version of
+the stacked-borrows experimental model found in Miri. <code>Pointer&lt;T, P&gt;</code> implements
+the read-only APIs found on both <code>*const</code> and <code>*mut</code> pointers, while
+<code>Pointer&lt;T, Unique&gt;</code> alone implements the write APIs only present on <code>*mut</code>
+pointers. Additionally, type-level transitions allow <em>safely</em> casting <code>Unique</code>
+pointers down to read-only and back up to <code>Unique</code>, and <em>unsafely</em> casting
+directly to a permission that you specify.</p>
+<p>The <code>NonNullPtr</code> behaves similarly to <code>Pointer</code>, except that it encloses a
+<code>core::ptr::NonNull</code> in order to regain the null-pointer niche optimization. Its
+API strives to match both the <code>NonNull</code> and <code>Pointer</code> APIs. As both raw pointers
+and <code>NonNull</code> still have large amounts of unstable API surface in the standard
+library, these types will continue to grow in response to both Ferrilab’s needs
+and the standard library’s evolution.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="permission-changes"><a class="header" href="#permission-changes">Permission Changes</a></h1>
+<p><code>funty</code> uses the <code>Permission</code> trait to create a graph of safe transitions
+between raw pointers and <code>Pointer</code>, and between different type parameters
+attached to <code>Pointer</code> values.</p>
+<p><code>Pointer</code>s can be constructed from both raw pointers: <code>*const T</code> produces
+<code>Pointer&lt;T, Shared&gt;</code>, and <code>*mut T</code> produces <code>Pointer&lt;T, Unique&gt;</code>. Once
+constructed, all <code>Pointer&lt;T, P: Permission&gt;</code> values have access to the
+introspective and read-only memory accesses defined on the raw pointers. The
+memory-write APIs are only available on <code>Pointer&lt;T, Unique&gt;</code>.</p>
+<p>Additionally, the method <code>.cast_shared()</code> moves <code>Pointer</code>s from <code>P</code> to
+<code>(Shared, P)</code>. The <code>(Shared, P: Permission)</code> tuple is itself an implementor of
+<code>Permission</code>, and can continue to be used as a read-only pointer.
+<code>Pointer&lt;T, (Shared, P)&gt;</code> also provides <code>.cast_unshared()</code>, which undoes
+<code>.cast_shared()</code> and transitions from <code>(Shared, P)</code> back to <code>P</code>.</p>
+<p>All <code>Pointer</code>s can produce <code>*const</code> raw pointers, but only the <code>Unique</code>
+permission can produce <code>*mut</code> raw pointers. If you need access to <code>*mut</code>
+raw pointers but are in generic code where you cannot satisfactorily prove to
+the compiler that you have a <code>Unique</code>, you have two options. The
+<code>.unwind_to_unique()</code> method recursively unwinds a <code>(Shared, P)</code> history stack
+until it reaches the base, then produces <code>Some</code> pointer if the original
+permission was <code>Unique</code> or <code>None</code> if it was <code>Shared</code>. The <code>unsafe</code> method
+<code>.cast_mut()</code> unconditionally produces a pointer with <code>Unique</code> permissions, but
+may violate Rust’s provenance rules and invoke undefined behavior.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="afterword"><a class="header" href="#afterword">Afterword</a></h1>
 <p>Thanks for reading! We hope this guide was useful to you.</p>
 <p><strong>Please</strong> feel both welcomed and encouraged to ask us any clarifying questions,

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Afterword - A User’s Guide to the Ferrilab Project</title>
+        <title>funty - A User’s Guide to the Ferrilab Project</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="A more thorough exploration of Ferrilab’s crates.">
@@ -77,7 +77,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="dedication.html">Dedication</a></li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction to Ferrilab</a></li><li class="chapter-item expanded "><a href="radium.html"><strong aria-hidden="true">2.</strong> Radium</a></li><li class="chapter-item expanded "><a href="funty.html"><strong aria-hidden="true">3.</strong> funty</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="funty/permission-changes.html"><strong aria-hidden="true">3.1.</strong> Permission Changes</a></li></ol></li><li class="chapter-item expanded "><a href="afterword.html" class="active">Afterword</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="dedication.html">Dedication</a></li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction to Ferrilab</a></li><li class="chapter-item expanded "><a href="radium.html"><strong aria-hidden="true">2.</strong> Radium</a></li><li class="chapter-item expanded "><a href="funty.html" class="active"><strong aria-hidden="true">3.</strong> funty</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="funty/permission-changes.html"><strong aria-hidden="true">3.1.</strong> Permission Changes</a></li></ol></li><li class="chapter-item expanded "><a href="afterword.html">Afterword</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -136,25 +136,83 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="afterword"><a class="header" href="#afterword">Afterword</a></h1>
-<p>Thanks for reading! We hope this guide was useful to you.</p>
-<p><strong>Please</strong> feel both welcomed and encouraged to ask us any clarifying questions,
-or to <a href="https://github.com/ferrilab/ferrilab/issues/new">file an issue</a> if any of it is confusing or even send a PR if you have
-improvements!</p>
-<p>Ferrilab has been a work of intensely deep focus and research for over four
-years. It is a complex and difficult topic, and we are absolutely certain that
-we have information and context that we haven’t sufficiently serialized for
-everyone else to see.</p>
-<p>Thank you for using our crates. We are delighted that other people have found
-our work both interesting and useful, and we’re glad that we’ve been able to
-help people like you write better programs.</p>
+                        <h1 id="funty"><a class="header" href="#funty"><code>funty</code></a></h1>
+<p>The <code>funty</code> crate (<em><strong>fun</strong></em>damental <em><strong>ty</strong></em>pes) provides traits that unify
+the Rust non-pointer primitives. It also unifies pointers and references by
+lifting access permissions into the trait system.</p>
+<h2 id="fundamental-unification"><a class="header" href="#fundamental-unification">Fundamental Unification</a></h2>
+<p>The Rust primitives implement the following trait hierarchy and replicate their
+standard-library inherent API and trait implementations.</p>
+<ul>
+<li><strong><code>Fundamental</code></strong>: this is implemented by all primitives: <code>bool</code>, <code>char</code>, all
+integers, and both floats. It requires all traits that <em>all</em> primitives
+implement, and provides <code>.as_other()</code> methods that can replace <code>as</code>-casts.
+<ul>
+<li><strong><code>Numeric</code></strong>: this is implemented by all integers and both floats. It adds
+the arithmetic operator traits, and methods for converting between the
+integer and its raw byte representation.
+<ul>
+<li><strong><code>Integral</code></strong>: this is implemented by all integers. It adds bit-wise
+operator traits, attempted conversions between the other integers, and
+bit-shifts. It also provides most of the integer inherent API, as most of
+these methods are sign-agnostic.
+<ul>
+<li><strong><code>Signed</code></strong>: this is implemented only by signed integers. It adds the
+absolute-value and sign-testing functions that unsigned integers don’t
+support.</li>
+<li><strong><code>Unsigned</code></strong>: this is implemented only by unsigned integers. It
+provides the <code>{is,next}_power_of_two</code> one-hot methods that only make
+sense on unsigned integers.</li>
+</ul>
+</li>
+<li><strong><code>Floating</code></strong>: this is implemented by the floating-point numbers. Unlike
+the integral traits, it has a great deal of methods that only exist when
+<code>cfg(feature = &quot;std&quot;)</code> is active, as they require the platform <code>libm</code>
+mathematics library and are not provided by Rust’s <code>core</code> crate. It also
+provides both all of the associated constants, as well as all of the
+constants stored in eponymous modules but <em>not</em> associated with the actual
+floating-point primitive types.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Additionally, <code>funty</code> provides marker traits for selecting bit-width: for <code>N</code>
+in <code>8</code>, <code>16</code>, <code>32</code>, <code>64</code>, and <code>128</code>, the <code>IsN</code> trait is implemented by types
+that are exactly that wide, <code>AtLeastN</code> is implemented by types that are that
+width or more, and <code>AtMostN</code> is implemented by types that are that width or
+less.</p>
+<p>You can use these traits as generic constraints in code that needs to accept a
+range of different primitives. The integral traits provide Peano constants (zero
+and one), and can be constructed from literals for non-<code>const</code> work.</p>
+<h2 id="pointer-unification"><a class="header" href="#pointer-unification">Pointer Unification</a></h2>
+<p>The <code>funty::ptr</code> module provides <code>Pointer</code> and <code>NonNullPtr</code> types which are
+replacements for raw pointers and <code>core::ptr::NonNull</code>, respectively. They work
+by lifting the <code>*const T</code>/<code>*mut T</code> distinction into the trait system, through
+the <code>Permission</code> trait and the <code>Shared</code>, <code>Unique</code>, and <code>(Shared, Unique)</code> types.</p>
+<p>The <code>Permission</code> trait and its implementors implement a less-capable version of
+the stacked-borrows experimental model found in Miri. <code>Pointer&lt;T, P&gt;</code> implements
+the read-only APIs found on both <code>*const</code> and <code>*mut</code> pointers, while
+<code>Pointer&lt;T, Unique&gt;</code> alone implements the write APIs only present on <code>*mut</code>
+pointers. Additionally, type-level transitions allow <em>safely</em> casting <code>Unique</code>
+pointers down to read-only and back up to <code>Unique</code>, and <em>unsafely</em> casting
+directly to a permission that you specify.</p>
+<p>The <code>NonNullPtr</code> behaves similarly to <code>Pointer</code>, except that it encloses a
+<code>core::ptr::NonNull</code> in order to regain the null-pointer niche optimization. Its
+API strives to match both the <code>NonNull</code> and <code>Pointer</code> APIs. As both raw pointers
+and <code>NonNull</code> still have large amounts of unstable API surface in the standard
+library, these types will continue to grow in response to both Ferrilab’s needs
+and the standard library’s evolution.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="funty/permission-changes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="radium.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="funty/permission-changes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
                     </nav>
@@ -162,8 +220,11 @@ help people like you write better programs.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="funty/permission-changes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="radium.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="funty/permission-changes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
