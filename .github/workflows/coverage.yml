@@ -36,4 +36,6 @@ jobs:
         with:
           # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
           directory: ./target/tarpaulin
+          # The tarpaulin container does not have `git`, so pass this directly
+          root_dir: .
           fail_ci_if_error: false
