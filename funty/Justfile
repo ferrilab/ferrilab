@@ -16,7 +16,7 @@ check:
 	cargo clippy --all-features
 
 # Runs all of the recipes necessary for pre-publish.
-checkout: format check build doc test package
+checkout: check build doc test package
 
 # Continually runs the development routines.
 ci:
@@ -32,17 +32,6 @@ dev: format doc test
 # Builds the crate documentation.
 doc:
 	cargo doc --all-features --document-private-items
-
-# Runs the formatter on all Rust files.
-format:
-	cargo +nightly fmt
-
-# Continually runs some recipe from this file.
-loop action:
-	watchexec -- "just {{action}}"
-
-miri:
-	cargo +nightly miri test
 
 # Packages the crate in preparation for publishing on crates.io
 package:

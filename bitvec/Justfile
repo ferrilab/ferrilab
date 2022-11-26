@@ -26,7 +26,7 @@ check:
 	cargo clippy        --all-features
 
 # Runs all of the recipes necessary for pre-publish.
-checkout: format check build doc test package
+checkout: check build doc test package
 
 # Runs the cross-compile battery test.
 #
@@ -54,9 +54,15 @@ cross_par: rustup_targets
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,std   < ci/target_check_no_serde.txt
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,alloc < ci/target_check_no_std.txt
 
+doc:
+	cargo doc --all-features --document-private-items
+
 # Looks for undefined behavior in the (non-doc) test suite.
 miri *ARGS:
 	cargo +nightly miri test --features atomic,serde,std -q --lib --tests {{ARGS}}
+
+package:
+	cargo package --allow-dirty
 
 # Publishes the crate to crates.io
 publish: checkout
