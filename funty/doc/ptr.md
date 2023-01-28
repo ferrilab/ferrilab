@@ -63,7 +63,7 @@ surface of the pointer primitives. However, the pointers have a great deal of
 still-unstable methods that make them actually useful, including all of the
 operations on slice pointers and direct address manipulation.
 
-Since the `bitvecto-rs` project is committed to using the stable series, these
+Since the `ferrilab` project is committed to using the stable series, these
 APIs will not be provided until they stabilize. If you urgently want them
 available for your project under a `cfg(feature = "nightly")` gate, please file
 an issue.
