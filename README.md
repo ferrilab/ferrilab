@@ -68,7 +68,29 @@ programs interact with the fundamental data types, the name “Fermi” jumped o
 as a close analogue, and from there it was only a one-letter change to make it
 fit the Rustacean community.
 
+----
+
+Both `funty` and `radium` are type-system crates with almost no runtime logic of
+their own, so test coverage is not really meaningful for them. `bitvec` is
+tested heavily, and is always in need of further work on its benchmarks, use
+cases, and obscure behaviors.
+
+<div style="text-align: center;" align="center">
+
+[![codecov][all_codecov_img]][all_codecov_url]
+[![coveralls][all_coveralls_img]][all_coveralls_url]
+
+[![codecov][all_codecov_banner]][all_codecov_url]
+
+</div>
+
 <!-- Badges -->
+
+[all_codecov_banner]: https://codecov.io/github/ferrilab/ferrilab/branch/main/graphs/icicle.svg?token=KNF0XPDE93
+[all_codecov_img]: https://img.shields.io/codecov/c/github/ferrilab/ferrilab?style=for-the-badge&logo=codecov&token=KNF0XPDE93
+[all_codecov_url]: https://codecov.io/github/ferrilab/ferrilab
+[all_coveralls_img]: https://img.shields.io/coverallsCoverage/github/ferrilab/ferrilab?style=for-the-badge&logo=coveralls
+[all_coveralls_url]: https://coveralls.io/github/ferrilab/ferrilab
 
 [b_crate_img]: https://img.shields.io/crates/v/bitvec.svg?style=for-the-badge&color=f46623 "bitvec crate badge"
 [b_crate_url]: https://crates.io/crates/bitvec "bitvec crate"
