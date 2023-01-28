@@ -20,7 +20,7 @@ macro_rules! BitArr {
 		$crate::BitArr!(for $len, in $store, $crate::order::Lsb0)
 	};
 
-	(for $len:expr) => {
+	(for $len:expr $(,)?) => {
 		$crate::BitArr!(for $len, in usize)
 	};
 }
