@@ -1,4 +1,4 @@
-# Vectors
+# Dynamic Allocations
 
 `bitvec` has two types that require compiling the crate with `feature = "alloc"`
 (and linking against the Rust distribution crate `alloc`): `BitVec` and
@@ -9,7 +9,7 @@ vector, incapable of changing its length, equivalent to the Rust type
 
 Since `BitBox` is a vector that cannot `.push()` or `.pop()`, I will not discuss
 it in detail here. It is a heap-allocated `BitSlice`, and is otherwise
-uninteresting.
+uninteresting. It only exists because `Box<BitSlice>` is not expressible.
 
 ## Getting a `BitVec`
 

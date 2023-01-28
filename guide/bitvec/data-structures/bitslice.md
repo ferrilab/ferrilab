@@ -29,9 +29,14 @@ index of a bit within a byte is itself three bits wide. These bits are taken
 from the length counter of a slice pointer, which means that `BitSlice` is able
 to address only ⅛<sup>th</sup> of the indices that `[bool]` can.
 
-> This is 64 [Mebibytes] on a 32-bit system, and 256 [Pebibytes] on a 64-bit
-> system. If you can even allocate that much real memory in one handle, then you
-> have very different operating conditions than I can help you with.
+```admonish info
+This is 64 [Mebibytes] on a 32-bit system, and 256 [Pebibytes] on a 64-bit
+system. If you can even allocate that much real memory in one handle, then you
+have very different operating conditions than I can help you with.
+
+[Mebibytes]: https://en.wikipedia.org/wiki/Mebibyte
+[Pebibytes]: https://en.wikipedia.org/wiki/Pebibyte
+```
 
 ## Getting a `BitSlice`
 
@@ -103,19 +108,21 @@ let r = bits![0, 1, 0, 1];
 let w = bits![mut 0, 1, 0, 1];
 
 let r2 = bits![static 1; 4];
-let w2 = bits![static mut 1; 4];
+let w2 = unsafe { bits![static mut 1; 4] };
 ```
 
-> You are not required to use the literals `0` or `1`; you can use any
-> expression  that is `const`-evaluable and can be placed into the expression
-> `expr != 0`. This means that you cannot use the names of runtime `let`
-> bindings, but can use the names of `const` bindings, or other literals. You
-> probably do not want to do this, but you *can*.
+```admonish info
+You are not required to use the literals `0` or `1`; you can use any expression
+that is `const`-evaluable and can be placed into the expression `expr != 0`.
+This means that you cannot use the names of runtime `let` bindings, but can use
+the names of `const` bindings, or other literals. You probably do not want to do
+this, but you *can*.
+```
 
-In addition, you can specify the bit-ordering parameter and the integer storage
-parameter, for even more precise control over the memory layout. If you do not
-specify them, the macro uses the default parameters of `usize` storage and
-`Lsb0` ordering.
+In addition, you can specify the bit-ordering integer storage type parameters
+for even more precise control over the memory layout. If you do not specify
+them, the macro uses the default parameters of `usize` storage and `Lsb0`
+ordering.
 
 ```rust
 use bitvec::prelude::*;
@@ -131,9 +138,7 @@ To summarize the macro rules:
   otherwise it produces `&BitSlice`. You do not need to bind the name as `mut`
   unless you want to reässign it to a different slice.
 - You may then optionally provide the storage and ordering type parameters,
-  followed by a semicolon. If you choose to add type parameters:
-  - You *must* provide the bit-ordering parameter.
-  - You *may* provide the storage parameter.
+  followed by a semicolon. You must provide either both or neither.
 - The data input to the macro is one of the two `vec!` token lists:
   - One or more expressions that can be placed into `$expr != 0`, separated by
     commas. A trailing comma is permitted.
@@ -141,11 +146,13 @@ To summarize the macro rules:
     semicolon and a repetition counter. The resulting `BitSlice` will be
     `counter` bits long, all set to `expression`.
 
-> Emulation tests indicate that `bitvec` correctly instructs the compiler to
-> produce suitable buffers even when compiling for a target with a different
-> byte-endianness than the host. However, I have not actually performed such
-> cross-compilation and testing with real hardware. It should be correct; please
-> file an issue if it is not.
+```admonish warning
+Emulation tests indicate that `bitvec` correctly instructs the compiler to
+produce suitable buffers even when compiling for a target with a different
+byte-endianness than the host. However, I have not actually performed such
+cross-compilation and testing with real hardware. It should be correct; please
+file an issue if it is not.
+```
 
 ## What `BitSlice` Can Do
 
@@ -166,8 +173,8 @@ inherent methods tailored to its specialization.
 ### Set Queries
 
 The five query methods `.any()`, `.all()`, `.not_any()`, `.not_all()`, and
-`.some()` test how many bits in a region are set to `1`. As you can guess from
-the names, these methods have the following truth table:
+`.some()` test how many bits in a region are set to `1`. These methods have the
+following truth table:
 
 |Slice| `any` | `all` |`not_any`|`not_all`|`some` |
 |:---:|:-----:|:-----:|:-------:|:-------:|:-----:|
@@ -181,20 +188,27 @@ is the Boolean XOR operator.
 In addition, `.count_ones()` and `.count_zeros()` count how many bits of the
 slice are set to one or zero, rather than merely indicating whether any exist.
 These methods are slower than the Boolean queries, which are capable of
-short-circuiting once satisfied. You can also use `.iter_{ones,zeros}()` to walk
-each *index* of bits with the specified value. These are equivalent to running
-`.filter()` and `.enumerate()` calls on iterators of `bool`, but are specialized
-to use dedicated bit-counting instructions where processors provide them.
+short-circuiting once satisfied.
+
+You can also use `.iter_ones()` and `.iter_zeros()` to walk each *index* of bits
+with the specified value. These are equivalent to running `.filter()` and
+`.enumerate()` calls on iterators of `bool`, but are specialized to use
+dedicated bit-counting instructions where processors provide them.
 
 ### Boolean Arithmetic
 
 `bitvec` data structures all implement the Boolean operators (`&`, `|`, `^`, and
 `!`) against each other.
 
-> In version 0, they allowed any `impl Iterator<Item = bool>`. This has been
-> changed for performance reasons, since people never used the arbitrary
-> iterator support but did require improved behavior when operating on two
-> bit-slices.
+```admonish warning
+In version 0, they allowed any `impl Iterator<Item = bool>`. This has been
+changed for performance reasons, since people never used the arbitrary iterator
+support but did require improved behavior when operating on two bit-slices.
+
+These still have performance degradations, as the conditions required to allow
+specialized acceleration can be difficult to guarantee at either run- or
+compile- time. We are working on it, but cannot make any promises.
+```
 
 ```rust
 use bitvec::prelude::*;
@@ -254,6 +268,11 @@ You can force the destruction of a named proxy reference by using its
 `.commit()` method, which takes `self` by value, destroying it and releasing the
 borrow.
 
+```admonish warning
+The proxy type is *not* a reference, which means you need to bind it with
+`let mut` in order to be able to write through it as if it were a reference.
+```
+
 ### Viewing the Underlying Memory
 
 The memory underlying any bit-slice region is subject to some restrictions about
@@ -275,12 +294,10 @@ region.
 [^1]: Except write-assignment through indexing. I am not going to keep
       mentioning this exception.
 
-[`BitOrder` chapter]: ../type-parameters/bitorder.html
-[`BitStore` chapter]: ../type-parameters/bitstore.html
+[`BitOrder` chapter]: ../type-parameters/bitorder.md
+[`BitStore` chapter]: ../type-parameters/bitstore.md
 [`BitView`]: https://docs.rs/bitvec/latest/bitvec/view/trait.BitView.html
 [`bits!`]: https://docs.rs/bitvec/latest/bitvec/macro.bits.html
 [`domain`]: https://docs.rs/bitvec/latest/bitvec/domain
-[Mebibytes]: https://en.wikipedia.org/wiki/Mebibyte
-[Pebibytes]: https://en.wikipedia.org/wiki/Pebibyte
 [prelude]: https://docs.rs/bitvec/latest/bitvec/prelude
-[*Memory Model* chapter]: ../memory-model.html
+[*Memory Model* chapter]: ../memory-model.md

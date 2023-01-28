@@ -7,9 +7,8 @@ library is built.
 
 ## Integer Refinement
 
-`bitvec` offloads abstraction over the fundamental integers to the `funty`
-crate. It provides traits such as `Unsigned` that generalize over any unsigned
-integer and allow them to be used in generic code.
+`bitvec` offloads abstraction over the fundamental integers to `funty`,
+described earlier in this guide.
 
 `funty` only unifies the standard-library APIs of the integers into trait-based
 code; `bitvec` further extends this with useful constants in the `BitRegister`
@@ -92,4 +91,5 @@ where
 and, during monomorphization, only one branch of the `if` stack will be
 preserved. The `.coerce()` method is defined in `slice::specialization` and
 provides easy access to a fully-typed value only within the monomorphization
-that matches it.
+that matches it. It is not public API – your code *using* `bitvec` should prefer
+being fully typed rather than generic.

@@ -8,20 +8,22 @@ well-formed references to well-typed memory.
 This is useful for the de/construction of packed memory buffers, such as
 transporting data through I/O protocols.
 
-> **AUTHOR’S NOTE**: If you are using `bitvec` to do **anything** related to the
-> underlying memory representation of a bit-buffer, you **must** read this
-> chapter, and **all** of the API docs of [`bitvec::field`] and its contents,
-> **in their entirety**.
->
-> I have written extensively, and yet still insufficiently, about the
-> intricacies involved in operating the `BitField` trait correctly. If you skim
-> this documentation, you *will* have unexpected behavior, you *will* get
-> frustrated with me for writing a bad library, you *will* file an issue about
-> it, and I will *probably* tell you that the behavior is correct and that I
-> already addressed it in the documentation.
->
-> It took me a long time to think about and a long time to write. It should take
-> you *also* a long time to read and a long time to think about.
+```admonish warning
+**AUTHOR’S NOTE**: If you are using `bitvec` to do **anything** related to the
+underlying memory representation of a bit-buffer, you **must** read this
+chapter, and **all** of the API docs of [`bitvec::field`] and its contents,
+**in their entirety**.
+
+I have written extensively, and yet still insufficiently, about the intricacies
+involved in operating the `BitField` trait correctly. If you skim this
+documentation, you *will* have unexpected behavior, you *will* get frustrated
+with me for writing a bad library, you *will* file an issue about it, and I will
+*probably* tell you that the behavior is correct and that I already addressed it
+in the documentation.
+
+It took me a long time to think about and a long time to write. It should take
+you *also* a long time to read and a long time to think about.
+```
 
 All of this behavior is contained in the `BitField` trait. Let’s explore that:
 
@@ -57,8 +59,8 @@ implementations means that faster performance can never be written.
 
 The downside of the two specific implementations is that Rust *coherence* rules
 forbid implementation of a `bitvec` trait, on a `bitvec` type, parameterized
-with a local, but non-`bitvec`, ordering type. On the off chance that you find
-yourself writing a new `BitOrder` implementor, file an issue.
+with a local, but non-`bitvec`, implementor of `BitOrder`. On the off chance
+that you find yourself writing a new `BitOrder` implementor, file an issue.
 
 The `M` type parameter on the load and store methods is bounded by funty’s
 `Integral`, trait. It can store any unsigned *or signed* integer at any partial
@@ -70,15 +72,17 @@ Unfortunately, adding a second integer type parameter is not the only
 complication to the `BitStore` memory model. There is also a second dimension of
 segment ordering. `bitvec` tries to make explicitly clear that the `Lsb0` and
 `Msb0` types refer only to the ordering of *bits* within registers, and not to
-the ordering of *bytes* within registers. However, when the register being
-stored or stored does not fit within one register of the storage `BitSlice`, it
-must be split into multiple segments, and those segments must somehow be ordered
-in memory.
+the ordering of *bytes* within registers. However, when the integer bit-sequence
+being stored or stored does not fit within one register of the storage
+`BitSlice`, it must be split into multiple segments, and those segments must
+somehow be ordered in memory.
 
 ## Segment Orderings
 
-> Author’s Note: **READ THIS**. I have received *several* issues about this
-> exact concept. *It is not obvious*.
+```admonish warning
+Author’s Note: **READ THIS**. I have received *several* issues about this exact
+concept. *It is not obvious*.
+```
 
 There are two segment orderings: little-endian and big-endian. You may select
 the segment endianness you prefer by using the `_le` or `_be` suffix,
@@ -139,10 +143,10 @@ let bits = data.view_bits_mut::<Msb0>();
 ```
 
 Then, narrow the `BitSlice` to be the region you want to access as storage. It
-must be no wider than the integer type you are transferring: `BitSlice`s outside
-the domain `1 ..= M::BITS` will panic during `.load()` or `.store()`. The
-easiest way to narrow a `BitSlice` (or buffer type that dereferences to it) is
-by using range indexing, `[start .. end]`.
+must be no wider than the integer type you are transferring: `BitSlice`s whose
+length is outside the domain `1 ..= M::BITS` will panic during `.load()` or
+`.store()`. The easiest way to narrow a `BitSlice` (or buffer type that
+dereferences to it) is by using range indexing, `[start .. end]`.
 
 ```rust
 # use bitvec::prelude::*;
@@ -155,8 +159,23 @@ assert_eq!(bits[10 .. 23].load_le::<u16>(), 0x432);
 ```
 
 That’s the entire API. `.store()` truncates the stored value to the width of the
-receiving `BitSlice`, and `.load()` zero-extends the loaded value to the width
+receiving `BitSlice`, and `.load()` sign-extends the loaded value to the width
 of the destination register type.
+
+```admonish danger
+Storing signed integers can be surprisingly fraught: `bitvec` **will not**
+attempt to detect and preserve the most-significant sign bit when truncating! If
+you store the number `-12i8` (`0b1111_0100`) in a 4-bit slot, it will be stored
+as `4i8` and reloaded as such! Similarly, storing `12i8` (`0b0000_1100)` in a
+4-bit slot will produce a load of `-4i8` (`0b1111_1100`).
+
+Signed integers do not behave like unsigned integers. You are wholly responsible
+for ensuring that you remember that allowing negative numbers halves the
+magnitude: 4 bits unsigned is `0 .. 16`, but 4 bits signed is `-8 .. 8`.
+
+`bitvec` **only stores bit patterns**. Retaining numerical intelligibility is
+**your** responsibility.
+```
 
 You can see an example that uses the `BitField` trait to implement an I/O
 protocol in the `examples/ipv4.rs` program in the repository. Use

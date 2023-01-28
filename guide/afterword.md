@@ -2,8 +2,9 @@
 
 Thanks for reading! We hope this guide was useful to you.
 
-**Please** feel both welcomed and encouraged to ask us any clarifying questions,
-or to [file an issue][0] if any of it is confusing or even send a PR if you have
+**Please** feel both welcomed and encouraged to ask us any clarifying questions
+(contact information for myrrlyn is in the `CONTRIBUTING` document), or to
+[file an issue][0] if any of it is confusing or even send a PR if you have
 improvements!
 
 Ferrilab has been a work of intensely deep focus and research for over four

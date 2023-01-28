@@ -43,6 +43,45 @@ The important takeäway here is that if your code is at all dependent on
 constants that the compiler can see, and is not exclusively performing indexing
 based on runtime inputs, then `bitvec` is going to be *plenty* fast.
 
+## Pitfalls
+
+Everything stated above relies on having information available to the compiler.
+`bitvec` falls behind other bit-reading libraries when you start using access
+patterns only known at runtime, such as iteration.
+
+Until Rust stabilizes the `ptr_metadata` feature (see [#81513]), `bitvec` will
+necessarily take a performance hit because it has to decode the `&BitSlice`
+pointer every time you access memory, and reëncode it every time you munch
+through the region.
+
+The `bitvec` pointer encoding (described [here][encoding]) requires manipulating
+both words in the pointer with at least three instructions each.
+
+```admonish info
+Except when using `u8` storage, which discards *most* of the modifications to
+the address half of the pointer. Try that out if you do a lot more munching
+through a region than bulk work on its contents!
+```
+
+This would not be necessary if the pointer could use its own metadata type
+rather than `usize`. Until that stabilizes, the entire value proposition of the
+crate rests on the fact that `&BitSlice` has slice-pointer ABI. If you
+absolutely cannot afford to have decoding/reëncoding costs in your hot loop, you
+may have to try other libraries.
+
+`bitvec` strives to use batch operations on entire integer registers when
+possible. However, doing so requires routing through the `domain` module, which
+has to perform similar decoding and processing of a `&BitSlice` pointer every
+time it is entered. This is another unavoidable cost. It is *generally* a
+tolerable overhead compared to walking through each bit individually, especially
+with wider storage integers, but it is one more thing that other bit-addressing
+libraries don’t do.
+
+Other libraries also do not have alias safety or tolerance for starting a region
+away from the zero-index in an integer. Power has a price. We do our best to cut
+down the library’s runtime cost as much as possible, but this computation simply
+has to be done somewhere, and it's not built in to silicon anymore. Sorry.
+
 ## Specialization
 
 `bitvec` strives to use its knowledge of the underlying memory representation
@@ -60,3 +99,6 @@ parameters takes 3µs (microseconds), while walking the same sizes with
 identical type parameters takes 100ns (nanoseconds). It’s roughly a 32x
 performance difference, which is only half the speedup that I expected using
 `usize` on a 64-bit machine, but still quite stark.
+
+[#81513]: https://github.com/rust-lang/rust/issues/81513
+[encoding]: ./pointer-encoding.md

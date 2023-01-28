@@ -11,8 +11,10 @@ element (`Lsb0` and `Msb0`) and three or four types of memory elements (`u8`,
 `usize` type is also supported, but it is not portable, and behaves exactly as
 the named register of its width.
 
-> The `Cell` and atomic integer variants are not interesting here, as they only
-> affect how the memory bus operates, not the processor register.
+```admonish info
+The `Cell` and atomic integer variants are not interesting here, as they only
+affect how the memory bus operates, not the processor register.
+```
 
 Let us now examine how each possible combination of register width,
 bit-ordering, **and processor byte endianness** affects the placement of bits in
@@ -41,8 +43,8 @@ boundaries between bytes within the same register are marked with a space.
 ### Little-Endian Byte-Ordered Machines
 
 On little-endian machines, the least-significant *byte* of a register type is
-stored at the lowest memory address, and each byte higher is one step more
-numerically significant than the last.
+stored at the lowest memory address, and each byte-address higher is one step
+more numerically significant than the last.
 
 ```text
 byte ║ 00000000│11111111│22222222│33333333│44444444│55555555│66666666│77777777
@@ -59,8 +61,8 @@ bit  ║ 76543210│76543210│76543210│76543210│76543210│76543210│76543
 ### Big-Endian Byte-Ordered Machines
 
 On big-endian machines, the most-significant *byte* of a register type is stored
-at the lowest memory address, and each byte higher is one step less numerically
-significant than the last.
+at the lowest memory address, and each byte-address higher is one step less
+numerically significant than the last.
 
 ```text
 byte ║ 00000000│11111111│22222222│33333333│44444444│55555555│66666666│77777777

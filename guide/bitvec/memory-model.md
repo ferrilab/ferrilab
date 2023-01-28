@@ -44,6 +44,14 @@ the creation of two `&mut BitSlice` reference handles that are capable of
 viewing the same *bit*, but will happily produce two `&mut BitSlice` handles
 which are mutually-exclusive in bits, but reference the same location in memory.
 
+```admonish info
+Think of it like disjoint `&mut u64` references whose referent words are in the
+same cacheline. The software model doesn’t care; making this work is the
+hardware’s problem. Similarly, users of the `bitvec` library don’t need to care
+about the fact that disjoint `&mut BitSlice` references might refer to the same
+element.
+```
+
 Here we come to the first problem with the conflicting memory models: `bitvec`
 cannot ever create an `&mut T` through which it may write to memory, because it
 has no way of ensuring that no other `&T` or `&mut T` reference exists which is
@@ -106,7 +114,8 @@ everyone who wants performance: concurrency.
 Just as it is undefined behavior in Rust to manifest two `&mut` references that
 can view the same location, it is equally undefined behavior in LLVM to manifest
 two pointers into memory that ever, at all, no matter **what**, perform any
-memory access to the same location, at the same time, on multiple executors.
+memory access to the same location, at the same time, on multiple threads of
+execution.
 
 As with above:
 
@@ -202,23 +211,23 @@ memory through them do not conflict with each other.
 
 The in-memory domain of any bit slice can be generalized to one of two formats:
 either the slice touches zero edge-bits (`0` or `T::BITS - 1`), or it touches at
-edge-bit in at least one element. Consider three bytes of memory (any element
-will do, but the extra width on this page is unnecessary), with some bitslice
-regions drawn within them:
+least one edge-bit in at least one element. Consider three bytes of memory (any
+element will do, but the extra width on this page is unnecessary), with some
+bitslice regions drawn within them:
 
 ```text
 |00000000│11111111│22222222| Element
 |76543210│76543210│76543210│ Bit
 ├────────┼────────┼────────┤
-┆        ┆        ┆        ┆ 1
-┆        ╞═════╡  ┆        ┆ 2
-┆        ┆ ╞════╡ ┆        ┆ 3
-┆        ┆  ╞═════╡        ┆ 4
-┆   ╞═════════╡   ┆        ┆ 5
-┆    ╞════════════╡        ┆ 6
-┆        ╞═════════════╡   ┆ 7
-┆     ╞═════════════════╡  ┆ 8
-╞══════════════════════════╡ 9
+│        ┆        ┆        │ 1
+│        ┆xxxxx   ┆        │ 2
+│        ┆ xxxxx  ┆        │ 3
+│        ┆   xxxxx┆        │ 4
+│  xxxxxx┆xxxx    ┆        │ 5
+│    xxxx┆xxxxxxxx┆        │ 6
+│        ┆xxxxxxxx┆xxxx    │ 7
+│      xx┆xxxxxxxx┆xx      │ 8
+│xxxxxxxx┆xxxxxxxx┆xxxxxxxx│ 9
 ```
 
 There are nine example slices here, but they can be reduced into six specific
@@ -269,7 +278,7 @@ single-threaded `Cell` or concurrency-safe atomics. These domain components can
 be calculated from the three components of a slice pointer: the base address,
 the starting bit index, and the bit count.
 
-This is expressed in the `domain` module’s twt enums.
+This is expressed in the `domain` module’s two enums.
 
 ### `BitDomain`
 
@@ -283,11 +292,11 @@ where
   T: BitStore,
   O: BitOrder,
 {
-  Enclave(&'a /* mut */ BitSlice<T, O>),
+  Enclave(Reference<'a, M, BitSlice<T, O>>),
   Region {
-    head: &'a /* mut */ BitSlice<T, O>,
-    body: &'a /* mut */ BitSlice<T::Unalias, O>,
-    tail: &'a /* mut */ BitSlice<T, O>,
+    head: Reference<'a, M, BitSlice<T, O>>,
+    body: Reference<'a, M, BitSlice<T::Unalias, O>>,
+    tail: Reference<'a, M, BitSlice<T, O>>,
   },
 }
 ```
@@ -316,17 +325,17 @@ where
   M: Mutability,
   T: BitStore,
 {
-  Enclave(PartialElement<&'a T>),
+  Enclave(PartialElement<T>),
   Region {
-    head: Option<PartialElement<&'a T>>,
-    body: &'a /* mut */ [T::Unalias],
-    tail: Option<PartialElement<&'a T>>,
+    head: Option<PartialElement<T>>,
+    body: Reference<'a, M, [T::Unalias]>,
+    tail: Option<PartialElement<T>>,
   },
 }
 ```
 
-(The `PartialElement` type prevents accessing bits that do not belong to the
-originating `BitSlice`.)
+(The `PartialElement` type is a guarded reference which prevents accessing bits
+that do not belong to the originating `BitSlice`.)
 
 As with the bit domains, these domains will inherit any aliasing markers from
 their source bitslice. The `::Alias` associated type enables the mutable domain
@@ -370,17 +379,19 @@ accesses do not *observably* interfere with each other. This observation would
 then define the behavior in the compiler’s memory model of racing writes/reads,
 and permit an increased (possibly even complete) removal of synchrony guards.
 
-> I am not aware of any processor hardware which fails to guarantee that all
-> bits of memory are fully defined at the clock edges of all instructions that
-> use the location. To the full extent my knowledge, all memory banks in all
-> relevant processors have a stable bit-value at the start of a tick, when
-> reads occur, and at the end of a tick, when writes commit. At no point does
-> changing the value of one bit of a memory component affect the electrical
-> value of other bits in the component.
->
-> This is not necessarily true of other storage devices, such as SSDs, but
-> `bitvec` can only be used to access storage cells mapped in the RAM address
-> space, which tend to all have this stability property.
+```admonish info
+I am not aware of any processor hardware which fails to guarantee that all bits
+of memory are fully defined at the clock edges of all instructions that use the
+location. To the full extent my knowledge, all memory banks in all relevant
+processors have a stable bit-value at the start of a tick, when reads occur, and
+at the end of a tick, when writes commit. At no point does changing the value of
+one bit of a memory component affect the electrical value of other bits in the
+component.
+
+This is not necessarily true of other storage devices, such as SSDs, but
+`bitvec` can only be used to access storage cells mapped in the RAM address
+space, which tend to all have this stability property.
+```
 
 ## Summary
 
@@ -400,31 +411,31 @@ lack of information.
 ## Footnotes
 
 [^1]: all references to `T` where `T` is either `!Sized`, or
-      `mem::size_of::<T>()` is non-zero, that is. A fun quirk of Rust’s
-      first-class concept of zero-width types is that the only illegal value for
-      a `&Zst` reference is null. Since there is nothing to load or store
-      through a `&Zst` reference, the compiler doesn’t *care* what the reference
-      value is, as it will never be used to perform memory access.
+  `mem::size_of::<T>()` is non-zero, that is. A fun quirk of Rust’s first-class
+  concept of zero-width types is that the only illegal value for a `&Zst`
+  reference is null. Since there is nothing to load or store through a `&Zst`
+  reference, the compiler doesn’t *care* what the reference value is, as it will
+  never be used to perform memory access.
 
 [^2]: literally: <https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235>
 
 [^3]: This is not *absolutely* true. Like we saw with `UnsafeCell`, the only
-      immutable rule of compiler developers is that whenever they make an
-      immutable rule, they also provide a way to sidestep it. If you [`freeze`]
-      a `poison`, you are now free to read its value and act on it. LLVM just
-      doesn’t make any guarantees about what you’ll see.
+  immutable rule of compiler developers is that whenever they make an immutable
+  rule, they also provide a way to sidestep it. If you [`freeze`] a `poison`,
+  you are now free to read its value and act on it. LLVM just doesn’t make any
+  guarantees about what bit-pattern you’ll see.
 
 [^4]: I’d feel a great deal more comfortable if I had firm knowledge of what
-      those costs actually **were**. An atomic write always issues a `lock`
-      instruction modifier on x86, and I have heard vastly different things
-      about what that actually *means*, from “it’s free if no other cache holds
-      that address” up to “it poisons the whole cacheline”, and have not had
-      much luck producing a benchmark that firmly demonstrates that unneeded
-      atomic access is a strict performance cost.
+  those costs actually **were**. An atomic write always issues a `lock`
+  instruction modifier on x86, and I have heard vastly different things about
+  what that actually *means*, from “it’s free if no other cache holds that
+  address” up to “it poisons the whole cacheline”, and have not had much luck
+  producing a benchmark that firmly demonstrates that unneeded atomic access is
+  a strict performance cost.
 
 [^5]: In multithreading environments. Disabling atomics also disables `bitvec`’s
-      support for multithreading, so the penalty for aliasing is reduced to an
-      inability to remove redundant reads.
+  support for multithreading, so the penalty for aliasing is reduced to an
+  inability to remove redundant reads.
 
 [atomic]: https://doc.rust-lang.org/stable/core/sync/atomic
 [bv_ord]: https://github.com/myrrlyn/bitvec/blob/HEAD/src/order.rs

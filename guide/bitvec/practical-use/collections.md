@@ -73,9 +73,11 @@ with `bitvec`’s equivalent types. Except for `IndexMut<usize>`. The only chang
 from the standard library types is that you are now guaranteed to use one bit of
 storage for each bit of information, rather than eight bits of storage per bit.
 
-> Author’s note: Other than bragging about `bitvec`’s API fidelity, I don’t
-> think this section is very useful or educational. If you want to read more
-> about how to use `bitvec` for `usize => bool` collections, please let me know
-> and I will expound!
+```admonish info
+Author’s note: Other than bragging about `bitvec`’s API fidelity, I don’t think
+this section is very useful or educational. If you want to read more about how
+to use `bitvec` for `usize => bool` collections, please let me know and I will
+expound!
+```
 
-[Type Parameters]: ../type-parameters.html
+[Type Parameters]: ../type-parameters.md

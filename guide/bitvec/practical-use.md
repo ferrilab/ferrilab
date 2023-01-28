@@ -15,7 +15,7 @@ complexity just discussed about memory parameters and aliasing behavior,
 Rust does.
 
 `BitSlice`s, like regular slices, are exclusively borrowed from owned memory
-higher up the stack. Their references can be passed down the stack, and are
+higher up the call stack. Their references can be passed down the stack, and are
 subject to the same lifetime and mutation-exclusivity rules.
 
 The owned memory that creates a `BitSlice` view can be an array, boxed slice, or
@@ -63,6 +63,7 @@ let bits_c_ref: &BitSlice<_, _> = &bits_c;
 > let arr_ref: &mut BitSlice = &mut arr;
 > arr_ref.set(1, true);
 > assert!(arr_ref[1]);
+> ```
 
 Just as with ordinary Rust code, `BitSlice` is the type you want to use when
 working with memory that you are not responsible for moving around or

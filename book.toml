@@ -20,8 +20,20 @@ edition = "2021"
 build-dir = "./target/guide"
 create-missing = true
 
-[output.html]
-mathjax-support = true
+# `cargo +nightly install mdbook-admonish --vers 1.8.0`
+# Allows `admonish <level>` code-blocks which create informational blocks.
+[preprocessor.admonish]
+command = "mdbook-admonish"
+assets_version = "2.0.0" # do not edit: managed by `mdbook-admonish install`
 
-[output.html.playpen]
+[output.html]
+git-repository-url = "https://github.com/ferrilab/ferrilab"
+mathjax-support = true
+site-url = "/ferrilab/"
+additional-css = [
+	"./guide/assets/mdbook-admonish.css",
+]
+
+[output.html.playground]
 line-numbers = true
+runnable = false

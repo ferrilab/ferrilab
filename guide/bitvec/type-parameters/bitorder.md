@@ -16,7 +16,7 @@ buffer.
 
 Internally, each `*BitSlice` pointer contains an element address and a bit
 index. The pointer uses its `BitOrder` type parameter to translate the bit index
-into a one-hot selector mask that drives actual memory access.
+into a mask that drives actual memory access.
 
 `BitOrder` is open to user implementation, and implementations of it are trusted
 to be sound in the `bitvec` memory model. For this reason, the trait is `unsafe`
@@ -38,20 +38,17 @@ processor.
 ### `Lsb0`
 
 The `Lsb0` type sets the zero index at the least significant bit of a register
-(numeric value <math><mn>1</mn></math>) and each successive index selects the
-next more significant bit in the register, until the most significant bit is at
-the final index.
+(numeric value 1) and each successive index selects the next more significant
+bit in the register, until the most significant bit is at the final index.
 
 It is the expression `mask = 1 << index;`.
 
 ### `Msb0`
 
 The `Msb0` type sets the zero index at the most significant bit of a register
-(numeric value
-<math><msup><mn>2</mn><mrow><mi>n</mi><mo>-</mo><mn>1</mn></mrow></msup></math>
-for an `n`-bit register) and each successive index selects the next less
-significant bit in the register, until the least significant bit is at the final
-index.
+(numeric value 2<sup>n</sup> - 1 for an `n`-bit register) and each successive
+index selects the next less significant bit in the register, until the least
+significant bit is at the final index.
 
 It is the expression `mask = (iN::MIN as uN) >> index;`.
 
@@ -125,10 +122,10 @@ uninteresting.
 ### Support Types
 
 The `BitOrder` trait APIs use supporting types to enforce requirements on the
-bare numbers being passed through it. These types are documented in the [`index`]
-module. They all provide a `.value()` method that removes the wrapper and yields
-the inner number, and a `::new()` constructor that ensures that values to be
-wrapped uphold the type’s requirements.
+bare numbers being passed through it. These types are documented in the
+[`index`] module. They all provide a `.value()` method that removes the wrapper
+and yields the inner number, and a `::new()` constructor that ensures that
+values to be wrapped uphold the type’s requirements.
 
 - `at` and `select` receive a [`BitIdx<M>`] argument. This is a wrapper over
   `u8` that ensures that the contained value is in the domain `0 .. M::BITS`. It
