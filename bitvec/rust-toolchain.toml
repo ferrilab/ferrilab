@@ -17,10 +17,3 @@ components = [
 # components = [
 # 	"miri",
 # ]
-
-# Additional tools available through Cargo:
-#
-# - `mdbook --vers 0.4.15`
-# - `cargo-tarpaulin --vers 0.19.1`
-# - `tokei --vers 12.1.2`
-# - `cross --vers 0.2.1`
