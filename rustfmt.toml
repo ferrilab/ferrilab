@@ -5,7 +5,7 @@
 # use the nightly rustfmt. You will need to configure your editor to   #
 # format with `cargo +nightly fmt` rather than `cargo fmt`.            #
 #                                                                      #
-# See <https://rust-lang.github.io/rustfmt/?version=v1.5.1>            #
+# See <https://rust-lang.github.io/rustfmt/?version=v1.5.2>            #
 ########################################################################
 
 # Stable as of current nightly
@@ -14,8 +14,8 @@
 # attr_fn_like_width = 70
 # chain_width = 60
 edition = "2021"
-fn_args_layout = "Tall"
 fn_call_width = 60
+fn_params_layout = "Tall"
 force_explicit_abi = true
 hard_tabs = true
 match_arm_leading_pipes = "Never"
@@ -62,7 +62,7 @@ normalize_comments = false
 normalize_doc_attributes = false
 overflow_delimited_expr = true
 reorder_impl_items = true
-required_version = "1.5.1"
+required_version = "1.5.2"
 skip_children = false
 space_after_colon = true
 space_before_colon = false
