@@ -6,7 +6,7 @@ bit-slices in `const` contexts (for known type parameters).
 
 Like `vec!`, it can accept a sequence of comma-separated bit values, or a
 semicolon-separated pair of a bit value and a repetition counter. Bit values may
-be any integer or name of a `const` integer, but *should* only be `0` or `1`.
+be any integer or name of a `const` integer, but _should_ only be `0` or `1`.
 
 ## Argument Syntax
 
@@ -37,6 +37,7 @@ The next possible arguments are a pair of `BitOrder`/`BitStore` type parameters.
   at the macro invocation site.
 
   When not provided, this defaults to `Lsb0`.
+
 - `$store ;`: This must be one of `uTYPE`, `Cell<uTYPE>`, `AtomicUTYPE`, or
   `RadiumUTYPE` where `TYPE` is one of `8`, `16`, `32`, `64`, or `size`. The
   macro recognizes this token textually, and does not have access to the type
@@ -54,7 +55,7 @@ together.
 ## Safety
 
 Rust considers all `static mut` bindings to be `unsafe` to use. While `bits!`
-can prevent *some* of this unsafety by preventing direct access to the created
+can prevent _some_ of this unsafety by preventing direct access to the created
 `static mut` buffer, there are still ways to create multiple names referring to
 the same underlying buffer.
 
@@ -85,7 +86,7 @@ existing alias-protection behavior suffices.
 ```rust
 use bitvec::prelude::*;
 use core::cell::Cell;
-use radium::types::*;
+use atomic_polyfill::*;
 
 let a: &BitSlice = bits![0, 1, 0, 0, 1];
 
@@ -95,7 +96,7 @@ assert_eq!(b.len(), 5);
 let c = bits![u16, Lsb0; 0, 1, 0, 0, 1];
 let d = bits![static Cell<u16>, Msb0; 1; 10];
 let e = unsafe { bits![static mut u32, LocalBits; 0; 15] };
-let f = bits![RadiumU32, Msb0; 1; 20];
+let f = bits![AtomicU32, Msb0; 1; 20];
 ```
 
 [`BitSlice`]: crate::slice::BitSlice

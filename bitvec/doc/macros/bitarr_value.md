@@ -6,7 +6,7 @@ superset of the [`vec!`] arguments, and is capable of producing bit-arrays in
 
 Like `vec!`, it can accept a sequence of comma-separated bit values, or a
 semicolon-separated pair of a bit value and a repetition counter. Bit values may
-be any integer or name of a `const` integer, but *should* only be `0` or `1`.
+be any integer or name of a `const` integer, but _should_ only be `0` or `1`.
 
 ## Argument Syntax
 
@@ -25,6 +25,7 @@ It accepts zero, one, or three prefix arguments:
   at the macro invocation site.
 
   When not provided, this defaults to `Lsb0`.
+
 - `$store ;`: This must be one of `uTYPE`, `Cell<uTYPE>`, `AtomicUTYPE`, or
   `RadiumUTYPE` where `TYPE` is one of `8`, `16`, `32`, `64`, or `size`. The
   macro recognizes this token textually, and does not have access to the type
@@ -44,7 +45,7 @@ together.
 ```rust
 use bitvec::prelude::*;
 use core::{cell::Cell, mem};
-use radium::types::*;
+use atomic_polyfill::*;
 
 let a: BitArray = bitarr![0, 1, 0, 0, 1];
 
@@ -54,7 +55,7 @@ assert_eq!(b.len(), mem::size_of::<usize>() * 8);
 let c = bitarr![u16, Lsb0; 0, 1, 0, 0, 1];
 let d = bitarr![Cell<u16>, Msb0; 1; 10];
 const E: BitArray<[u32; 1], LocalBits> = bitarr![u32, LocalBits; 1; 15];
-let f = bitarr![RadiumU32, Msb0; 1; 20];
+let f = bitarr![AtomicU32, Msb0; 1; 20];
 ```
 
 [`BitArray`]: crate::array::BitArray

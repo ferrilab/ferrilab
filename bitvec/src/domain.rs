@@ -43,7 +43,10 @@ use wyz::{
 };
 
 use crate::{
-	access::BitAccess,
+	access::{
+		BitAccess,
+		InternalAtomic,
+	},
 	index::{
 		BitEnd,
 		BitIdx,
@@ -877,7 +880,7 @@ impl<'a, M, T, O> PartialElement<'a, M, T, O>
 where
 	M: Mutability,
 	O: BitOrder,
-	T: 'a + BitStore + radium::Radium,
+	T: 'a + BitStore + InternalAtomic,
 {
 	/// Performs a store operation on a partial-element whose bits might be
 	/// observed by another handle.

@@ -28,9 +28,6 @@ macro_rules! __encode_bits {
 	(AtomicU8, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(AtomicU8 as u8, $ord; $($val),*)
 	};
-	(RadiumU8, $ord:tt; $($val:expr),*) => {
-		$crate::__encode_bits!(RadiumU8 as u8, $ord; $($val),*)
-	};
 
 	(u16, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(u16 as u16, $ord; $($val),*)
@@ -40,9 +37,6 @@ macro_rules! __encode_bits {
 	};
 	(AtomicU16, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(AtomicU16 as u16, $ord; $($val),*)
-	};
-	(RadiumU16, $ord:tt; $($val:expr),*) => {
-		$crate::__encode_bits!(RadiumU16 as u16, $ord; $($val),*)
 	};
 
 	(u32, $ord:tt; $($val:expr),*) => {
@@ -54,9 +48,6 @@ macro_rules! __encode_bits {
 	(AtomicU32, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(AtomicU32 as u32, $ord; $($val),*)
 	};
-	(RadiumU32, $ord:tt; $($val:expr),*) => {
-		$crate::__encode_bits!(RadiumU32 as u32, $ord; $($val),*)
-	};
 
 	(u64, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(u64 as u64, $ord; $($val),*)
@@ -67,9 +58,6 @@ macro_rules! __encode_bits {
 	(AtomicU64, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(AtomicU64 as u64, $ord; $($val),*)
 	};
-	(RadiumU64, $ord:tt; $($val:expr),*) => {
-		$crate::__encode_bits!(RadiumU64 as u64, $ord; $($val),*)
-	};
 
 	(usize, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(usize as usize, $ord; $($val),*)
@@ -79,9 +67,6 @@ macro_rules! __encode_bits {
 	};
 	(AtomicUsize, $ord:tt; $($val:expr),*) => {
 		$crate::__encode_bits!(AtomicUsize as usize, $ord; $($val),*)
-	};
-	(RadiumUsize, $ord:tt; $($val:expr),*) => {
-		$crate::__encode_bits!(RadiumUsize as usize, $ord; $($val),*)
 	};
 
 	//  This arm routes `usize` into `u32` or `u64`, depending on target, and

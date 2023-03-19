@@ -23,6 +23,7 @@ use wyz::{
 #[cfg(feature = "alloc")]
 use crate::vec::BitVec;
 use crate::{
+	access::InternalAtomic,
 	domain::{
 		BitDomain,
 		Domain,
@@ -1652,7 +1653,7 @@ where
 /// Methods available only when `T` allows shared mutability.
 impl<T, O> BitSlice<T, O>
 where
-	T: BitStore + radium::Radium,
+	T: BitStore + InternalAtomic,
 	O: BitOrder,
 {
 	/// Writes a new value into a single bit, using alias-safe operations.
