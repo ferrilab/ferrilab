@@ -294,11 +294,7 @@ macro_rules! safe {
 		impl BitSafe for $w {
 			type Mem = $t;
 
-			#[cfg(feature = "atomic")]
 			type Rad = $r;
-
-			#[cfg(not(feature = "atomic"))]
-			type Rad = core::cell::Cell<$t>;
 
 			const ZERO: Self = Self::new(0);
 
