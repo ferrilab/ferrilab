@@ -6,7 +6,7 @@
 
 [package]
 name = "bitvec"
-version = "1.1.0"
+version = "2.0.0"
 edition = "2021"
 
 categories = [
@@ -40,9 +40,11 @@ rust-version = "1.60"
 
 [features]
 alloc = []
-atomic = ["atomic-polyfill"]
+atomic = []
 # Enable use of atomics and the standard library by default. no-std
 # users will need to opt out with `default-features = false`.
+# As of version 2.0, atomic is an ignored feature since polyfills
+# are used
 default = ["atomic", "std"]
 # The standard library includes the allocator.
 std = ["alloc"]
@@ -53,7 +55,6 @@ tap = "1"
 
 [dependencies.atomic-polyfill]
 version = "1.0"
-optional = true
 
 [dependencies.funty]
 version = "^2.0"
