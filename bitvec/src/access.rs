@@ -1,9 +1,12 @@
 #![doc = include_str!("../doc/access.md")]
 
-use core::sync::atomic::Ordering;
+use core::{
+	cell::Cell,
+	sync::atomic::Ordering,
+};
 
+use atomic_polyfill::*;
 use funty::Integral;
-use radium::Radium;
 
 use crate::{
 	index::{
@@ -14,9 +17,81 @@ use crate::{
 	order::BitOrder,
 };
 
+/// This trait is used to define the needed Atomic operations for bit access to
+/// an atomic.
+pub trait InternalAtomic: Sized {
+	/// The underlying item type for an atomic or cell
+	type Item;
+	/// Atomic fetch_and
+	fn fetch_and(&self, val: Self::Item, order: Ordering) -> Self::Item;
+	/// Atomic fetch_or
+	fn fetch_or(&self, val: Self::Item, order: Ordering) -> Self::Item;
+	/// Atomic fetch_xor
+	fn fetch_xor(&self, val: Self::Item, order: Ordering) -> Self::Item;
+}
+
+/// Implement Radium trait for atomics
+macro_rules! impl_radium_atomic {
+	($real:ty, $base:ty) => {
+		impl InternalAtomic for $real {
+			type Item = $base;
+
+			fn fetch_and(&self, val: Self::Item, order: Ordering) -> Self::Item {
+				self.fetch_and(val, order)
+			}
+
+			fn fetch_or(&self, val: Self::Item, order: Ordering) -> Self::Item {
+				self.fetch_or(val, order)
+			}
+
+			fn fetch_xor(&self, val: Self::Item, order: Ordering) -> Self::Item {
+				self.fetch_xor(val, order)
+			}
+		}
+	};
+}
+impl_radium_atomic!(AtomicU8, u8);
+impl_radium_atomic!(AtomicU16, u16);
+impl_radium_atomic!(AtomicU32, u32);
+impl_radium_atomic!(AtomicU64, u64);
+impl_radium_atomic!(AtomicUsize, usize);
+
+/// Implement Radium trait for Cell types
+macro_rules! impl_radium_cell {
+	($real:ty, $base:ty) => {
+		impl InternalAtomic for $real {
+			type Item = $base;
+
+			fn fetch_and(
+				&self,
+				val: Self::Item,
+				_order: Ordering,
+			) -> Self::Item {
+				self.replace(self.get() & val)
+			}
+
+			fn fetch_or(&self, val: Self::Item, _order: Ordering) -> Self::Item {
+				self.replace(self.get() | val)
+			}
+
+			fn fetch_xor(
+				&self,
+				val: Self::Item,
+				_order: Ordering,
+			) -> Self::Item {
+				self.replace(self.get() ^ val)
+			}
+		}
+	};
+}
+impl_radium_cell!(Cell<u8>, u8);
+impl_radium_cell!(Cell<u16>, u16);
+impl_radium_cell!(Cell<u32>, u32);
+impl_radium_cell!(Cell<u64>, u64);
+impl_radium_cell!(Cell<usize>, usize);
 #[doc = include_str!("../doc/access/BitAccess.md")]
-pub trait BitAccess: Radium
-where <Self as Radium>::Item: BitRegister
+pub trait BitAccess: InternalAtomic
+where <Self as InternalAtomic>::Item: BitRegister
 {
 	/// Clears bits within a memory element to `0`.
 	///
@@ -167,7 +242,7 @@ where <Self as Radium>::Item: BitRegister
 
 impl<A> BitAccess for A
 where
-	A: Radium,
+	A: InternalAtomic,
 	A::Item: BitRegister,
 {
 }
@@ -184,7 +259,7 @@ pub trait BitSafe {
 	///
 	/// This is exposed as an associated type so that `BitStore` can name it
 	/// without having to re-select it based on crate configuration.
-	type Rad: Radium<Item = Self::Mem>;
+	type Rad: InternalAtomic<Item = Self::Mem>;
 
 	/// The zero constant.
 	const ZERO: Self;
@@ -219,11 +294,7 @@ macro_rules! safe {
 		impl BitSafe for $w {
 			type Mem = $t;
 
-			#[cfg(feature = "atomic")]
 			type Rad = $r;
-
-			#[cfg(not(feature = "atomic"))]
-			type Rad = core::cell::Cell<$t>;
 
 			const ZERO: Self = Self::new(0);
 
@@ -236,15 +307,15 @@ macro_rules! safe {
 }
 
 safe! {
-	u8 => BitSafeU8 => radium::types::RadiumU8;
-	u16 => BitSafeU16 => radium::types::RadiumU16;
-	u32 => BitSafeU32 => radium::types::RadiumU32;
+	u8 => BitSafeU8 => AtomicU8;
+	u16 => BitSafeU16 => AtomicU16;
+	u32 => BitSafeU32 => AtomicU32;
 }
 
 #[cfg(target_pointer_width = "64")]
-safe!(u64 => BitSafeU64 => radium::types::RadiumU64);
+safe!(u64 => BitSafeU64 => AtomicU64);
 
-safe!(usize => BitSafeUsize => radium::types::RadiumUsize);
+safe!(usize => BitSafeUsize => AtomicUsize);
 
 #[cfg(test)]
 mod tests {

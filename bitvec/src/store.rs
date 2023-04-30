@@ -199,8 +199,7 @@ store!(usize => BitSafeUsize);
 /// Generates `BitStore` implementations for atomic types.
 macro_rules! atomic {
 	($($size:tt, $base:ty => $atom:ident);+ $(;)?) => { $(
-		radium::if_atomic!(if atomic($size) {
-			use core::sync::atomic::$atom;
+			use atomic_polyfill::$atom;
 
 			impl BitStore for $atom {
 				type Mem = $base;
@@ -228,7 +227,6 @@ macro_rules! atomic {
 
 				const ALIAS_WIDTH: [(); 1] = [()];
 			}
-		});
 	)+ };
 }
 
@@ -265,11 +263,9 @@ mod tests {
 		cell.store_value(39);
 		assert_eq!(cell.load_value(), 39);
 
-		radium::if_atomic!(if atomic(size) {
-			let mut atom = AtomicUsize::new(0);
-			atom.store_value(57);
-			assert_eq!(atom.load_value(), 57);
-		});
+		let mut atom = AtomicUsize::new(0);
+		atom.store_value(57);
+		assert_eq!(atom.load_value(), 57);
 	}
 
 	/// Unaliased `BitSlice`s are universally threadsafe, because they satisfy

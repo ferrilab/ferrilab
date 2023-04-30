@@ -78,12 +78,9 @@ mod tests {
 
 	#[test]
 	fn trait_impls() {
-		use core::{
-			cell::Cell,
-			sync::atomic::*,
-		};
+		use core::cell::Cell;
 
-		use radium::types::*;
+		use atomic_polyfill::*;
 		macro_rules! check_impl {
 			($($ord:ident @ $($sto:ty),+);+ $(;)?) => {{ $( $(
 				assert_impl_all!(BitSlice<$sto, $ord>: Serialize);
@@ -108,53 +105,15 @@ mod tests {
 			Lsb0 @ Cell<u8>, Cell<u16>, Cell<u32>, Cell<usize>;
 			Msb0 @ Cell<u8>, Cell<u16>, Cell<u32>, Cell<usize>;
 			LocalBits @ Cell<u8>, Cell<u16>, Cell<u32>, Cell<usize>;
-			Lsb0 @ RadiumU8, RadiumU16, RadiumU32, RadiumUsize;
-			Msb0 @ RadiumU8, RadiumU16, RadiumU32, RadiumUsize;
-			LocalBits @ RadiumU8, RadiumU16, RadiumU32, RadiumUsize;
-		}
-		radium::if_atomic! {
-			if atomic(8) {
-				check_impl! {
-					Lsb0 @ AtomicU8;
-					Msb0 @ AtomicU8;
-					LocalBits @ AtomicU8;
-				}
-			}
-			if atomic(16) {
-				check_impl! {
-					Lsb0 @ AtomicU16;
-					Msb0 @ AtomicU16;
-					LocalBits @ AtomicU16;
-				}
-			}
-			if atomic(32) {
-				check_impl! {
-					Lsb0 @ AtomicU32;
-					Msb0 @ AtomicU32;
-					LocalBits @ AtomicU32;
-				}
-			}
-			if atomic(ptr) {
-				check_impl! {
-					Lsb0 @ AtomicUsize;
-					Msb0 @ AtomicUsize;
-					LocalBits @ AtomicUsize;
-				}
-			}
+			Lsb0 @ AtomicU8, AtomicU16, AtomicU32, AtomicUsize;
+			Msb0 @ AtomicU8, AtomicU16, AtomicU32, AtomicUsize;
+			LocalBits @ AtomicU8, AtomicU16, AtomicU32, AtomicUsize;
 		}
 		#[cfg(target_pointer_width = "64")]
 		check_impl! {
-			Lsb0 @ u64, RadiumU64;
-			Msb0 @ u64, RadiumU64;
-			LocalBits @ u64, RadiumU64;
+			Lsb0 @ AtomicU64;
+			Msb0 @ AtomicU64;
+			LocalBits @ AtomicU64;
 		}
-		#[cfg(target_pointer_width = "64")]
-		radium::if_atomic!(if atomic(64) {
-			check_impl! {
-				Lsb0 @ AtomicU64;
-				Msb0 @ AtomicU64;
-				LocalBits @ AtomicU64;
-			}
-		});
 	}
 }

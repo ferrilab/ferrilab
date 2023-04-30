@@ -6,8 +6,14 @@ use core::{
 };
 
 use funty::Unsigned;
-use radium::marker::BitOps;
 
+/// Marker trait for types supporting bit operations
+pub trait BitOps {}
+impl BitOps for u8 {}
+impl BitOps for u16 {}
+impl BitOps for u32 {}
+impl BitOps for u64 {}
+impl BitOps for usize {}
 #[doc = include_str!("../doc/mem/BitRegister.md")]
 pub trait BitRegister: Unsigned + BitOps {
 	/// The number of bits required to store an index in the range `0 .. BITS`.
@@ -101,8 +107,7 @@ macro_rules! element {
 			}
 		}
 
-		radium::if_atomic!( if atomic($size) {
-			use core::sync::atomic::$atom;
+			use atomic_polyfill::$atom;
 			impl BitElement<$atom> {
 				/// Creates a new element wrapper from a raw integer.
 				pub const fn new(elem: $bare) -> Self {
@@ -111,7 +116,6 @@ macro_rules! element {
 					}
 				}
 			}
-		});
 	)+ };
 }
 
