@@ -1,14 +1,31 @@
 //! Marker traits used to gate `Radium` methods and newtype parameters.
 
-use crate::{
-	seal::Sealed,
-	Radium,
+use core::ops::{
+	Add,
+	BitAnd,
+	BitOr,
+	BitXor,
+	Not,
+	Sub,
 };
+
+use crate::Radium;
+
 /// Indicates that the type supports bit-wise operations.
-pub trait BitOps: Sealed {}
+pub trait BitOps:
+	Sized
+	+ BitAnd<Output = Self>
+	+ BitOr<Output = Self>
+	+ BitXor<Output = Self>
+	+ Not<Output = Self>
+{
+}
 
 /// Indicates that the type supports integer operations.
-pub trait NumericOps: BitOps + Sealed {}
+pub trait NumericOps:
+	BitOps + Add<Output = Self> + Sub<Output = Self> + PartialEq + Ord
+{
+}
 
 macro_rules! mark {
 		($($t:ty => $($u:ty),+ $(,)?);+ $(;)?) => { $( $(
@@ -24,7 +41,7 @@ mark! {
 /// Relates a primitive type to its corresponding atomic type.
 ///
 /// This is only implemented when the corresponding atomic type exists.
-pub trait Atomic: Copy + Sealed {
+pub trait Atomic: Copy {
 	/// The `AtomicT` type corresponding to `Self`.
 	type Atom: Radium<Item = Self> + Send + Sync;
 }
@@ -40,7 +57,7 @@ pub trait Atomic: Copy + Sealed {
 /// *implementor* of this trait is the nucleus, and the destination of the
 /// associated type is the nuclear thing that possesses a nucleus. Sorry this
 /// codebase isn’t a perfect reflection of biology and physics.
-pub trait Nuclear: Copy + Sealed {
+pub trait Nuclear: Copy {
 	/// The `RadiumT` type corresponding to `Self`.
-	type Nucleus: Radium<Item = Self> + Send;
+	type Nucleus: Radium<Item = Self>;
 }

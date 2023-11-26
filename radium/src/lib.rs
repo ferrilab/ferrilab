@@ -3,7 +3,7 @@
 #![deny(unconditional_recursion)]
 
 pub mod marker;
-mod seal;
+pub mod portable;
 pub mod types;
 
 use core::{
@@ -19,9 +19,9 @@ pub use crate::types::{
 };
 
 #[doc = include_str!("../doc/radium.md")]
-pub trait Radium: seal::Sealed {
+pub unsafe trait Radium {
 	/// The primitive type that this implementor makes shared-mutable.
-	type Item;
+	type Item: Copy + PartialEq;
 
 	/// Creates a new value of this type.
 	fn new(value: Self::Item) -> Self;
@@ -257,7 +257,7 @@ pub trait Radium: seal::Sealed {
 
 /// Generates `Radium` implementation bodies.
 macro_rules! radium {
-	($($width:literal => $bit:ident $num:ident => {
+	($($width:literal : $bit:ident $num:ident => {
 		$($(@<$t:ident>)? $base:ty $(=> $atom:ident)?;)+
 	} )+) => { $( $(
 		radium!(atom $width $bit $num $(@<$t>)? $base $(=> $atom)?);
@@ -274,12 +274,12 @@ macro_rules! radium {
 		$(@<$t:ident>)? $base:ty => $atom:ident
 	) => {
 		#[cfg(target_has_atomic = $width)]
-		impl$(<$t>)? Radium for $atom$(<$t>)? {
+		unsafe impl$(<$t>)? Radium for $atom$(<$t>)? {
 			type Item = $base;
 
 			#[inline]
 			fn new(value: $base) -> Self {
-				$atom::new(value)
+				<$atom$(<$t>)?>::new(value)
 			}
 
 			#[inline]
@@ -289,27 +289,27 @@ macro_rules! radium {
 
 			#[inline]
 			fn get_mut(&mut self) -> &mut $base {
-				$atom::get_mut(self)
+				<$atom$(<$t>)?>::get_mut(self)
 			}
 
 			#[inline]
 			fn into_inner(self) -> $base {
-				$atom::into_inner(self)
+				<$atom$(<$t>)?>::into_inner(self)
 			}
 
 			#[inline]
 			fn load(&self, order: Ordering) -> $base {
-				$atom::load(self, order)
+				<$atom$(<$t>)?>::load(self, order)
 			}
 
 			#[inline]
 			fn store(&self, value: $base, order: Ordering) {
-				$atom::store(self, value, order);
+				<$atom$(<$t>)?>::store(self, value, order);
 			}
 
 			#[inline]
 			fn swap(&self, value: $base, order: Ordering) -> $base {
-				$atom::swap(self, value, order)
+				<$atom$(<$t>)?>::swap(self, value, order)
 			}
 
 			#[inline]
@@ -320,7 +320,7 @@ macro_rules! radium {
 				new: $base,
 				order: Ordering,
 			) -> $base {
-				$atom::compare_and_swap(self, current, new, order)
+				<$atom$(<$t>)?>::compare_and_swap(self, current, new, order)
 			}
 
 			#[inline]
@@ -331,7 +331,7 @@ macro_rules! radium {
 				success: Ordering,
 				failure: Ordering
 			) -> Result<$base, $base> {
-				$atom::compare_exchange(self, current, new, success, failure)
+				<$atom$(<$t>)?>::compare_exchange(self, current, new, success, failure)
 			}
 
 			#[inline]
@@ -342,7 +342,7 @@ macro_rules! radium {
 				success: Ordering,
 				failure: Ordering,
 			) -> Result<$base, $base> {
-				$atom::compare_exchange_weak(
+				<$atom$(<$t>)?>::compare_exchange_weak(
 					self,
 					current,
 					new,
@@ -351,9 +351,9 @@ macro_rules! radium {
 				)
 			}
 
-			radium!(atom $bit $atom => $base);
+			radium!(atom $bit $(@<$t>)? $atom => $base);
 
-			radium!(atom $num $atom => $base);
+			radium!(atom $num $(@<$t>)? $atom => $base);
 
 			#[inline]
 			fn fetch_update<F>(
@@ -365,14 +365,14 @@ macro_rules! radium {
 			where
 				F: FnMut($base) -> Option<$base>,
 			{
-				$atom::fetch_update(self, set_order, fetch_order, func)
+				<$atom$(<$t>)?>::fetch_update(self, set_order, fetch_order, func)
 			}
 		}
 	};
 
 	// Generate an implementation for the Cell.
 	(cell $width:literal $bit:ident $num:ident $(@<$t:ident>)? $base:ty) => {
-		impl$(<$t>)? Radium for Cell<$base> {
+		unsafe impl$(<$t>)? Radium for Cell<$base> {
 			type Item = $base;
 
 			#[inline]
@@ -451,9 +451,9 @@ macro_rules! radium {
 				Radium::compare_exchange(self, current, new, success, failure)
 			}
 
-			radium!(cell $bit $base);
+			radium!(cell $bit $(@<$t>)? $base);
 
-			radium!(cell $num $base);
+			radium!(cell $num $(@<$t>)? $base);
 
 			#[inline]
 			fn fetch_update<F>(&self, _: Ordering, _: Ordering, mut func: F)
@@ -475,53 +475,53 @@ macro_rules! radium {
 
 	// Forward to the atomic RMU functions.
 
-	(atom bit $atom:ident => $base:ty) => {
+	(atom bit $(@<$t:ident>)? $atom:ident => $base:ty) => {
 		#[inline]
 		fn fetch_and(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_and(self, value, order)
+			<$atom$(<$t>)?>::fetch_and(self, value, order)
 		}
 
 		#[inline]
 		fn fetch_nand(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_nand(self, value, order)
+			<$atom$(<$t>)?>::fetch_nand(self, value, order)
 		}
 
 		#[inline]
 		fn fetch_or(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_or(self, value, order)
+			<$atom$(<$t>)?>::fetch_or(self, value, order)
 		}
 
 		#[inline]
 		fn fetch_xor(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_xor(self, value, order)
+			<$atom$(<$t>)?>::fetch_xor(self, value, order)
 		}
 	};
 
-	(atom num $atom:ident => $base:ty) => {
+	(atom num $(@<$t:ident>)? $atom:ident => $base:ty) => {
 		#[inline]
 		fn fetch_add(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_add(self, value, order)
+			<$atom$(<$t>)?>::fetch_add(self, value, order)
 		}
 
 		#[inline]
 		fn fetch_sub(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_sub(self, value, order)
+			<$atom$(<$t>)?>::fetch_sub(self, value, order)
 		}
 
 		#[inline]
 		fn fetch_max(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_max(self, value, order)
+			<$atom$(<$t>)?>::fetch_max(self, value, order)
 		}
 
 		#[inline]
 		fn fetch_min(&self, value: $base, order: Ordering) -> $base {
-			$atom::fetch_min(self, value, order)
+			<$atom$(<$t>)?>::fetch_min(self, value, order)
 		}
 	};
 
 	// Implement non-atomic RMU functions.
 
-	(cell bit $base:ty) => {
+	(cell bit $(@<$t:ident>)? $base:ty) => {
 		#[inline]
 		fn fetch_and(&self, value: $base, _: Ordering) -> $base {
 			let old = Cell::get(self);
@@ -551,7 +551,7 @@ macro_rules! radium {
 		}
 	};
 
-	(cell num $base:ty) => {
+	(cell num $(@<$t:ident>)? $base:ty) => {
 		#[inline]
 		fn fetch_add(&self, value: $base, _: Ordering) -> $base {
 			let old = Cell::get(self);
@@ -583,19 +583,19 @@ macro_rules! radium {
 
 	// Handle stubbed-out RMU functions.
 
-	(atom no_bit $atom:ident => $base:ty) => {
+	(atom no_bit $(@<$t:ident>)? $atom:ident => $base:ty) => {
 		radium!(unreachable fetch_and, fetch_nand, fetch_or, fetch_xor);
 	};
 
-	(atom no_num $atom:ident => $base:ty) => {
+	(atom no_num $(@<$t:ident>)? $atom:ident => $base:ty) => {
 		radium!(unreachable fetch_add, fetch_sub, fetch_max, fetch_min);
 	};
 
-	(cell no_bit $base:ty) => {
+	(cell no_bit $(@<$t:ident>)? $base:ty) => {
 		radium!(unreachable fetch_and, fetch_nand, fetch_or, fetch_xor);
 	};
 
-	(cell no_num $base:ty) => {
+	(cell no_num $(@<$t:ident>)? $base:ty) => {
 		radium!(unreachable fetch_add, fetch_sub, fetch_max, fetch_min);
 	};
 
@@ -761,47 +761,47 @@ macro_rules! radium {
 		fn $n(&self, _: Self::Item, _: Ordering) -> Self::Item {
 			unreachable!(
 				"This function is statically guaranteed to never be callable",
-			)
+			);
 		}
 	)+ };
 }
 
 radium! {
-	"8" => bit no_num => {
+	"8": bit no_num => {
 		bool => AtomicBool;
 	}
-	"8" => bit num => {
+	"8": bit num => {
 		i8 => AtomicI8;
 		u8 => AtomicU8;
 	}
-	"16" => bit num => {
+	"16": bit num => {
 		i16 => AtomicI16;
 		u16 => AtomicU16;
 	}
-	"32" => bit num => {
+	"32": bit num => {
 		i32 => AtomicI32;
 		u32 => AtomicU32;
 	}
-	"64" => bit num => {
+	"64": bit num => {
 		i64 => AtomicI64;
 		u64 => AtomicU64;
 	}
-	"128" => bit num => {
+	"128": bit num => {
 		i128; // => AtomicI128; // when this stabilizes
 		u128; // => AtomicU128; // when this stabilizes
 	}
-	"ptr" => bit num => {
+	"ptr": bit num => {
 		isize => AtomicIsize;
 		usize => AtomicUsize;
 	}
-	"ptr" => no_bit no_num => {
+	"ptr": no_bit no_num => {
 		@<T> *mut T => AtomicPtr;
 	}
 }
 
-impl<T> Radium for Atom<T>
+unsafe impl<T> Radium for Atom<T>
 where
-	T: Atomic,
+	T: Atomic + PartialEq,
 	T::Atom: Radium<Item = T>,
 {
 	type Item = T;
@@ -813,9 +813,9 @@ where
 	}
 }
 
-impl<T> Radium for Isotope<T>
+unsafe impl<T> Radium for Isotope<T>
 where
-	T: Nuclear,
+	T: Nuclear + PartialEq,
 	T::Nucleus: Radium<Item = T>,
 {
 	type Item = T;
@@ -827,16 +827,17 @@ where
 	}
 }
 
-impl<T> Radium for Radon<T>
+unsafe impl<T> Radium for Radon<T>
 where
-	T: Nuclear,
+	T: Nuclear + PartialEq,
 	Cell<T>: Radium<Item = T>,
 {
 	type Item = T;
 
 	radium!(wrappers);
 
-	fn fence(_: Ordering) {}
+	fn fence(_: Ordering) {
+	}
 }
 
 #[cfg(test)]

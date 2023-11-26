@@ -6,6 +6,13 @@ This document is written according to the [Keep a Changelog][kac] style.
 
 ## Version 1
 
+### 1.1.0
+
+- Added `Radium` implementations for the [`portable-atomic`] crate.
+- Relaxed `Radium` from being `Sealed` (forbidding implementations outside this
+  crate) to merely `unsafe`. Foreign crates may now provide implementations as
+  appropriate.
+
 ### 1.0.0
 
 The `Radium` trait and `RadiumT` type aliases are carried over from version 0.
@@ -27,3 +34,4 @@ It will receive target updates as needed for clients who need to use Rust
 versions older than 1.60, but will not receive a backport of the 1.0 API.
 
 [kac]: https://keepachangelog/en/1.0.0
+[`portable-atomic`]: https://docs.rs/portable-atomic/1

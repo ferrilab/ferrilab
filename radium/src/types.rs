@@ -8,7 +8,7 @@ use core::{
 		Debug,
 		Formatter,
 	},
-	sync::atomic::*,
+	sync::atomic::Ordering,
 };
 
 use crate::{
@@ -178,12 +178,12 @@ macro_rules! alias {
 		///
 		/// This target has the required atomic support.
 		#[cfg(target_has_atomic = $width)]
-		pub type $radium$(<$t>)? = $atom$(<$t>)?;
+		pub type $radium$(<$t>)? = core::sync::atomic::$atom$(<$t>)?;
 
 		// If the atomic variant exists, create `Atom<T>`.
 		#[cfg(target_has_atomic = $width)]
 		impl$(<$t>)? Atomic for $base {
-			type Atom = $atom$(<$t>)?;
+			type Atom = core::sync::atomic::$atom$(<$t>)?;
 		}
 	};
 
@@ -259,30 +259,30 @@ mod tests {
 	fn atom_impls() {
 		#[cfg(target_has_atomic = "8")]
 		{
-			assert_impl_all!(Atom<bool>: Debug, Default, From<bool>, Sync);
-			assert_impl_all!(Atom<i8>: Debug, Default, From<i8>, Sync);
-			assert_impl_all!(Atom<u8>: Debug, Default, From<u8>, Sync);
+			assert_impl_all!(Atom<bool>: Debug, Default, From<bool>, Send, Sync);
+			assert_impl_all!(Atom<i8>: Debug, Default, From<i8>, Send, Sync);
+			assert_impl_all!(Atom<u8>: Debug, Default, From<u8>, Send, Sync);
 		}
 		#[cfg(target_has_atomic = "16")]
 		{
-			assert_impl_all!(Atom<i16>: Debug, Default, From<i16>, Sync);
-			assert_impl_all!(Atom<u16>: Debug, Default, From<u16>, Sync);
+			assert_impl_all!(Atom<i16>: Debug, Default, From<i16>, Send, Sync);
+			assert_impl_all!(Atom<u16>: Debug, Default, From<u16>, Send, Sync);
 		}
 		#[cfg(target_has_atomic = "32")]
 		{
-			assert_impl_all!(Atom<i32>: Debug, Default, From<i32>, Sync);
-			assert_impl_all!(Atom<u32>: Debug, Default, From<u32>, Sync);
+			assert_impl_all!(Atom<i32>: Debug, Default, From<i32>, Send, Sync);
+			assert_impl_all!(Atom<u32>: Debug, Default, From<u32>, Send, Sync);
 		}
 		#[cfg(target_has_atomic = "64")]
 		{
-			assert_impl_all!(Atom<i64>: Debug, Default, From<i64>, Sync);
-			assert_impl_all!(Atom<u64>: Debug, Default, From<u64>, Sync);
+			assert_impl_all!(Atom<i64>: Debug, Default, From<i64>, Send, Sync);
+			assert_impl_all!(Atom<u64>: Debug, Default, From<u64>, Send, Sync);
 		}
 		#[cfg(target_has_atomic = "ptr")]
 		{
-			assert_impl_all!(Atom<isize>: Debug, Default, From<isize>, Sync);
-			assert_impl_all!(Atom<usize>: Debug, Default, From<usize>, Sync);
-			assert_impl_all!(Atom<*mut ()>: Debug, From<*mut ()>, Sync);
+			assert_impl_all!(Atom<isize>: Debug, Default, From<isize>, Send, Sync);
+			assert_impl_all!(Atom<usize>: Debug, Default, From<usize>, Send, Sync);
+			assert_impl_all!(Atom<*mut ()>: Debug, From<*mut ()>, Send, Sync);
 		}
 	}
 
@@ -339,63 +339,63 @@ mod tests {
 
 	#[test]
 	fn isotope_atomic() {
-		#[cfg(target_has_atomic = "8")]
-		{
-			assert_impl_all!(Isotope<bool>: Sync);
-			assert_impl_all!(Isotope<i8>: Sync);
-			assert_impl_all!(Isotope<u8>: Sync);
-		}
-		#[cfg(not(target_has_atomic = "8"))]
-		{
-			assert_not_impl_any!(Isotope<bool>: Sync);
-			assert_not_impl_any!(Isotope<i8>: Sync);
-			assert_not_impl_any!(Isotope<u8>: Sync);
-		}
-
-		#[cfg(target_has_atomic = "16")]
-		{
-			assert_impl_all!(Isotope<i16>: Sync);
-			assert_impl_all!(Isotope<u16>: Sync);
-		}
-		#[cfg(not(target_has_atomic = "16"))]
-		{
-			assert_not_impl_any!(Isotope<i16>: Sync);
-			assert_not_impl_any!(Isotope<u16>: Sync);
+		cfg_if::cfg_if! {
+			if #[cfg(target_has_atomic = "8")] {
+				assert_impl_all!(Isotope<bool>: Sync);
+				assert_impl_all!(Isotope<i8>: Sync);
+				assert_impl_all!(Isotope<u8>: Sync);
+			}
+			else {
+				assert_not_impl_any!(Isotope<bool>: Sync);
+				assert_not_impl_any!(Isotope<i8>: Sync);
+				assert_not_impl_any!(Isotope<u8>: Sync);
+			}
 		}
 
-		#[cfg(target_has_atomic = "32")]
-		{
-			assert_impl_all!(Isotope<i32>: Sync);
-			assert_impl_all!(Isotope<u32>: Sync);
-		}
-		#[cfg(not(target_has_atomic = "32"))]
-		{
-			assert_not_impl_any!(Isotope<i32>: Sync);
-			assert_not_impl_any!(Isotope<u32>: Sync);
-		}
-
-		#[cfg(target_has_atomic = "64")]
-		{
-			assert_impl_all!(Isotope<i64>: Sync);
-			assert_impl_all!(Isotope<u64>: Sync);
-		}
-		#[cfg(not(target_has_atomic = "64"))]
-		{
-			assert_not_impl_any!(Isotope<i64>: Sync);
-			assert_not_impl_any!(Isotope<u64>: Sync);
+		cfg_if::cfg_if! {
+			if #[cfg(target_has_atomic = "16")] {
+				assert_impl_all!(Isotope<i16>: Sync);
+				assert_impl_all!(Isotope<u16>: Sync);
+			}
+			else {
+				assert_not_impl_any!(Isotope<i16>: Sync);
+				assert_not_impl_any!(Isotope<u16>: Sync);
+			}
 		}
 
-		#[cfg(target_has_atomic = "ptr")]
-		{
-			assert_impl_all!(Isotope<isize>: Sync);
-			assert_impl_all!(Isotope<usize>: Sync);
-			assert_impl_all!(Isotope<*mut ()>: Sync);
+		cfg_if::cfg_if! {
+			if #[cfg(target_has_atomic = "32")] {
+				assert_impl_all!(Isotope<i32>: Sync);
+				assert_impl_all!(Isotope<u32>: Sync);
+			}
+			else {
+				assert_not_impl_any!(Isotope<i32>: Sync);
+				assert_not_impl_any!(Isotope<u32>: Sync);
+			}
 		}
-		#[cfg(not(target_has_atomic = "ptr"))]
-		{
-			assert_not_impl_any!(Isotope<isize>: Sync);
-			assert_not_impl_any!(Isotope<usize>: Sync);
-			assert_not_impl_any!(Isotope<*mut ()>: Sync);
+
+		cfg_if::cfg_if! {
+			if #[cfg(target_has_atomic = "64")] {
+				assert_impl_all!(Isotope<i64>: Sync);
+				assert_impl_all!(Isotope<u64>: Sync);
+			}
+			else {
+				assert_not_impl_any!(Isotope<i64>: Sync);
+				assert_not_impl_any!(Isotope<u64>: Sync);
+			}
+		}
+
+		cfg_if::cfg_if! {
+			if #[cfg(target_has_atomic = "ptr")] {
+				assert_impl_all!(Isotope<isize>: Sync);
+				assert_impl_all!(Isotope<usize>: Sync);
+				assert_impl_all!(Isotope<*mut ()>: Sync);
+			}
+			else {
+				assert_not_impl_any!(Isotope<isize>: Sync);
+				assert_not_impl_any!(Isotope<usize>: Sync);
+				assert_not_impl_any!(Isotope<*mut ()>: Sync);
+			}
 		}
 
 		// These are always non-atomic until `Atomic*128` stabilizes.

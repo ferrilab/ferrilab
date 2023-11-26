@@ -36,7 +36,7 @@ these names to be portable across targets with varying levels of atomic support
 without having to worry about the fact that `AtomicT` symbols vanish on targets
 that do not have the requisite atomic instructions.
 
-The Rust compiler [stabilized] the `cfg(target_has_atomic)` test in version
+The Rust compiler [stabilized][0] the `cfg(target_has_atomic)` test in version
 1.60. This is now the MSRV for Radium 1.0. The version-0 series will stay
 supported for the indeterminate future to allow for pre-1.60 projects to
 continue to use it. The `radium::if_atomic!` macro allows projects to simulate
@@ -59,7 +59,33 @@ to prepare for stabilizaation in the future.
 If 128-bit atomics are removed from the standard library without stabilization,
 Radium will remove support for `Cell<{i,u}128>` in a major-version increase.
 
-----
+## Non-Standard Implementors
+
+In addition to the Rust standard library `Cell` and `Atomic` types, we also
+provide an implementation for the [`portable-atomic`] crate. However, the
+`portable-atomic` implementation cannot compile on a select few targets. As of
+1.60, they are:
+
+- `thumbv6m-none-eabi`
+- `riscv32i-unknown-none-elf`
+- `riscv32imc-unknown-none-elf`
+
+These targets have 32-bit atomic load and store instructions, but do not have
+read/modify/write instructions. Since `Radium` demands RMU behavior, and
+`portable-atomic` does not provide it even in software (the `.fetch_action`
+methods are all missing), we do not attempt to handle these targets gracefully
+and simply allow the compile to fail.
+
+Do not use the `portable-atomic` feature when compiling for these targets.
+
+We disable all `portable-atomic` features, including the default-on `fallback`
+feature. This causes `portable-atomic` to only generate symbols that match what
+the standard library provides on that target. If you enable
+`portable-atomic/fallback` in your own crate, then these symbols will exist, but
+`radium` will not be able to see them because `#[cfg(feature = "...")]` cannot
+query *other* crates’ enabled feature set. You will need to set radium’s
+`portable-atomic-fallback` feature to get `Radium` implementations for atomic
+operations wider than what the target instruction set supports.
 
 ## Pre-1.60 Target Discovery
 
@@ -97,7 +123,7 @@ your target, consider using the `TARGET_ARCH` matcher, or match on the full
 > (since people didn't care that it was radioactive and used it in everything)
 
 <!-- Badges -->
-[crate_link]: https://crates.io/crates/raidum "Crates.io package"
+[crate_link]: https://crates.io/crates/radium "Crates.io package"
 [docs_img]: https://img.shields.io/docsrs/radium/latest.svg?style=for-the-badge "Radium documentation badge"
 [docs_link]: https://docs.rs/radium "Radium documentation"
 [downloads_img]: https://img.shields.io/crates/dv/radium.svg?style=for-the-badge "Crate downloads"
@@ -111,6 +137,7 @@ your target, consider using the `TARGET_ARCH` matcher, or match on the full
 [`Radium`]: https://docs.rs/radium/latest/radium/trait.Radium.html
 [`Radon<T>`]: https://docs.rs/radium/latest/radium/types/struct.Radon.html
 [`atomic`]: https://doc.rust-lang.org/core/sync/atomic
+[`portable-atomic`]: https://docs.rs/portable-atomic/1
 
 <!-- External links -->
-[stabilized]: https://github.com/rust-lang/rust/blob/master/RELEASES.md#version-1600-2022-04-07
+[0]: https://github.com/rust-lang/rust/blob/master/RELEASES.md#version-1600-2022-04-07
