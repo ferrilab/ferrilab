@@ -11,7 +11,7 @@ use core::{
 	sync::atomic::*,
 };
 
-use crate::marker::*;
+use crate::marker::{Atomic, BitOps, Nuclear, NumericOps};
 pub use crate::types::{
 	Atom,
 	Isotope,
