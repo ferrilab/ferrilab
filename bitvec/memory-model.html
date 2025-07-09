@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en-US" class="light" dir="ltr">
+<html lang="en-US" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="A more thorough exploration of Ferrilab’s crates.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -24,29 +24,43 @@
         <link rel="stylesheet" href="../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../highlight.css">
-        <link rel="stylesheet" href="../tomorrow-night.css">
-        <link rel="stylesheet" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href=".././guide/assets/mdbook-admonish.css">
 
         <!-- MathJax -->
         <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
-        <!-- Provide site root to javascript -->
-        <script>
-            var path_to_root = "../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
-        </script>
 
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -60,24 +74,22 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -85,45 +97,25 @@
                 sidebar = 'hidden';
             }
             sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../dedication.html">Dedication</a></li><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction to Ferrilab</a></li><li class="chapter-item expanded "><a href="../radium.html"><strong aria-hidden="true">2.</strong> Radium</a></li><li class="chapter-item expanded "><a href="../funty.html"><strong aria-hidden="true">3.</strong> funty</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../funty/permission-changes.html"><strong aria-hidden="true">3.1.</strong> Permission Changes</a></li></ol></li><li class="chapter-item expanded "><a href="../bitvec.html"><strong aria-hidden="true">4.</strong> bitvec</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bitvec/data-structures.html"><strong aria-hidden="true">4.1.</strong> Data Structures</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bitvec/data-structures/bitslice.html"><strong aria-hidden="true">4.1.1.</strong> BitSlice</a></li><li class="chapter-item expanded "><a href="../bitvec/data-structures/bitarray.html"><strong aria-hidden="true">4.1.2.</strong> BitArray</a></li><li class="chapter-item expanded "><a href="../bitvec/data-structures/bitvec.html"><strong aria-hidden="true">4.1.3.</strong> BitVec and BitBox</a></li></ol></li><li class="chapter-item expanded "><a href="../bitvec/type-parameters.html"><strong aria-hidden="true">4.2.</strong> Type Parameters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bitvec/type-parameters/bitorder.html"><strong aria-hidden="true">4.2.1.</strong> BitOrder</a></li><li class="chapter-item expanded "><a href="../bitvec/type-parameters/bitstore.html"><strong aria-hidden="true">4.2.2.</strong> BitStore</a></li></ol></li><li class="chapter-item expanded "><a href="../bitvec/practical-use.html"><strong aria-hidden="true">4.3.</strong> Practical Use</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bitvec/practical-use/collections.html"><strong aria-hidden="true">4.3.1.</strong> bool Collections</a></li><li class="chapter-item expanded "><a href="../bitvec/practical-use/bitfields.html"><strong aria-hidden="true">4.3.2.</strong> C-Style Bitfields</a></li></ol></li><li class="chapter-item expanded "><a href="../bitvec/memory-representation.html"><strong aria-hidden="true">4.4.</strong> Memory Representation</a></li><li class="chapter-item expanded "><a href="../bitvec/memory-model.html" class="active"><strong aria-hidden="true">4.5.</strong> Memory Model</a></li><li class="chapter-item expanded "><a href="../bitvec/performance.html"><strong aria-hidden="true">4.6.</strong> Performance</a></li><li class="chapter-item expanded "><a href="../bitvec/pointer-encoding.html"><strong aria-hidden="true">4.7.</strong> Pointer Encoding</a></li><li class="chapter-item expanded "><a href="../bitvec/miscellaneous.html"><strong aria-hidden="true">4.8.</strong> Other Features</a></li></ol></li><li class="chapter-item expanded "><a href="../afterword.html">Afterword</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -133,13 +125,14 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
@@ -252,14 +245,14 @@ there yet.</p>
 perform writes to memory, it must instead either use a <code>*mut T</code> bare pointer,
 which has absolutely no checks or optimizations whatsoëver, or use an
 <code>&amp;UnsafeCell&lt;T&gt;</code> shared reference, which has all the usual guarantees present on
-all<sup class="footnote-reference"><a href="#1">1</a></sup> reference types.</p>
+all<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> reference types.</p>
 <p>All <code>UnsafeCell</code> does is instruct the Rust compiler to politely look the other
 way about your program’s memory accesses. It is somewhat like the C keyword
 <code>volatile</code>, in that the compiler no longer believes that reads are stateless, or
 freely reörderable, but entirely unlike that keyword in that the compiler
 doesn’t have any obligation to <em>keep</em> your reads from or writes to such regions.</p>
 <p>Rust provides an additional type called <a href="https://doc.rust-lang.org/stable/core/cell/struct.Cell.html"><code>Cell</code></a>. This is a wrapper over
-<code>UnsafeCell</code><sup class="footnote-reference"><a href="#2">2</a></sup> that defines a more useful API, including the only safe and
+<code>UnsafeCell</code><sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> that defines a more useful API, including the only safe and
 guaranteed way to write into memory through a shared reference: <a href="https://doc.rust-lang.org/stable/core/cell/struct.Cell.html#method.set"><code>Cell::set</code></a>.</p>
 <p>And <em>voilà</em>: <code>&amp;mut BitSlice&lt;T, _&gt;</code> simply constructs <code>&amp;Cell&lt;T&gt;</code> when writing,
 the Rust compiler does not see a violation of the <code>&amp;mut</code> exclusion principle,
@@ -291,7 +284,7 @@ gives you a <code>poison</code>, your program continues undergoing compilation a
 nothing had happened. You can pass it around. You can write to it, and if you
 destroy it before reading, you’re fine.</p>
 <p>As soon as you attempt to read the bit-wise value of <code>poison</code>, your program is
-undefined<sup class="footnote-reference"><a href="#3">3</a></sup>.</p>
+undefined<sup class="footnote-reference" id="fr-3-1"><a href="#footnote-3">3</a></sup>.</p>
 <p>So if <code>bitvec</code> wants to be threadsafe, which it does, and it wants to insist on
 its ability to safely alias the same memory location from multiple handles,
 which is non-negotiable, there’s only one avenue left to take.</p>
@@ -311,7 +304,7 @@ one-writer-XOR-any-readers system behavior, and all is well.</p>
 <p>Hardware-level exclusion has the unfortunate penalty of being, to put it
 lightly, “slow”. So while it’s the safest choice to be correct, and was in fact
 the default universal choice for all memory access in <code>bitvec</code> for some time,
-its costs<sup class="footnote-reference"><a href="#4">4</a></sup> called for a more prudent behavior.</p>
+its costs<sup class="footnote-reference" id="fr-4-1"><a href="#footnote-4">4</a></sup> called for a more prudent behavior.</p>
 <p>It’s time for a new trick, something that the Rust compiler does at the region
 level, and that <code>bitvec</code> now does at the element level:</p>
 <h2 id="run-time-alias-analysis"><a class="header" href="#run-time-alias-analysis">Run Time Alias Analysis</a></h2>
@@ -479,7 +472,7 @@ points will not be able to interfere with each other electrically. LLVM does not
 know this, so it considers any write to memory to touch <em>all</em> bits of the
 touched element, and any read from memory to view <em>all</em> bits of the fetched
 element.</p>
-<p><code>bitvec</code> exclusively<sup class="footnote-reference"><a href="#5">5</a></sup> writes to contended memory with the Rust functions
+<p><code>bitvec</code> exclusively<sup class="footnote-reference" id="fr-5-1"><a href="#footnote-5">5</a></sup> writes to contended memory with the Rust functions
 <a href="https://doc.rust-lang.org/stable/core/sync/atomic/struct.AtomicUsize.html#method.fetch_and"><code>AtomicT::fetch_and</code></a> and <a href="https://doc.rust-lang.org/stable/core/sync/atomic/struct.AtomicUsize.html#method.fetch_or"><code>AtomicT::fetch_or</code></a>, which are mapped to the LLVM
 instructions <a href="https://releases.llvm.org/10.0.0/docs/Atomics.html#libcalls-atomic"><code>__atomic_fetch_and_N</code></a> and
 <a href="https://releases.llvm.org/10.0.0/docs/Atomics.html#libcalls-atomic"><code>__atomic_fetch_or_N</code></a>. It uses bitmasks that <em><code>bitvec</code></em> can
@@ -519,39 +512,40 @@ Synchronization is only added in order to correctly interface with <code>rustc</
 LLVM without causing either of them to introduce undefined behavior due to a
 lack of information.</p>
 <h2 id="footnotes"><a class="header" href="#footnotes">Footnotes</a></h2>
-<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
 <p>all references to <code>T</code> where <code>T</code> is either <code>!Sized</code>, or
 <code>mem::size_of::&lt;T&gt;()</code> is non-zero, that is. A fun quirk of Rust’s first-class
 concept of zero-width types is that the only illegal value for a <code>&amp;Zst</code>
 reference is null. Since there is nothing to load or store through a <code>&amp;Zst</code>
 reference, the compiler doesn’t <em>care</em> what the reference value is, as it will
-never be used to perform memory access.</p>
-</div>
-<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
-<p>literally: <a href="https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235">https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235</a></p>
-</div>
-<div class="footnote-definition" id="3"><sup class="footnote-definition-label">3</sup>
+never be used to perform memory access. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>literally: <a href="https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235">https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235</a> <a href="#fr-2-1">↩</a></p>
+</li>
+<li id="footnote-3">
 <p>This is not <em>absolutely</em> true. Like we saw with <code>UnsafeCell</code>, the only
 immutable rule of compiler developers is that whenever they make an immutable
 rule, they also provide a way to sidestep it. If you <a href="https://llvm.org/docs/LangRef.html#i-freeze"><code>freeze</code></a> a <code>poison</code>,
 you are now free to read its value and act on it. LLVM just doesn’t make any
-guarantees about what bit-pattern you’ll see.</p>
-</div>
-<div class="footnote-definition" id="4"><sup class="footnote-definition-label">4</sup>
+guarantees about what bit-pattern you’ll see. <a href="#fr-3-1">↩</a></p>
+</li>
+<li id="footnote-4">
 <p>I’d feel a great deal more comfortable if I had firm knowledge of what
 those costs actually <strong>were</strong>. An atomic write always issues a <code>lock</code>
 instruction modifier on x86, and I have heard vastly different things about
 what that actually <em>means</em>, from “it’s free if no other cache holds that
 address” up to “it poisons the whole cacheline”, and have not had much luck
 producing a benchmark that firmly demonstrates that unneeded atomic access is
-a strict performance cost.</p>
-</div>
-<div class="footnote-definition" id="5"><sup class="footnote-definition-label">5</sup>
+a strict performance cost. <a href="#fr-4-1">↩</a></p>
+</li>
+<li id="footnote-5">
 <p>In multithreading environments. Disabling atomics also disables <code>bitvec</code>’s
 support for multithreading, so the penalty for aliasing is reduced to an
-inability to remove redundant reads.</p>
-</div>
-
+inability to remove redundant reads. <a href="#fr-5-1">↩</a></p>
+</li>
+</ol>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

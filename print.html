@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en-US" class="light" dir="ltr">
+<html lang="en-US" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="A more thorough exploration of Ferrilab’s crates.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -25,29 +25,43 @@
         <link rel="stylesheet" href="fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="./guide/assets/mdbook-admonish.css">
 
         <!-- MathJax -->
         <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
-        <!-- Provide site root to javascript -->
-        <script>
-            var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
-        </script>
 
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -61,24 +75,22 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -86,45 +98,25 @@
                 sidebar = 'hidden';
             }
             sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="dedication.html">Dedication</a></li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction to Ferrilab</a></li><li class="chapter-item expanded "><a href="radium.html"><strong aria-hidden="true">2.</strong> Radium</a></li><li class="chapter-item expanded "><a href="funty.html"><strong aria-hidden="true">3.</strong> funty</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="funty/permission-changes.html"><strong aria-hidden="true">3.1.</strong> Permission Changes</a></li></ol></li><li class="chapter-item expanded "><a href="bitvec.html"><strong aria-hidden="true">4.</strong> bitvec</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bitvec/data-structures.html"><strong aria-hidden="true">4.1.</strong> Data Structures</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bitvec/data-structures/bitslice.html"><strong aria-hidden="true">4.1.1.</strong> BitSlice</a></li><li class="chapter-item expanded "><a href="bitvec/data-structures/bitarray.html"><strong aria-hidden="true">4.1.2.</strong> BitArray</a></li><li class="chapter-item expanded "><a href="bitvec/data-structures/bitvec.html"><strong aria-hidden="true">4.1.3.</strong> BitVec and BitBox</a></li></ol></li><li class="chapter-item expanded "><a href="bitvec/type-parameters.html"><strong aria-hidden="true">4.2.</strong> Type Parameters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bitvec/type-parameters/bitorder.html"><strong aria-hidden="true">4.2.1.</strong> BitOrder</a></li><li class="chapter-item expanded "><a href="bitvec/type-parameters/bitstore.html"><strong aria-hidden="true">4.2.2.</strong> BitStore</a></li></ol></li><li class="chapter-item expanded "><a href="bitvec/practical-use.html"><strong aria-hidden="true">4.3.</strong> Practical Use</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bitvec/practical-use/collections.html"><strong aria-hidden="true">4.3.1.</strong> bool Collections</a></li><li class="chapter-item expanded "><a href="bitvec/practical-use/bitfields.html"><strong aria-hidden="true">4.3.2.</strong> C-Style Bitfields</a></li></ol></li><li class="chapter-item expanded "><a href="bitvec/memory-representation.html"><strong aria-hidden="true">4.4.</strong> Memory Representation</a></li><li class="chapter-item expanded "><a href="bitvec/memory-model.html"><strong aria-hidden="true">4.5.</strong> Memory Model</a></li><li class="chapter-item expanded "><a href="bitvec/performance.html"><strong aria-hidden="true">4.6.</strong> Performance</a></li><li class="chapter-item expanded "><a href="bitvec/pointer-encoding.html"><strong aria-hidden="true">4.7.</strong> Pointer Encoding</a></li><li class="chapter-item expanded "><a href="bitvec/miscellaneous.html"><strong aria-hidden="true">4.8.</strong> Other Features</a></li></ol></li><li class="chapter-item expanded "><a href="afterword.html">Afterword</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -134,13 +126,14 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
@@ -282,21 +275,21 @@ use std::{
 
 fn do_work&lt;R: Radium&lt;Item = u64&gt;&gt;(this: &amp;R, ident: u8) {
   let on_entry = this.load(Ordering::SeqCst);
-  println!(&quot;{: &gt;2} step 0 sees: {: &gt;2}&quot;, ident, on_entry);
+  println!("{: &gt;2} step 0 sees: {: &gt;2}", ident, on_entry);
 
   let before_add = this.fetch_add(10, Ordering::SeqCst);
-  println!(&quot;{: &gt;2} step 1 sees: {: &gt;2}&quot;, ident, before_add);
+  println!("{: &gt;2} step 1 sees: {: &gt;2}", ident, before_add);
 
   let after_add = this.load(Ordering::SeqCst);
-  println!(&quot;{: &gt;2} step 2 sees: {: &gt;2}&quot;, ident, after_add);
+  println!("{: &gt;2} step 2 sees: {: &gt;2}", ident, after_add);
 
   thread::sleep(Duration::from_millis(after_add));
 
   let before_sub = this.fetch_sub(3, Ordering::SeqCst);
-  println!(&quot;{: &gt;2} step 3 sees: {: &gt;2}&quot;, ident, before_sub);
+  println!("{: &gt;2} step 3 sees: {: &gt;2}", ident, before_sub);
 
   let on_exit = this.load(Ordering::SeqCst);
-  println!(&quot;{: &gt;2} step 4 sees: {: &gt;2}&quot;, ident, on_exit);
+  println!("{: &gt;2} step 4 sees: {: &gt;2}", ident, on_exit);
 }
 
 static ATOM: AtomicU64 = AtomicU64::new(0);
@@ -309,7 +302,7 @@ fn main() {
   let isotope = Isotope::new(0u64);
   let radon = Radon::new(0u64);
 
-  println!(&quot;atoms&quot;);
+  println!("atoms");
   thread::scope(|s| for ident in 0 .. 3 {
     s.spawn(move || do_work(&amp;ATOM, ident));
   });
@@ -320,7 +313,7 @@ fn main() {
   });
   println!();
 
-  println!(&quot;isotopes&quot;);
+  println!("isotopes");
   thread::scope(|s| for ident in 6 .. 9 {
     s.spawn(move || do_work(&amp;RADIUM, ident));
   });
@@ -330,7 +323,7 @@ fn main() {
   }
   println!();
 
-  println!(&quot;cells&quot;);
+  println!("cells");
   for ident in 12 .. 15 {
     do_work(&amp;cell, ident);
   }
@@ -371,7 +364,7 @@ sense on unsigned integers.</li>
 </li>
 <li><strong><code>Floating</code></strong>: this is implemented by the floating-point numbers. Unlike
 the integral traits, it has a great deal of methods that only exist when
-<code>cfg(feature = &quot;std&quot;)</code> is active, as they require the platform <code>libm</code>
+<code>cfg(feature = "std")</code> is active, as they require the platform <code>libm</code>
 mathematics library and are not provided by Rust’s <code>core</code> crate. It also
 provides both all of the associated constants, as well as all of the
 constants stored in eponymous modules but <em>not</em> associated with the actual
@@ -658,7 +651,7 @@ file an issue if it is not.
 from elsewhere in your program or by creating a temporary, it is time to do some
 actual work with it.</p>
 <h3 id="-that-bool-can"><a class="header" href="#-that-bool-can">… That <code>[bool]</code> Can</a></h3>
-<p>Everything<sup class="footnote-reference"><a href="#1">1</a></sup>. I am not going to rewrite the standard library’s slice
+<p>Everything<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup>. I am not going to rewrite the standard library’s slice
 documentation here.</p>
 <h3 id="-that-bool-cannot"><a class="header" href="#-that-bool-cannot">… That <code>[bool]</code> Cannot</a></h3>
 <p>In addition to the standard library <code>[bool]</code> API, <code>BitSlice</code> offers some
@@ -759,11 +752,12 @@ possibility of aliasing. As such, <em>these</em> types all have <code>.as_raw_sl
 <code>.as_raw_mut_slice()</code> methods that provide ordinary slice views to their storage
 region.</p>
 <h2 id="footnotes"><a class="header" href="#footnotes">Footnotes</a></h2>
-<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
 <p>Except write-assignment through indexing. I am not going to keep
-mentioning this exception.</p>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="arrays"><a class="header" href="#arrays">Arrays</a></h1>
+mentioning this exception. <a href="#fr-1-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="arrays"><a class="header" href="#arrays">Arrays</a></h1>
 <p>While <code>BitSlice</code> describes a region of borrowed data, <code>BitArray</code> provides a
 container that can hold and manage such a region.</p>
 <p>It is most comparable to the C++ type <a href="https://en.cppreference.com/w/cpp/utility/bitset" title="C++ std::bitset documentation"><code>std::bitset&lt;N&gt;</code></a>. Unfortunately, the
@@ -847,7 +841,7 @@ impl TcpHeader {
 
   fn set_data_offset(&amp;mut self, value: u8) {
     if !(5 ..= 15).contains(&amp;value) {
-      panic!(&quot;invalid data offset value&quot;);
+      panic!("invalid data offset value");
     }
     self.data[96 .. 100].store(value);
   }
@@ -873,7 +867,7 @@ impl TcpHeader {
 <li>access the raw storage for interaction with I/O systems</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="dynamic-allocations"><a class="header" href="#dynamic-allocations">Dynamic Allocations</a></h1>
-<p><code>bitvec</code> has two types that require compiling the crate with <code>feature = &quot;alloc&quot;</code>
+<p><code>bitvec</code> has two types that require compiling the crate with <code>feature = "alloc"</code>
 (and linking against the Rust distribution crate <code>alloc</code>): <code>BitVec</code> and
 <code>BitBox</code>. <code>BitVec</code> is a dynamically resizable vector, equivalent to the C++ type
 <a href="https://en.cppreference.com/w/cpp/container/vector_bool" title="C++ std::vector&lt;bool&gt; documentation"><code>std::vector&lt;bool&gt;</code></a> and the Rust type <a href="https://doc.rust-lang.org/stable/alloc/vec/struct.Vec.html" title="Vec API documentation"><code>Vec&lt;bool&gt;</code></a>. <code>BitBox</code> is a frozen
@@ -1115,7 +1109,7 @@ directive), and their <code>AtomicT</code> variants.</p>
 a compiler error when you attempt to instantiate a <code>bitvec</code> structure with the
 register that is missing an atomic variant. You can fix this by using a narrower
 register that does have atomic instructions, or by disabling <code>default-features</code>
-and not enabling the <code>&quot;atomic&quot;</code> feature.</p>
+and not enabling the <code>"atomic"</code> feature.</p>
 <h2 id="associated-types"><a class="header" href="#associated-types">Associated Types</a></h2>
 <p>The <code>Mem</code> associated type names the scalar integer corresponding to the
 <code>BitStore</code> type. <code>u8</code>, <code>Cell&lt;u8&gt;</code>, and <code>AtomicU8</code> all implement <code>BitStore</code> with
@@ -1547,14 +1541,14 @@ there yet.</p>
 perform writes to memory, it must instead either use a <code>*mut T</code> bare pointer,
 which has absolutely no checks or optimizations whatsoëver, or use an
 <code>&amp;UnsafeCell&lt;T&gt;</code> shared reference, which has all the usual guarantees present on
-all<sup class="footnote-reference"><a href="#1">1</a></sup> reference types.</p>
+all<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> reference types.</p>
 <p>All <code>UnsafeCell</code> does is instruct the Rust compiler to politely look the other
 way about your program’s memory accesses. It is somewhat like the C keyword
 <code>volatile</code>, in that the compiler no longer believes that reads are stateless, or
 freely reörderable, but entirely unlike that keyword in that the compiler
 doesn’t have any obligation to <em>keep</em> your reads from or writes to such regions.</p>
 <p>Rust provides an additional type called <a href="https://doc.rust-lang.org/stable/core/cell/struct.Cell.html"><code>Cell</code></a>. This is a wrapper over
-<code>UnsafeCell</code><sup class="footnote-reference"><a href="#2">2</a></sup> that defines a more useful API, including the only safe and
+<code>UnsafeCell</code><sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> that defines a more useful API, including the only safe and
 guaranteed way to write into memory through a shared reference: <a href="https://doc.rust-lang.org/stable/core/cell/struct.Cell.html#method.set"><code>Cell::set</code></a>.</p>
 <p>And <em>voilà</em>: <code>&amp;mut BitSlice&lt;T, _&gt;</code> simply constructs <code>&amp;Cell&lt;T&gt;</code> when writing,
 the Rust compiler does not see a violation of the <code>&amp;mut</code> exclusion principle,
@@ -1586,7 +1580,7 @@ gives you a <code>poison</code>, your program continues undergoing compilation a
 nothing had happened. You can pass it around. You can write to it, and if you
 destroy it before reading, you’re fine.</p>
 <p>As soon as you attempt to read the bit-wise value of <code>poison</code>, your program is
-undefined<sup class="footnote-reference"><a href="#3">3</a></sup>.</p>
+undefined<sup class="footnote-reference" id="fr-3-1"><a href="#footnote-3">3</a></sup>.</p>
 <p>So if <code>bitvec</code> wants to be threadsafe, which it does, and it wants to insist on
 its ability to safely alias the same memory location from multiple handles,
 which is non-negotiable, there’s only one avenue left to take.</p>
@@ -1606,7 +1600,7 @@ one-writer-XOR-any-readers system behavior, and all is well.</p>
 <p>Hardware-level exclusion has the unfortunate penalty of being, to put it
 lightly, “slow”. So while it’s the safest choice to be correct, and was in fact
 the default universal choice for all memory access in <code>bitvec</code> for some time,
-its costs<sup class="footnote-reference"><a href="#4">4</a></sup> called for a more prudent behavior.</p>
+its costs<sup class="footnote-reference" id="fr-4-1"><a href="#footnote-4">4</a></sup> called for a more prudent behavior.</p>
 <p>It’s time for a new trick, something that the Rust compiler does at the region
 level, and that <code>bitvec</code> now does at the element level:</p>
 <h2 id="run-time-alias-analysis"><a class="header" href="#run-time-alias-analysis">Run Time Alias Analysis</a></h2>
@@ -1774,7 +1768,7 @@ points will not be able to interfere with each other electrically. LLVM does not
 know this, so it considers any write to memory to touch <em>all</em> bits of the
 touched element, and any read from memory to view <em>all</em> bits of the fetched
 element.</p>
-<p><code>bitvec</code> exclusively<sup class="footnote-reference"><a href="#5">5</a></sup> writes to contended memory with the Rust functions
+<p><code>bitvec</code> exclusively<sup class="footnote-reference" id="fr-5-1"><a href="#footnote-5">5</a></sup> writes to contended memory with the Rust functions
 <a href="https://doc.rust-lang.org/stable/core/sync/atomic/struct.AtomicUsize.html#method.fetch_and"><code>AtomicT::fetch_and</code></a> and <a href="https://doc.rust-lang.org/stable/core/sync/atomic/struct.AtomicUsize.html#method.fetch_or"><code>AtomicT::fetch_or</code></a>, which are mapped to the LLVM
 instructions <a href="https://releases.llvm.org/10.0.0/docs/Atomics.html#libcalls-atomic"><code>__atomic_fetch_and_N</code></a> and
 <a href="https://releases.llvm.org/10.0.0/docs/Atomics.html#libcalls-atomic"><code>__atomic_fetch_or_N</code></a>. It uses bitmasks that <em><code>bitvec</code></em> can
@@ -1814,39 +1808,40 @@ Synchronization is only added in order to correctly interface with <code>rustc</
 LLVM without causing either of them to introduce undefined behavior due to a
 lack of information.</p>
 <h2 id="footnotes-1"><a class="header" href="#footnotes-1">Footnotes</a></h2>
-<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
 <p>all references to <code>T</code> where <code>T</code> is either <code>!Sized</code>, or
 <code>mem::size_of::&lt;T&gt;()</code> is non-zero, that is. A fun quirk of Rust’s first-class
 concept of zero-width types is that the only illegal value for a <code>&amp;Zst</code>
 reference is null. Since there is nothing to load or store through a <code>&amp;Zst</code>
 reference, the compiler doesn’t <em>care</em> what the reference value is, as it will
-never be used to perform memory access.</p>
-</div>
-<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
-<p>literally: <a href="https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235">https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235</a></p>
-</div>
-<div class="footnote-definition" id="3"><sup class="footnote-definition-label">3</sup>
+never be used to perform memory access. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>literally: <a href="https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235">https://doc.rust-lang.org/1.43.0/src/core/cell.rs.html#232-235</a> <a href="#fr-2-1">↩</a></p>
+</li>
+<li id="footnote-3">
 <p>This is not <em>absolutely</em> true. Like we saw with <code>UnsafeCell</code>, the only
 immutable rule of compiler developers is that whenever they make an immutable
 rule, they also provide a way to sidestep it. If you <a href="https://llvm.org/docs/LangRef.html#i-freeze"><code>freeze</code></a> a <code>poison</code>,
 you are now free to read its value and act on it. LLVM just doesn’t make any
-guarantees about what bit-pattern you’ll see.</p>
-</div>
-<div class="footnote-definition" id="4"><sup class="footnote-definition-label">4</sup>
+guarantees about what bit-pattern you’ll see. <a href="#fr-3-1">↩</a></p>
+</li>
+<li id="footnote-4">
 <p>I’d feel a great deal more comfortable if I had firm knowledge of what
 those costs actually <strong>were</strong>. An atomic write always issues a <code>lock</code>
 instruction modifier on x86, and I have heard vastly different things about
 what that actually <em>means</em>, from “it’s free if no other cache holds that
 address” up to “it poisons the whole cacheline”, and have not had much luck
 producing a benchmark that firmly demonstrates that unneeded atomic access is
-a strict performance cost.</p>
-</div>
-<div class="footnote-definition" id="5"><sup class="footnote-definition-label">5</sup>
+a strict performance cost. <a href="#fr-4-1">↩</a></p>
+</li>
+<li id="footnote-5">
 <p>In multithreading environments. Disabling atomics also disables <code>bitvec</code>’s
 support for multithreading, so the penalty for aliasing is reduced to an
-inability to remove redundant reads.</p>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-performance"><a class="header" href="#runtime-performance">Runtime Performance</a></h1>
+inability to remove redundant reads. <a href="#fr-5-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-performance"><a class="header" href="#runtime-performance">Runtime Performance</a></h1>
 <p><code>bitvec</code> increases the instruction cost of each access to a <code>bool</code> in its data
 structures. This is an inevitable consequence of the fact that, even on
 architectures that have them, compilers typically do not emit object code
@@ -1973,7 +1968,7 @@ information: the address of the first bit, and the number of bits in the region.
 <p>However, computers are byte-addressed, not bit-addressed, so we need to store
 three more bits (to select a bit in the base byte) somewhere in the reference.
 Since slice references are defined as <code>{ base: *T, elts: usize }</code>, and there are
-no<sup class="footnote-reference"><a href="#1">1</a></sup> spare bits in <code>*const _</code>, the bits to store the base bit are taken out of
+no<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> spare bits in <code>*const _</code>, the bits to store the base bit are taken out of
 the length counter.</p>
 <p>Reference address values are also required to be integer multiples of the
 alignment of the referent type <code>T</code>. This alignment is, on all supported targets,
@@ -1984,7 +1979,7 @@ length counter must always use three bits to store the starting bit, and the
 base address will be composed of an aligned <code>T</code> address and an index of the
 starting byte within it.</p>
 <p>As Rust does not have bitfield syntax, a definition of the pointer structure in
-C++ looks like something like this<sup class="footnote-reference"><a href="#2">2</a></sup>:</p>
+C++ looks like something like this<sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup>:</p>
 <pre><code class="language-cpp">template &lt;typename T&gt;
 struct BitSpan {
   static_assert(
@@ -2051,28 +2046,13 @@ forbidden from moving bit-region pointers out of a program, so this change will
 not affect your program’s behavior.
 </code></pre>
 <h2 id="footnotes-2"><a class="header" href="#footnotes-2">Footnotes</a></h2>
-<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
-<p>On AMD64, pointers are actually aggregates of <a href="https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details">MMU translation pages</a>, and
-processors only decode the low 48 or 57 bits of them, leaving the high 16 or 7
-bits available for other information not part of the memory addressing system.
-However, these processors also trap when attempting to dereference a pointer
-whose high <code>[48:64]</code> or <code>[57:64]</code> bits do not have the same bit value as bit
-<code>[47]</code> or <code>[56]</code>, and that bit is typically used to differentiate unprivileged
-user memory from privileged kernel memory. Furthermore, this dead region does
-not exist on 32-bit architectures, x86 or otherwise, and since <code>bitvec</code>
-explicitly supports 32-bit systems, the use of dead bits only present on a
-subset of supported targets and subject to their own extra rules is not
-worthwhile.</p>
-</div>
-<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
-<p>Here is a full code listing which you can also <a href="https://clang.godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxCAAbADspAAOqAqETgwe3r56KWmOAkEh4SxRMQm2mPYFDEIETMQEWT5%2BXJXVGXUNBEVhkdF6CvWNzTltQ929JWUSAJS2qF7EyOwc5gDMwcjeWADUJutu23gshAoH2CYaAIIbWzuY%2B4fIQ%2BhYVBdXt2abDNteewOR1ewQInxudz%2BDyebgIAE8kpgAPoEYhMM7g243CaOZBIpgKJSNCBuAAS1wASkiLABJAAqTwAIgdGbsABykfZmMwEBB4BS7YbATAEXb83YMVCihReJIpRqYdDmMyzA5WCE3AiYFhJAxamHwxHMNi7OmYobELwOXYWQhCJKGfbxdXXXa7HF4PEEokECBfN1u14gED8pFeBhpYAhJWHM3rbAQVU3ANc2LmWLuvAAL0wqCoEDpsxhLMzObzECDIDSOZRSddAfT6dLufzheL61ZYjwUfLhdI/ob3N54sNj3FkulsvlWvQuwJNrtDoY7qIaOFyoHqvWLoHXlBSVRKN2B%2BISIQmCYs5AuyRSIie9ojgYSIcWdotAgXZ7rdmW5dbr3QQTyPYDL3QYhdmvCtsxbCBAIIYCCCLAAqdk6xTDDMMwgBaG87wfJ8XwIN8Py/SUfz/L4B2rZFRXoZ9z0vSDdnWNVqJgo96LvM5mOgst8xo2tdlQtki1w1jtyo%2BJmUkjVri1HU9UeIFzVRK1RVtYQlyBeC2RRC4nX/XYAHpjOPQ9GNncUc2IVBdgiHiAHc8D2Rzz2XIURWCYB7LhLVzmTXZ4MQ8zTzA4g2MCwS6MYM8LyvFjIvraLdi4hyCAFKCaPLaKULQ3ZxKSkxpKK7F6lxILQViSQj3QJh6hMABWCxJCamSdxuTT7UMHTQT0sF412ARMETQyB2IEUlmXYqjLdAA6UC3ggks4P3Q8kPTOqGuajQ2v7QL5q4yymV2NoB0O2L0oFEtYn2%2BtivaqTmTkrrtMOeCuFifTBoIRzUFGmbxsm4hpudc7dgWiz4pOs6DohxbwJO1agPW1UzFiLamCaiwuD28G5qO6GS1h%2BsLufK6Tsau63QeoqSs6xceve0F1jMb7sF2fglgBsHAomggprGuHIdPY6SzMamAxF/ElqR4LUc2%2Bqseasw8eFwmmJLdZJbJ7iMphjRJdp2Tbnp65XqZtx4Oq9ndkwbsEF9ItAb54HQdm%2BGoc1jtdmkfGEeWn3kYQhX0cx7HWMaxkdYhjXZxLKn8bSnjxcTwLjZ3M2OHmWhOEa3g/A4LRSFQTg3Gsax3UWZZlJ%2BHhSAITRs/mABrEBGsN3OOEkAum5LzheAUEBDcbovs9IOBYBgRAUFQHU6GichKDQef6BibZDGALgO8NrAADdPUwAA1PBMEcgB5I1OHrmhH2iIeIAiPuHOYYg4Wv3gX4aOFz4ibRMAcB/UgK82CCHPgwWg78x6kCwCwTe4hoH4Amg4PAe9MBD2gZgVQACvBaiAaCKofdaB4AiGiN%2BHgsB91RCcD%2B8wqAGGAAoE%2BZ9L6MCAfwQQIgxDsCkDIQQigVDqGgboNoBgjAoArpYfQJCh6QHmKgA8GQMGDyqAAmoLgGDuE8C0fwmipj9BiG0PI6QBCjFaMkVIJiGD6NKAMcYqiUECC6CMbRYx2hqM6MMHowQ%2Bi2MMbYLxZjBheJsTMLg8wFDVxWHMfQede7QNLhwXYqg2SxGwtVXYG8jCnUanNDQeTdgQFwIQEgXJ1jhN4KPLQv5SBtw7rE7uvAWDt0NoXYuiTB7Dwbk3eYk8Z6LAQrgpeEAV5JAXsQUIrBVgpLSRkrJPlt55LybwRUJTiAuT0Bw4QohxC8K2QItQfcRGkEcmiJItCGn51IG03giTz64KSLgoaVBkmpPSZITJYiFm5PyRoQpHhV7RDKRU7pY8amWQGImBpPdSDNPqTc/uHBOkjx6a3FpDT1jxPaQPUF1Sc6cDMFi25OKqnN1IGg4gaRnCSCAA">view on Godbolt</a>:</p>
 <pre><code class="language-cpp">// compiles on x86-64 clang 15.0.0
 #include &lt;climits&gt;
 #include &lt;cstddef&gt;
 #include &lt;cstdint&gt;
 #include &lt;type_traits&gt;
 
-static_assert(CHAR_BIT == 8, &quot;this target is not supported&quot;);
+static_assert(CHAR_BIT == 8, "this target is not supported");
 
 template &lt;typename T&gt;
 struct BitSpan {
@@ -2080,7 +2060,7 @@ struct BitSpan {
     std::is_unsigned&lt;T&gt;()
     &amp;&amp; sizeof(T) &lt;= sizeof(std::size_t)
     &amp;&amp; sizeof(T) &lt;= alignof(T),
-    &quot;this type is not supported as BitSpan storage&quot;
+    "this type is not supported as BitSpan storage"
   );
 
   uintptr_t ptr_head : __builtin_ctzll(alignof(T));
@@ -2134,8 +2114,24 @@ BitSpan&lt;uint64_t&gt; eight() {
   };
 }
 </code></pre>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="miscellaneous-implementation-details"><a class="header" href="#miscellaneous-implementation-details">Miscellaneous Implementation Details</a></h1>
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
+<p>On AMD64, pointers are actually aggregates of <a href="https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details">MMU translation pages</a>, and
+processors only decode the low 48 or 57 bits of them, leaving the high 16 or 7
+bits available for other information not part of the memory addressing system.
+However, these processors also trap when attempting to dereference a pointer
+whose high <code>[48:64]</code> or <code>[57:64]</code> bits do not have the same bit value as bit
+<code>[47]</code> or <code>[56]</code>, and that bit is typically used to differentiate unprivileged
+user memory from privileged kernel memory. Furthermore, this dead region does
+not exist on 32-bit architectures, x86 or otherwise, and since <code>bitvec</code>
+explicitly supports 32-bit systems, the use of dead bits only present on a
+subset of supported targets and subject to their own extra rules is not
+worthwhile. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>Here is a full code listing which you can also <a href="https://clang.godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxCAAbADspAAOqAqETgwe3r56KWmOAkEh4SxRMQm2mPYFDEIETMQEWT5%2BXJXVGXUNBEVhkdF6CvWNzTltQ929JWUSAJS2qF7EyOwc5gDMwcjeWADUJutu23gshAoH2CYaAIIbWzuY%2B4fIQ%2BhYVBdXt2abDNteewOR1ewQInxudz%2BDyebgIAE8kpgAPoEYhMM7g243CaOZBIpgKJSNCBuAAS1wASkiLABJAAqTwAIgdGbsABykfZmMwEBB4BS7YbATAEXb83YMVCihReJIpRqYdDmMyzA5WCE3AiYFhJAxamHwxHMNi7OmYobELwOXYWQhCJKGfbxdXXXa7HF4PEEokECBfN1u14gED8pFeBhpYAhJWHM3rbAQVU3ANc2LmWLuvAAL0wqCoEDpsxhLMzObzECDIDSOZRSddAfT6dLufzheL61ZYjwUfLhdI/ob3N54sNj3FkulsvlWvQuwJNrtDoY7qIaOFyoHqvWLoHXlBSVRKN2B%2BISIQmCYs5AuyRSIie9ojgYSIcWdotAgXZ7rdmW5dbr3QQTyPYDL3QYhdmvCtsxbCBAIIYCCCLAAqdk6xTDDMMwgBaG87wfJ8XwIN8Py/SUfz/L4B2rZFRXoZ9z0vSDdnWNVqJgo96LvM5mOgst8xo2tdlQtki1w1jtyo%2BJmUkjVri1HU9UeIFzVRK1RVtYQlyBeC2RRC4nX/XYAHpjOPQ9GNncUc2IVBdgiHiAHc8D2Rzz2XIURWCYB7LhLVzmTXZ4MQ8zTzA4g2MCwS6MYM8LyvFjIvraLdi4hyCAFKCaPLaKULQ3ZxKSkxpKK7F6lxILQViSQj3QJh6hMABWCxJCamSdxuTT7UMHTQT0sF412ARMETQyB2IEUlmXYqjLdAA6UC3ggks4P3Q8kPTOqGuajQ2v7QL5q4yymV2NoB0O2L0oFEtYn2%2BtivaqTmTkrrtMOeCuFifTBoIRzUFGmbxsm4hpudc7dgWiz4pOs6DohxbwJO1agPW1UzFiLamCaiwuD28G5qO6GS1h%2BsLufK6Tsau63QeoqSs6xceve0F1jMb7sF2fglgBsHAomggprGuHIdPY6SzMamAxF/ElqR4LUc2%2Bqseasw8eFwmmJLdZJbJ7iMphjRJdp2Tbnp65XqZtx4Oq9ndkwbsEF9ItAb54HQdm%2BGoc1jtdmkfGEeWn3kYQhX0cx7HWMaxkdYhjXZxLKn8bSnjxcTwLjZ3M2OHmWhOEa3g/A4LRSFQTg3Gsax3UWZZlJ%2BHhSAITRs/mABrEBGsN3OOEkAum5LzheAUEBDcbovs9IOBYBgRAUFQHU6GichKDQef6BibZDGALgO8NrAADdPUwAA1PBMEcgB5I1OHrmhH2iIeIAiPuHOYYg4Wv3gX4aOFz4ibRMAcB/UgK82CCHPgwWg78x6kCwCwTe4hoH4Amg4PAe9MBD2gZgVQACvBaiAaCKofdaB4AiGiN%2BHgsB91RCcD%2B8wqAGGAAoE%2BZ9L6MCAfwQQIgxDsCkDIQQigVDqGgboNoBgjAoArpYfQJCh6QHmKgA8GQMGDyqAAmoLgGDuE8C0fwmipj9BiG0PI6QBCjFaMkVIJiGD6NKAMcYqiUECC6CMbRYx2hqM6MMHowQ%2Bi2MMbYLxZjBheJsTMLg8wFDVxWHMfQede7QNLhwXYqg2SxGwtVXYG8jCnUanNDQeTdgQFwIQEgXJ1jhN4KPLQv5SBtw7rE7uvAWDt0NoXYuiTB7Dwbk3eYk8Z6LAQrgpeEAV5JAXsQUIrBVgpLSRkrJPlt55LybwRUJTiAuT0Bw4QohxC8K2QItQfcRGkEcmiJItCGn51IG03giTz64KSLgoaVBkmpPSZITJYiFm5PyRoQpHhV7RDKRU7pY8amWQGImBpPdSDNPqTc/uHBOkjx6a3FpDT1jxPaQPUF1Sc6cDMFi25OKqnN1IGg4gaRnCSCAA">view on Godbolt</a>: <a href="#fr-2-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="miscellaneous-implementation-details"><a class="header" href="#miscellaneous-implementation-details">Miscellaneous Implementation Details</a></h1>
 <p><code>bitvec</code> has a number of internal implementation details used to facilitate
 development but are not part of the public API. While not user-facing, these
 details are nevertheless important to document as explanations for how the
@@ -2165,21 +2161,21 @@ where
   O: BitOrder,
 {
   fn eq(&amp;self, other: &amp;Self) -&gt; bool {
-    todo!(&quot;baseline&quot;)
+    todo!("baseline")
   }
 }
 
 impl&lt;T&gt; BitSlice&lt;T, Lsb0&gt;
 where T: BitStore {
   fn eq(&amp;self, other: &amp;Self) -&gt; bool {
-    todo!(&quot;lsb0-accelerated version&quot;)
+    todo!("lsb0-accelerated version")
   }
 }
 
 impl&lt;T&gt; BitSlice&lt;T, Msb0&gt;
 where T: BitStore {
   fn eq(&amp;self, other: &amp;Self) -&gt; bool {
-    todo!(&quot;msb0-accelerated version&quot;)
+    todo!("msb0-accelerated version")
   }
 }</code></pre>
 <p>While waiting on this feature, we can use the compiler’s stable <code>TypeId</code> API to
@@ -2197,16 +2193,16 @@ where
       self.coerce::&lt;T, Lsb0&gt;(),
       other.coerce::&lt;T, Lsb0&gt;(),
     ) {
-      todo!(&quot;lsb0-accelerated version&quot;)
+      todo!("lsb0-accelerated version")
     }
     else if let (Some(this), Some(that)) = (
       self.coerce::&lt;T, Msb0&gt;(),
       other.coerce::&lt;T, Msb0&gt;(),
     ) {
-      todo!(&quot;msb0-accelerated version&quot;)
+      todo!("msb0-accelerated version")
     }
     else {
-      todo!(&quot;baseline&quot;)
+      todo!("baseline")
     }
   }
 }</code></pre>
