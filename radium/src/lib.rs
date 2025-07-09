@@ -801,7 +801,7 @@ radium! {
 
 unsafe impl<T> Radium for Atom<T>
 where
-	T: Atomic + PartialEq,
+	T: crate::marker::Atomic + PartialEq,
 	T::Atom: Radium<Item = T>,
 {
 	type Item = T;

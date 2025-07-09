@@ -41,6 +41,9 @@ mark! {
 /// Relates a primitive type to its corresponding atomic type.
 ///
 /// This is only implemented when the corresponding atomic type exists.
+///
+/// Note that Rust #130539 introduced an `Atomic<T>` type alias that conflicts
+/// with this trait name.
 pub trait Atomic: Copy {
 	/// The `AtomicT` type corresponding to `Self`.
 	type Atom: Radium<Item = Self> + Send + Sync;

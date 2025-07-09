@@ -4,6 +4,7 @@ members = [
 	"funty",
 	"radium",
 ]
+resolver = "2"
 
 # Allow developement to use the local workspace. `cargo package` ignores this
 # directive and always pulls from the registry.
