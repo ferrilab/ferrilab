@@ -270,6 +270,10 @@ macro_rules! impl_for {
 				@unsafe fn unchecked_add(self, rhs: Self) -> Self;
 				@unsafe fn unchecked_sub(self, rhs: Self) -> Self;
 				@unsafe fn unchecked_mul(self, rhs: Self) -> Self;
+				#[cfg(feature = "rust_187")]
+				fn unbounded_shl(self, rhs: u32) -> Self;
+				#[cfg(feature = "rust_187")]
+				fn unbounded_shr(self, rhs: u32) -> Self;
 				fn saturating_add(self, rhs: Self) -> Self;
 				fn saturating_sub(self, rhs: Self) -> Self;
 				fn saturating_mul(self, rhs: Self) -> Self;
@@ -305,12 +309,17 @@ macro_rules! impl_for {
 				fn ilog(self, base: Self) -> u32;
 				fn ilog2(self) -> u32;
 				fn ilog10(self) -> u32;
+
+				#[cfg(feature = "rust_187")]
+				fn midpoint(self, rhs: Self) -> Self;
 			}
 		}
 	)+ };
 	(Signed => $($t:ty),+ $(,)?) => { $(
 		impl Signed for $t {
 			items! { $t =>
+				#[cfg(feature = "rust_187")]
+				fn cast_unsigned(self) -> Self::Unsigned;
 				fn checked_abs(self) -> Option<Self>;
 				fn checked_isqrt(self) -> Option<Self>;
 				fn saturating_add_unsigned(self, rhs: Self::Unsigned) -> Self;
@@ -335,6 +344,21 @@ macro_rules! impl_for {
 	(Unsigned => $($t:ty),+ $(,)?) => { $(
 		impl Unsigned for $t {
 			items! { $t =>
+				#[cfg(feature = "rust_187")]
+				fn cast_signed(self) -> Self::Signed;
+
+				fn checked_add_signed(self, rhs: Self::Signed) -> Option<Self>;
+				#[cfg(feature = "rust_190")]
+				fn checked_sub_signed(self, rhs: Self::Signed) -> Option<Self>;
+				fn saturating_add_signed(self, rhs: Self::Signed) -> Self;
+				#[cfg(feature = "rust_190")]
+				fn saturating_sub_signed(self, rhs: Self::Signed) -> Self;
+				fn wrapping_add_signed(self, rhs: Self::Signed) -> Self;
+				#[cfg(feature = "rust_190")]
+				fn wrapping_sub_signed(self, rhs: Self::Signed) -> Self;
+
+				#[cfg(feature = "rust_187")]
+				fn is_multiple_of(self, rhs: Self) -> bool;
 				fn is_power_of_two(self) -> bool;
 				fn next_power_of_two(self) -> Self;
 				fn checked_next_power_of_two(self) -> Option<Self>;

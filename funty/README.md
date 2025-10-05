@@ -21,6 +21,21 @@ This library provides a set of traits that abstract over common API surfaces of
 the primitive types, so that properties such as numeric behavior, register
 width, or signedness can be represented in the trait system.
 
+## Version Policy
+
+This crate’s MSRV will always be the Rust version which introduced the edition
+it currently uses. APIs stabilized after that version was released will be gated
+behind `"rust_<major><minor>"` features. The `"rust_now"` feature uses the
+current stable version at time of release.
+
+This crate will raise minor versions as it catches up with the standard library.
+It will raise major versions as it gains significant features or makes an API
+break.
+
+At time of writing, it uses edition 2024 (MSRV 1.85), and has features
+`"rust_187"` and `"rust_190"`. Rust versions 1.86, 1.88, and 1.89 did not change
+primitive APIs.
+
 ## Pointer Unification
 
 `*const T` and `*mut T` are unified under the `Pointer<T, Shared | Unique>`
@@ -98,7 +113,7 @@ default-features = false
 [downloads_img]: https://img.shields.io/crates/dv/funty.svg?style=for-the-badge "Crate Downloads"
 [license_file]: https://github.com/ferrilab/ferrilab/blob/master/funty/LICENSE.txt "License File"
 [license_img]: https://img.shields.io/crates/l/funty.svg?style=for-the-badge "License Display"
-[msrv_img]: https://img.shields.io/badge/MSRV-1.65-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.65"
+[msrv_img]: https://img.shields.io/badge/MSRV-1.85-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.85"
 [version_img]: https://img.shields.io/crates/v/funty?color=f46623&style=for-the-badge "Funty version badge"
 
 <!-- Documentation -->

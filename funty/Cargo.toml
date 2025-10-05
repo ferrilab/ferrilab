@@ -37,6 +37,9 @@ default = [
 	"std",
 ]
 std = []
+rust_187 = []
+rust_190 = ["rust_187"]
+rust_now = ["rust_190"]
 
 [dev-dependencies]
 static_assertions = "1"
