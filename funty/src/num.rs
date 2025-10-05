@@ -1,6 +1,7 @@
 //! Traits for the numeric types.
 
 use core::{
+	cmp,
 	fmt::{
 		Binary,
 		LowerExp,
@@ -480,6 +481,7 @@ new_trait! {
 			#[cfg(feature = "std")] fn floor(self) -> Self;
 			#[cfg(feature = "std")] fn ceil(self) -> Self;
 			#[cfg(feature = "std")] fn round(self) -> Self;
+			#[cfg(feature = "std")] fn round_ties_even(self) -> Self;
 			#[cfg(feature = "std")] fn trunc(self) -> Self;
 			#[cfg(feature = "std")] fn fract(self) -> Self;
 			#[cfg(feature = "std")] fn abs(self) -> Self;
@@ -523,13 +525,18 @@ new_trait! {
 			fn classify(self) -> FpCategory;
 			fn is_sign_positive(self) -> bool;
 			fn is_sign_negative(self) -> bool;
+			fn next_up(self) -> Self;
+			fn next_down(self) -> Self;
 			fn recip(self) -> Self;
 			fn to_degrees(self) -> Self;
 			fn to_radians(self) -> Self;
 			fn max(self, other: Self) -> Self;
 			fn min(self, other: Self) -> Self;
+			fn midpoint(self, other: Self) -> Self;
 			fn to_bits(self) -> Self::Raw;
 			fn from_bits(bits: Self::Raw) -> Self;
+			fn total_cmp(&self, other: &Self) -> cmp::Ordering;
+			fn clamp(self, min: Self, max: Self) -> Self;
 		}
 	}
 }
