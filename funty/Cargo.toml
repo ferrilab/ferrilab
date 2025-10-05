@@ -1,6 +1,6 @@
 [package]
 name = "funty"
-version = "3.0.0-rc2"
+version = "3.0.0-rc3"
 authors = [
 	"myrrlyn <self@myrrlyn.dev>",
 ]
@@ -11,7 +11,7 @@ categories = [
 description = "Trait generalization over the primitive types"
 documentation = "https://docs.rs/funty"
 homepage = "https://ferrilab.github.io/ferrilab"
-edition = "2021"
+edition = "2024"
 include = [
 	"Cargo.toml",
 	"README.md",
@@ -28,7 +28,7 @@ keywords = [
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ferrilab/ferrilab"
-rust-version = "1.65"
+rust-version = "1.85"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

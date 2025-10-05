@@ -85,13 +85,13 @@ macro_rules! new_trait {
 	// Functions.
 	($basis:ident @ $(
 		$(#[$attr:meta])*
-		fn $name:ident
+		$(@ $unsafety:ident)? fn $name:ident
 		($($args:tt)*)
 		$(-> $ret:ty)?;
 	)+) => { $(
 		#[doc = doc_url!(fn $basis => $name)]
 		$(#[$attr])*
-		fn $name ($($args)*) $(-> $ret)?;
+		$($unsafety)? fn $name ($($args)*) $(-> $ret)?;
 	)+ };
 }
 
@@ -116,15 +116,15 @@ macro_rules! items {
 	// Methods that take `self` by value.
 	($typ:ty => $(
 		$(#[$attr:meta])*
-		fn $name:ident
+		$(@ $unsafety:ident)? fn $name:ident
 		(self$(, $arg:ident: $t:ty)*)
 		$(-> $ret:ty)?;
 	)+ ) => { $(
 		$(#[$attr])*
 		#[inline(always)]
 		#[doc = doc_url!(fn $typ => $name)]
-		fn $name(self$(, $arg: $t)*) $(-> $ret)? {
-			<Self>::$name(self$(, $arg)*)
+		$($unsafety)? fn $name(self$(, $arg: $t)*) $(-> $ret)? {
+			$($unsafety)? { Self::$name(self$(, $arg)*) }
 		}
 	)+ };
 	// Methods that take `&self` by reference.

@@ -267,6 +267,9 @@ macro_rules! impl_for {
 				fn checked_shl(self, rhs: u32) -> Option<Self>;
 				fn checked_shr(self, rhs: u32) -> Option<Self>;
 				fn checked_pow(self, rhs: u32) -> Option<Self>;
+				@unsafe fn unchecked_add(self, rhs: Self) -> Self;
+				@unsafe fn unchecked_sub(self, rhs: Self) -> Self;
+				@unsafe fn unchecked_mul(self, rhs: Self) -> Self;
 				fn saturating_add(self, rhs: Self) -> Self;
 				fn saturating_sub(self, rhs: Self) -> Self;
 				fn saturating_mul(self, rhs: Self) -> Self;
@@ -296,8 +299,12 @@ macro_rules! impl_for {
 				fn overflowing_shr(self, rhs: u32) -> (Self, bool);
 				fn overflowing_pow(self, rhs: u32) -> (Self, bool);
 				fn pow(self, rhs: u32) -> Self;
+				fn isqrt(self) -> Self;
 				fn div_euclid(self, rhs: Self) -> Self;
 				fn rem_euclid(self, rhs: Self) -> Self;
+				fn ilog(self, base: Self) -> u32;
+				fn ilog2(self) -> u32;
+				fn ilog10(self) -> u32;
 			}
 		}
 	)+ };
@@ -305,8 +312,19 @@ macro_rules! impl_for {
 		impl Signed for $t {
 			items! { $t =>
 				fn checked_abs(self) -> Option<Self>;
+				fn checked_isqrt(self) -> Option<Self>;
+				fn saturating_add_unsigned(self, rhs: Self::Unsigned) -> Self;
+				fn saturating_sub_unsigned(self, rhs: Self::Unsigned) -> Self;
+				fn wrapping_add_unsigned(self, rhs: Self::Unsigned) -> Self;
+				fn wrapping_sub_unsigned(self, rhs: Self::Unsigned) -> Self;
 				fn wrapping_abs(self) -> Self;
+				fn unsigned_abs(self) -> Self::Unsigned;
+				fn overflowing_add_unsigned(self, rhs: Self::Unsigned) -> (Self, bool);
+				fn overflowing_sub_unsigned(self, rhs: Self::Unsigned) -> (Self, bool);
 				fn overflowing_abs(self) -> (Self, bool);
+				fn checked_ilog(self, base: Self) -> Option<u32>;
+				fn checked_ilog2(self) -> Option<u32>;
+				fn checked_ilog10(self) -> Option<u32>;
 				fn abs(self) -> Self;
 				fn signum(self) -> Self;
 				fn is_positive(self) -> bool;
