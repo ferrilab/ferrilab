@@ -1,9 +1,6 @@
 [package]
 name = "funty"
 version = "3.0.0-rc3"
-authors = [
-	"myrrlyn <self@myrrlyn.dev>",
-]
 categories = [
 	"no-std",
 	"rust-patterns",
@@ -34,11 +31,15 @@ rust-version = "1.85"
 
 [features]
 default = [
+	"rust_now",
 	"std",
 ]
 std = []
-rust_187 = []
-rust_190 = ["rust_187"]
+rust_186 = []
+rust_187 = ["rust_186"]
+rust_188 = ["rust_187"]
+rust_189 = ["rust_188"]
+rust_190 = ["rust_189"]
 rust_now = ["rust_190"]
 
 [dev-dependencies]

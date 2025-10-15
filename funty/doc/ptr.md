@@ -14,47 +14,41 @@ generation that uses the ordinary primitives.
 
 This module implements indirect-access permission tracking in the type system,
 and allows code to be generic over permissions. This means that you can write
-against a `Pointer<T, P>` and have access to behavior that is common to all
-pointers (address inspection, loading from the pointed-to location), or you can
-specify a `Pointer<T, Unique>` and gain access to behavior that requires mutable
-or unique access permission.
+against a [`Pointer<T, P>`](`Pointer`) and have access to behavior that is
+common to all pointers (address inspection, loading from the pointed-to
+location), or you can specify a `Pointer<T, Unique>` and gain access to behavior
+that requires mutable or unique access permission.
 
 ## Usage
 
-Your code should be generic over the `Permission` trait when you primarily
-expect to read from memory or to hold pointers and pass them through to known
-use sites. You can also explicitly demand pointers that specify a `Shared` or
-`Unique` permission type parameter in order to make use of their specific
-capabilities.
+Each fundamental or `core::ptr` type has a corresponding `funty` type:
 
-The `Pointer<T, Unique>` type can be temporarily downgraded to
-`Pointer<T, (Shared, Unique)>`. This type acts identically to
-`Pointer<T, Shared>`, except that it has memory of being derived from a `Unique`
-permission and can be *safely* restored to that.
+- `*const T` is `Pointer<T, Shared>`
+- `*mut T` is `Pointer<T, Unique>`
+- A `*const T` that was _derived_ from a `*mut T` is
+  `Pointer<T, (Shared, Unique)>`. This is elaborated in more detail in the
+  [`Permission`] documentation.
+- `NonNull<T>` is [`NonNullPointer<T, impl Permission>`][`NonNullPointer`]. The
+  Rust `core::ptr::NonNull` is a wrapper around `*mut T`, and cannot safely
+  express pointers which are not null but also are not exclusive/writable. You
+  can instantiate this with `Shared` or `Unique` permissions as needed.
 
-`Pointer<T, Shared>` can be *unsafely* upgraded to `Pointer<T, Unique>`, but
-this operation requires you to have upheld Rust’s provenance guarantees about
-write permissions to the pointed-to memory.
+In application code, you should generally use fully-qualified `Pointer` and
+`NonNullPointer` types. In library code, you _may_ choose to become generic over
+`P: Permission`. Once generic over `Permission`, a `Pointer<T, P>` always has
+access to the `*const`/`Shared` APIs, but loses access to the `*mut`/`Unique`
+APIs. Library code can manipulate pointer permissions by using the `.make_perm`
+family of methods:
 
-The `Permission` trait is intended for use only in type relation graphs. It
-contains runtime functionality that cannot be expressed anywhere else in the
-module, but these functions are not part of the public API and are hidden from
-the documentation.
-
-## Associated Types
-
-The `Permission::Ptr<T: ?Sized>` type is either a `*const T` or a `*mut T` raw
-pointer. This is the only value stored inside a `Pointer<T, P>`, and the
-`Permission` implementation allows `Pointer` to store the correct value type and
-satisfy Rust’s expectations about pointer mutability provenance.
-
-Similarly, the `Permission::Ref<T: ?Sized>` type is either a `&T` or an
-`&mut T`.
-
-The `Pointer` APIs work primarily with these associated types rather than the
-concrete primitives. Some functions operate on raw pointers directly so that you
-can have direct access to them rather than relying on the `Pointer` type or
-`RawPtr` trait.
+- [`Pointer::make_shared`] changes the permission from `P` to `(Shared, P)` (see
+  `Permission` docs)
+- [`Pointer::make_unshared`] changes the permission from `(Shared, P)` to `P`
+- [`Pointer::make_const`] makes the permission unconditionally `Shared`
+- [`Pointer::make_mut`] produces an `Option<Pointer<T, Unique>>`. It will
+  fail if the base permission of a pointer is `Shared`, but succeed if the base
+  permission is `Unique`. When you write a function which is generic over
+  `Permission`, then calls to `make_unique` will monomorphize out to one of the
+  two branches of the `Option`, and the other will be deleted.
 
 ## API Surface
 
@@ -63,7 +57,6 @@ surface of the pointer primitives. However, the pointers have a great deal of
 still-unstable methods that make them actually useful, including all of the
 operations on slice pointers and direct address manipulation.
 
-Since the `ferrilab` project is committed to using the stable series, these
-APIs will not be provided until they stabilize. If you urgently want them
-available for your project under a `cfg(feature = "nightly")` gate, please file
-an issue.
+Since the Ferrilab project is committed to using the stable series, these APIs
+will not be provided until they stabilize. If you urgently want them available
+for your project under a `cfg(feature = "nightly")` gate, please file an issue.

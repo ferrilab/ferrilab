@@ -2,49 +2,23 @@
 
 use core::{
 	cmp,
-	fmt::{
-		Binary,
-		LowerExp,
-		LowerHex,
-		Octal,
-		UpperExp,
-		UpperHex,
-	},
+	fmt,
 	hash::Hash,
-	iter::{
-		Product,
-		Sum,
-	},
+	iter,
 	num::{
 		FpCategory,
 		ParseIntError,
 	},
-	ops::{
-		Add,
-		AddAssign,
-		BitAnd,
-		BitAndAssign,
-		BitOr,
-		BitOrAssign,
-		BitXor,
-		BitXorAssign,
-		Div,
-		DivAssign,
-		Mul,
-		MulAssign,
-		Neg,
-		Not,
-		Rem,
-		RemAssign,
-		Shl,
-		ShlAssign,
-		Shr,
-		ShrAssign,
-		Sub,
-		SubAssign,
-	},
+	ops,
 };
 
+mod nonzero;
+
+pub use self::nonzero::{
+	NonZero,
+	ZeroValueError,
+	Zeroable,
+};
 use crate::Fundamental;
 
 new_trait! {
@@ -55,31 +29,31 @@ new_trait! {
 	Numeric
 		: Fundamental
 		//  iter
-		, Product<Self>
-		, @for<'a> Product<&'a Self>
-		, Sum<Self>
-		, @for<'a> Sum<&'a Self>
+		, iter::Product<Self>
+		, @for<'a> iter::Product<&'a Self>
+		, iter::Sum<Self>
+		, @for<'a> iter::Sum<&'a Self>
 		//  numeric ops
-		, Add<Self, Output = Self>
-		, @for<'a> Add<&'a Self, Output = Self>
-		, AddAssign<Self>
-		, @for<'a> AddAssign<&'a Self>
-		, Sub<Self, Output = Self>
-		, @for<'a> Sub<&'a Self, Output = Self>
-		, SubAssign<Self>
-		, @for<'a> SubAssign<&'a Self>
-		, Mul<Self, Output = Self>
-		, @for<'a> Mul<&'a Self, Output = Self>
-		, MulAssign<Self>
-		, @for<'a> MulAssign<&'a Self>
-		, Div<Self, Output = Self>
-		, @for<'a> Div<&'a Self, Output = Self>
-		, DivAssign<Self>
-		, @for<'a> DivAssign<&'a Self>
-		, Rem<Self, Output = Self>
-		, @for<'a> Rem<&'a Self, Output = Self>
-		, RemAssign<Self>
-		, @for<'a> RemAssign<&'a Self>
+		, ops::Add<Self, Output = Self>
+		, @for<'a> ops::Add<&'a Self, Output = Self>
+		, ops::AddAssign<Self>
+		, @for<'a> ops::AddAssign<&'a Self>
+		, ops::Sub<Self, Output = Self>
+		, @for<'a> ops::Sub<&'a Self, Output = Self>
+		, ops::SubAssign<Self>
+		, @for<'a> ops::SubAssign<&'a Self>
+		, ops::Mul<Self, Output = Self>
+		, @for<'a> ops::Mul<&'a Self, Output = Self>
+		, ops::MulAssign<Self>
+		, @for<'a> ops::MulAssign<&'a Self>
+		, ops::Div<Self, Output = Self>
+		, @for<'a> ops::Div<&'a Self, Output = Self>
+		, ops::DivAssign<Self>
+		, @for<'a> ops::DivAssign<&'a Self>
+		, ops::Rem<Self, Output = Self>
+		, @for<'a> ops::Rem<&'a Self, Output = Self>
+		, ops::RemAssign<Self>
+		, @for<'a> ops::RemAssign<&'a Self>
 	{
 		/// The `[u8; N]` byte array that stores values of `Self`.
 		type Bytes;
@@ -102,26 +76,27 @@ new_trait! {
 	/// This unifies all of the signed and unsigned integral types.
 	Integral
 		: Numeric
+		, nonzero::Zeroable
 		, Hash
 		, Eq
 		, Ord
-		, Binary
-		, LowerHex
-		, UpperHex
-		, Octal
-		, BitAnd<Self, Output = Self>
-		, @for<'a> BitAnd<&'a Self, Output = Self>
-		, BitAndAssign<Self>
-		, @for<'a> BitAndAssign<&'a Self>
-		, BitOr<Self, Output = Self>
-		, @for<'a> BitOr<&'a Self, Output = Self>
-		, BitOrAssign<Self>
-		, @for<'a> BitOrAssign<&'a Self>
-		, BitXor<Self, Output = Self>
-		, @for<'a> BitXor<&'a Self, Output = Self>
-		, BitXorAssign<Self>
-		, @for<'a> BitXorAssign<&'a Self>
-		, Not<Output = Self>
+		, fmt::Binary
+		, fmt::LowerHex
+		, fmt::UpperHex
+		, fmt::Octal
+		, ops::BitAnd<Self, Output = Self>
+		, @for<'a> ops::BitAnd<&'a Self, Output = Self>
+		, ops::BitAndAssign<Self>
+		, @for<'a> ops::BitAndAssign<&'a Self>
+		, ops::BitOr<Self, Output = Self>
+		, @for<'a> ops::BitOr<&'a Self, Output = Self>
+		, ops::BitOrAssign<Self>
+		, @for<'a> ops::BitOrAssign<&'a Self>
+		, ops::BitXor<Self, Output = Self>
+		, @for<'a> ops::BitXor<&'a Self, Output = Self>
+		, ops::BitXorAssign<Self>
+		, @for<'a> ops::BitXorAssign<&'a Self>
+		, ops::Not<Output = Self>
 		, TryFrom<i8>
 		, TryFrom<u8>
 		, TryFrom<i16>
@@ -146,110 +121,110 @@ new_trait! {
 		, TryInto<u128>
 		, TryInto<isize>
 		, TryInto<usize>
-		, Shl<Self, Output = Self>
-		, @for<'a> Shl<&'a Self, Output = Self>
-		, ShlAssign<Self>
-		, @for<'a> ShlAssign<&'a Self>
-		, Shr<Self, Output = Self>
-		, @for<'a> Shr<&'a Self, Output = Self>
-		, ShrAssign<Self>
-		, @for<'a> ShrAssign<&'a Self>
-		, Shl<i8, Output = Self>
-		, @for<'a> Shl<&'a i8, Output = Self>
-		, ShlAssign<i8>
-		, @for<'a> ShlAssign<&'a i8>
-		, Shr<i8, Output = Self>
-		, @for<'a> Shr<&'a i8, Output = Self>
-		, ShrAssign<i8>
-		, @for<'a> ShrAssign<&'a i8>
-		, Shl<u8, Output = Self>
-		, @for<'a> Shl<&'a u8, Output = Self>
-		, ShlAssign<u8>
-		, @for<'a> ShlAssign<&'a u8>
-		, Shr<u8, Output = Self>
-		, @for<'a> Shr<&'a u8, Output = Self>
-		, ShrAssign<u8>
-		, @for<'a> ShrAssign<&'a u8>
-		, Shl<i16, Output = Self>
-		, @for<'a> Shl<&'a i16, Output = Self>
-		, ShlAssign<i16>
-		, @for<'a> ShlAssign<&'a i16>
-		, Shr<i16, Output = Self>
-		, @for<'a> Shr<&'a i16, Output = Self>
-		, ShrAssign<i16>
-		, @for<'a> ShrAssign<&'a i16>
-		, Shl<u16, Output = Self>
-		, @for<'a> Shl<&'a u16, Output = Self>
-		, ShlAssign<u16>
-		, @for<'a> ShlAssign<&'a u16>
-		, Shr<u16, Output = Self>
-		, @for<'a> Shr<&'a u16, Output = Self>
-		, ShrAssign<u16>
-		, @for<'a> ShrAssign<&'a u16>
-		, Shl<i32, Output = Self>
-		, @for<'a> Shl<&'a i32, Output = Self>
-		, ShlAssign<i32>
-		, @for<'a> ShlAssign<&'a i32>
-		, Shr<i32, Output = Self>
-		, @for<'a> Shr<&'a i32, Output = Self>
-		, ShrAssign<i32>
-		, @for<'a> ShrAssign<&'a i32>
-		, Shl<u32, Output = Self>
-		, @for<'a> Shl<&'a u32, Output = Self>
-		, ShlAssign<u32>
-		, @for<'a> ShlAssign<&'a u32>
-		, Shr<u32, Output = Self>
-		, @for<'a> Shr<&'a u32, Output = Self>
-		, ShrAssign<u32>
-		, @for<'a> ShrAssign<&'a u32>
-		, Shl<i64, Output = Self>
-		, @for<'a> Shl<&'a i64, Output = Self>
-		, ShlAssign<i64>
-		, @for<'a> ShlAssign<&'a i64>
-		, Shr<i64, Output = Self>
-		, @for<'a> Shr<&'a i64, Output = Self>
-		, ShrAssign<i64>
-		, @for<'a> ShrAssign<&'a i64>
-		, Shl<u64, Output = Self>
-		, @for<'a> Shl<&'a u64, Output = Self>
-		, ShlAssign<u64>
-		, @for<'a> ShlAssign<&'a u64>
-		, Shr<u64, Output = Self>
-		, @for<'a> Shr<&'a u64, Output = Self>
-		, ShrAssign<u64>
-		, @for<'a> ShrAssign<&'a u64>
-		, Shl<i128, Output = Self>
-		, @for<'a> Shl<&'a i128, Output = Self>
-		, ShlAssign<i128>
-		, @for<'a> ShlAssign<&'a i128>
-		, Shr<i128, Output = Self>
-		, @for<'a> Shr<&'a i128, Output = Self>
-		, ShrAssign<i128>
-		, @for<'a> ShrAssign<&'a i128>
-		, Shl<u128, Output = Self>
-		, @for<'a> Shl<&'a u128, Output = Self>
-		, ShlAssign<u128>
-		, @for<'a> ShlAssign<&'a u128>
-		, Shr<u128, Output = Self>
-		, @for<'a> Shr<&'a u128, Output = Self>
-		, ShrAssign<u128>
-		, @for<'a> ShrAssign<&'a u128>
-		, Shl<isize, Output = Self>
-		, @for<'a> Shl<&'a isize, Output = Self>
-		, ShlAssign<isize>
-		, @for<'a> ShlAssign<&'a isize>
-		, Shr<isize, Output = Self>
-		, @for<'a> Shr<&'a isize, Output = Self>
-		, ShrAssign<isize>
-		, @for<'a> ShrAssign<&'a isize>
-		, Shl<usize, Output = Self>
-		, @for<'a> Shl<&'a usize, Output = Self>
-		, ShlAssign<usize>
-		, @for<'a> ShlAssign<&'a usize>
-		, Shr<usize, Output = Self>
-		, @for<'a> Shr<&'a usize, Output = Self>
-		, ShrAssign<usize>
-		, @for<'a> ShrAssign<&'a usize>
+		, ops::Shl<Self, Output = Self>
+		, @for<'a> ops::Shl<&'a Self, Output = Self>
+		, ops::ShlAssign<Self>
+		, @for<'a> ops::ShlAssign<&'a Self>
+		, ops::Shr<Self, Output = Self>
+		, @for<'a> ops::Shr<&'a Self, Output = Self>
+		, ops::ShrAssign<Self>
+		, @for<'a> ops::ShrAssign<&'a Self>
+		, ops::Shl<i8, Output = Self>
+		, @for<'a> ops::Shl<&'a i8, Output = Self>
+		, ops::ShlAssign<i8>
+		, @for<'a> ops::ShlAssign<&'a i8>
+		, ops::Shr<i8, Output = Self>
+		, @for<'a> ops::Shr<&'a i8, Output = Self>
+		, ops::ShrAssign<i8>
+		, @for<'a> ops::ShrAssign<&'a i8>
+		, ops::Shl<u8, Output = Self>
+		, @for<'a> ops::Shl<&'a u8, Output = Self>
+		, ops::ShlAssign<u8>
+		, @for<'a> ops::ShlAssign<&'a u8>
+		, ops::Shr<u8, Output = Self>
+		, @for<'a> ops::Shr<&'a u8, Output = Self>
+		, ops::ShrAssign<u8>
+		, @for<'a> ops::ShrAssign<&'a u8>
+		, ops::Shl<i16, Output = Self>
+		, @for<'a> ops::Shl<&'a i16, Output = Self>
+		, ops::ShlAssign<i16>
+		, @for<'a> ops::ShlAssign<&'a i16>
+		, ops::Shr<i16, Output = Self>
+		, @for<'a> ops::Shr<&'a i16, Output = Self>
+		, ops::ShrAssign<i16>
+		, @for<'a> ops::ShrAssign<&'a i16>
+		, ops::Shl<u16, Output = Self>
+		, @for<'a> ops::Shl<&'a u16, Output = Self>
+		, ops::ShlAssign<u16>
+		, @for<'a> ops::ShlAssign<&'a u16>
+		, ops::Shr<u16, Output = Self>
+		, @for<'a> ops::Shr<&'a u16, Output = Self>
+		, ops::ShrAssign<u16>
+		, @for<'a> ops::ShrAssign<&'a u16>
+		, ops::Shl<i32, Output = Self>
+		, @for<'a> ops::Shl<&'a i32, Output = Self>
+		, ops::ShlAssign<i32>
+		, @for<'a> ops::ShlAssign<&'a i32>
+		, ops::Shr<i32, Output = Self>
+		, @for<'a> ops::Shr<&'a i32, Output = Self>
+		, ops::ShrAssign<i32>
+		, @for<'a> ops::ShrAssign<&'a i32>
+		, ops::Shl<u32, Output = Self>
+		, @for<'a> ops::Shl<&'a u32, Output = Self>
+		, ops::ShlAssign<u32>
+		, @for<'a> ops::ShlAssign<&'a u32>
+		, ops::Shr<u32, Output = Self>
+		, @for<'a> ops::Shr<&'a u32, Output = Self>
+		, ops::ShrAssign<u32>
+		, @for<'a> ops::ShrAssign<&'a u32>
+		, ops::Shl<i64, Output = Self>
+		, @for<'a> ops::Shl<&'a i64, Output = Self>
+		, ops::ShlAssign<i64>
+		, @for<'a> ops::ShlAssign<&'a i64>
+		, ops::Shr<i64, Output = Self>
+		, @for<'a> ops::Shr<&'a i64, Output = Self>
+		, ops::ShrAssign<i64>
+		, @for<'a> ops::ShrAssign<&'a i64>
+		, ops::Shl<u64, Output = Self>
+		, @for<'a> ops::Shl<&'a u64, Output = Self>
+		, ops::ShlAssign<u64>
+		, @for<'a> ops::ShlAssign<&'a u64>
+		, ops::Shr<u64, Output = Self>
+		, @for<'a> ops::Shr<&'a u64, Output = Self>
+		, ops::ShrAssign<u64>
+		, @for<'a> ops::ShrAssign<&'a u64>
+		, ops::Shl<i128, Output = Self>
+		, @for<'a> ops::Shl<&'a i128, Output = Self>
+		, ops::ShlAssign<i128>
+		, @for<'a> ops::ShlAssign<&'a i128>
+		, ops::Shr<i128, Output = Self>
+		, @for<'a> ops::Shr<&'a i128, Output = Self>
+		, ops::ShrAssign<i128>
+		, @for<'a> ops::ShrAssign<&'a i128>
+		, ops::Shl<u128, Output = Self>
+		, @for<'a> ops::Shl<&'a u128, Output = Self>
+		, ops::ShlAssign<u128>
+		, @for<'a> ops::ShlAssign<&'a u128>
+		, ops::Shr<u128, Output = Self>
+		, @for<'a> ops::Shr<&'a u128, Output = Self>
+		, ops::ShrAssign<u128>
+		, @for<'a> ops::ShrAssign<&'a u128>
+		, ops::Shl<isize, Output = Self>
+		, @for<'a> ops::Shl<&'a isize, Output = Self>
+		, ops::ShlAssign<isize>
+		, @for<'a> ops::ShlAssign<&'a isize>
+		, ops::Shr<isize, Output = Self>
+		, @for<'a> ops::Shr<&'a isize, Output = Self>
+		, ops::ShrAssign<isize>
+		, @for<'a> ops::ShrAssign<&'a isize>
+		, ops::Shl<usize, Output = Self>
+		, @for<'a> ops::Shl<&'a usize, Output = Self>
+		, ops::ShlAssign<usize>
+		, @for<'a> ops::ShlAssign<&'a usize>
+		, ops::Shr<usize, Output = Self>
+		, @for<'a> ops::Shr<&'a usize, Output = Self>
+		, ops::ShrAssign<usize>
+		, @for<'a> ops::ShrAssign<&'a usize>
 	{
 		/// The signed integer of this bit width.
 		type Signed: Integral;
@@ -262,12 +237,6 @@ new_trait! {
 
 		/// The type’s step value.
 		const ONE: Self;
-
-		new_trait! { i32 @
-			const MIN: Self;
-			const MAX: Self;
-			const BITS: u32;
-		}
 
 		new_trait! { i32 @
 			#[deprecated = "Deprecating in a future Rust version: replaced by the `MIN` associated constant on this type"]
@@ -365,16 +334,20 @@ new_trait! {
 
 new_trait! {
 	/// Declares that a type is a signed integer.
-	Signed: Integral, Neg {
+	Signed: Integral, ops::Neg {
 		new_trait! { i32 @
 			#[cfg(feature = "rust_187")]
 			fn cast_unsigned(self) -> <Self as Integral>::Unsigned;
 
+			fn checked_add_unsigned(self, rhs: Self::Unsigned) -> Option<Self>;
+			fn checked_sub_unsigned(self, rhs: Self::Unsigned) -> Option<Self>;
 			fn checked_abs(self) -> Option<Self>;
 			fn checked_isqrt(self) -> Option<Self>;
 
 			fn saturating_add_unsigned(self, rhs: Self::Unsigned) -> Self;
 			fn saturating_sub_unsigned(self, rhs: Self::Unsigned) -> Self;
+			fn saturating_neg(self) -> Self;
+			fn saturating_abs(self) -> Self;
 
 			fn wrapping_add_unsigned(self, rhs: Self::Unsigned) -> Self;
 			fn wrapping_sub_unsigned(self, rhs: Self::Unsigned) -> Self;
@@ -426,9 +399,9 @@ new_trait! {
 	/// Declares that a type is a floating-point number.
 	Floating
 		: Numeric
-		, LowerExp
-		, UpperExp
-		, Neg
+		, fmt::LowerExp
+		, fmt::UpperExp
+		, ops::Neg
 		, From<f32>
 		, From<i8>
 		, From<i16>
@@ -540,3 +513,30 @@ new_trait! {
 		}
 	}
 }
+
+impl_for!(Numeric =>
+	i8, i16, i32, i64, i128, isize,
+	u8, u16, u32, u64, u128, usize,
+	f32, f64,
+);
+
+impl_for!(Integral => {
+	i8, i8, u8;
+	i16, i16, u16;
+	i32, i32, u32;
+	i64, i64, u64;
+	i128, i128, u128;
+	isize, isize, usize;
+	u8, i8, u8;
+	u16, i16, u16;
+	u32, i32, u32;
+	u64, i64, u64;
+	u128, i128, u128;
+	usize, isize, usize;
+});
+
+impl_for!(Signed => i8, i16, i32, i64, i128, isize);
+
+impl_for!(Unsigned => u8, u16, u32, u64, u128, usize);
+
+impl_for!(Floating => f32 | u32, f64 | u64);

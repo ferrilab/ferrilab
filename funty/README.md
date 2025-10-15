@@ -32,9 +32,16 @@ This crate will raise minor versions as it catches up with the standard library.
 It will raise major versions as it gains significant features or makes an API
 break.
 
-At time of writing, it uses edition 2024 (MSRV 1.85), and has features
-`"rust_187"` and `"rust_190"`. Rust versions 1.86, 1.88, and 1.89 did not change
-primitive APIs.
+At time of writing, it uses edition 2024 (MSRV 1.85), and has features for each
+Rust version since MSRV which stabilized new APIs for `funty` to mirror. Each
+version-feature automatically enables all earlier version-features.
+
+- `"rust_186"`
+- `"rust_187"`: adds unbounded shifting, midpoint-finding, signage casting, and
+  is-multiple-of testing to the numeric traits
+- `"rust_188"`
+- `"rust_189"`
+- `"rust_190"`: adds graceful signed subtraction to the unsigned integers
 
 ## Pointer Unification
 
@@ -87,7 +94,7 @@ Type `use funty::*;`, then declare the traits you need as generic bounds.
 Perform bit arithmetic on some unsigned integer:
 
 ```rust
-use funty::Unsigned;
+use funty::num::Unsigned;
 fn invert_middle_bits<T: Unsigned>(num: T) -> T {
   let mask = (!T::ZERO).wrapping_shl(2).wrapping_shr(4).wrapping_shl(2);
   num ^ mask
@@ -117,4 +124,4 @@ default-features = false
 [version_img]: https://img.shields.io/crates/v/funty?color=f46623&style=for-the-badge "Funty version badge"
 
 <!-- Documentation -->
-[`ptr`]: https://docs.rs/funty/latest/funty/ptr "The `ptr` module API docs"
+[`ptr`]: ./ptr/index.html "The `ptr` module API docs"

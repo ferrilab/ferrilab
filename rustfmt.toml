@@ -5,20 +5,23 @@
 # use the nightly rustfmt. You will need to configure your editor to   #
 # format with `cargo +nightly fmt` rather than `cargo fmt`.            #
 #                                                                      #
-# See <https://rust-lang.github.io/rustfmt/?version=v1.5.2>            #
+# See <https://rust-lang.github.io/rustfmt/?version=v1.8.0>            #
 ########################################################################
 
 # Stable as of current nightly
 
-# array_width = 60
-# attr_fn_like_width = 70
-# chain_width = 60
+array_width = 60
+attr_fn_like_width = 72
+chain_width = 60
+disable_all_formatting = false
 edition = "2024"
+fn_args_layout = "Tall"
 fn_call_width = 60
 fn_params_layout = "Tall"
 force_explicit_abi = true
 hard_tabs = true
-match_arm_leading_pipes = "Never"
+match_arm_leading_pipes = "Always"
+match_block_trailing_comma = true
 max_width = 81
 merge_derives = true
 newline_style = "Unix"
@@ -37,7 +40,6 @@ use_try_shorthand = true
 
 condense_wildcard_suffixes = true
 control_brace_style = "ClosingNextLine"
-disable_all_formatting = false
 empty_item_single_line = true
 enum_discrim_align_threshold = 40
 error_on_line_overflow = false
@@ -57,7 +59,6 @@ imports_layout = "Vertical"
 indent_style = "Block"
 inline_attribute_width = 0
 match_arm_blocks = true
-match_block_trailing_comma = true
 normalize_comments = false
 normalize_doc_attributes = false
 overflow_delimited_expr = true

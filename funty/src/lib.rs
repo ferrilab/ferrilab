@@ -5,15 +5,7 @@
 #![deny(unconditional_recursion)]
 
 use core::{
-	cmp,
-	fmt::{
-		Debug,
-		Display,
-	},
-	num::{
-		FpCategory,
-		ParseIntError,
-	},
+	fmt,
 	str::FromStr,
 };
 
@@ -23,26 +15,43 @@ mod macros;
 pub mod num;
 pub mod ptr;
 
-pub use crate::{
-	num::{
-		Floating,
-		Integral,
-		Numeric,
-		Signed,
-		Unsigned,
-	},
-	ptr::{
-		Permission,
-		Pointer,
-		Reference,
-		Shared,
-		Unique,
-	},
-};
+/// Common-use symbol exports.
+pub mod prelude {
+	pub use crate::{
+		num::{
+			Floating,
+			Integral,
+			NonZero as NonZeroFty,
+			Numeric,
+			Signed,
+			Unsigned,
+			Zeroable,
+		},
+		ptr::{
+			Permission,
+			Pointer,
+			Reference,
+			Shared,
+			Unique,
+		},
+	};
+}
+
+/// Tests if two types have the same layout (size and alignment).
+#[inline(always)]
+pub const fn layout_equal<T, U>() -> bool {
+	core::mem::size_of::<T>() == core::mem::size_of::<U>()
+		&& core::mem::align_of::<T>() == core::mem::align_of::<U>()
+}
+
+mod seal {
+	pub trait Sealed {}
+}
 
 /// Declares that a type is one of the language fundamental types.
 pub trait Fundamental:
 	'static
+	+ seal::Sealed
 	+ Sized
 	+ Send
 	+ Sync
@@ -55,9 +64,18 @@ pub trait Fundamental:
 	+ PartialEq<Self>
 	+ PartialOrd<Self>
 	//  fmt
-	+ Debug
-	+ Display
+	+ fmt::Debug
+	+ fmt::Display
 {
+	/// The width, in bits, of the fundamental type.
+	const BITS: u32;
+
+	/// The numeric minimum legal value of the type.
+	const MIN: Self;
+
+	/// The numeric maximum legal value of the type.
+	const MAX: Self;
+
 	/// Tests `self != 0`.
 	fn as_bool(self) -> bool;
 
@@ -107,378 +125,13 @@ pub trait Fundamental:
 	fn as_f64(self) -> f64;
 }
 
-/// Declares that a type is exactly eight bits wide.
-pub trait Is8: Fundamental {}
-
-/// Declares that a type is exactly sixteen bits wide.
-pub trait Is16: Fundamental {}
-
-/// Declares that a type is exactly thirty-two bits wide.
-pub trait Is32: Fundamental {}
-
-/// Declares that a type is exactly sixty-four bits wide.
-pub trait Is64: Fundamental {}
-
-/// Declares that a type is exactly one hundred twenty-eight bits wide.
-pub trait Is128: Fundamental {}
-
-/// Declares that a type is eight or more bits wide.
-pub trait AtLeast8: Fundamental {}
-
-/// Declares that a type is sixteen or more bits wide.
-pub trait AtLeast16: Fundamental {}
-
-/// Declares that a type is thirty-two or more bits wide.
-pub trait AtLeast32: Fundamental {}
-
-/// Declares that a type is sixty-four or more bits wide.
-pub trait AtLeast64: Fundamental {}
-
-/// Declares that a type is one hundred twenty-eight or more bits wide.
-pub trait AtLeast128: Fundamental {}
-
-/// Declares that a type is eight or fewer bits wide.
-pub trait AtMost8: Fundamental {}
-
-/// Declares that a type is sixteen or fewer bits wide.
-pub trait AtMost16: Fundamental {}
-
-/// Declares that a type is thirty-two or fewer bits wide.
-pub trait AtMost32: Fundamental {}
-
-/// Declares that a type is sixty-four or fewer bits wide.
-pub trait AtMost64: Fundamental {}
-
-/// Declares that a type is one hundred twenty-eight or fewer bits wide.
-pub trait AtMost128: Fundamental {}
-
-macro_rules! impl_for {
-	(Fundamental => $($t:ty => $is_zero:expr),+ $(,)?) => { $(
-		impl Fundamental for $t {
-			#[inline(always)]
-			#[allow(clippy::redundant_closure_call)]
-			fn as_bool(self) -> bool { ($is_zero)(self) }
-
-			#[inline(always)]
-			fn as_char(self) -> Option<char> {
-				core::char::from_u32(self as u32)
-			}
-
-			#[inline(always)]
-			fn as_i8(self) -> i8 { self as i8 }
-
-			#[inline(always)]
-			fn as_i16(self) -> i16 { self as i16 }
-
-			#[inline(always)]
-			fn as_i32(self) -> i32 { self as i32 }
-
-			#[inline(always)]
-			fn as_i64(self) -> i64 { self as i64 }
-
-			#[inline(always)]
-			fn as_i128(self) -> i128 { self as i128 }
-
-			#[inline(always)]
-			fn as_isize(self) -> isize { self as isize }
-
-			#[inline(always)]
-			fn as_u8(self) -> u8 { self as u8 }
-
-			#[inline(always)]
-			fn as_u16(self) -> u16 { self as u16 }
-
-			#[inline(always)]
-			fn as_u32(self) -> u32 { self as u32 }
-
-			#[inline(always)]
-			fn as_u64(self) -> u64 { self as u64 }
-
-			#[inline(always)]
-			fn as_u128(self) ->u128 { self as u128 }
-
-			#[inline(always)]
-			fn as_usize(self) -> usize { self as usize }
-
-			#[inline(always)]
-			fn as_f32(self) -> f32 { self as f32 }
-
-			#[inline(always)]
-			fn as_f64(self) -> f64 { self as f64 }
-		}
-	)+ };
-	(Numeric => $($t:ty),+ $(,)?) => { $(
-		impl Numeric for $t {
-			type Bytes = [u8; core::mem::size_of::<Self>()];
-
-			items! { $t =>
-				fn to_be_bytes(self) -> Self::Bytes;
-				fn to_le_bytes(self) -> Self::Bytes;
-				fn to_ne_bytes(self) -> Self::Bytes;
-			}
-			items! { $t =>
-				fn from_be_bytes(bytes: Self::Bytes) -> Self;
-				fn from_le_bytes(bytes: Self::Bytes) -> Self;
-				fn from_ne_bytes(bytes: Self::Bytes) -> Self;
-			}
-		}
-	)+ };
-	(Integral => { $($t:ty, $s:ty, $u:ty);+ $(;)? }) => { $(
-		impl Integral for $t {
-			type Signed = $s;
-			type Unsigned = $u;
-
-			const ZERO: Self = 0;
-			const ONE: Self = 1;
-
-			items! { $t =>
-				const MIN: Self;
-				const MAX: Self;
-				const BITS: u32;
-			}
-
-			items! { $t =>
-				fn min_value() -> Self;
-				fn max_value() -> Self;
-				fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseIntError>;
-			}
-			items! { $t =>
-				fn count_ones(self) -> u32;
-				fn count_zeros(self) -> u32;
-				fn leading_zeros(self) -> u32;
-				fn trailing_zeros(self) -> u32;
-				fn leading_ones(self) -> u32;
-				fn trailing_ones(self) -> u32;
-				fn rotate_left(self, n: u32) -> Self;
-				fn rotate_right(self, n: u32) -> Self;
-				fn swap_bytes(self) -> Self;
-				fn reverse_bits(self) -> Self;
-				fn from_be(self) -> Self;
-				fn from_le(self) -> Self;
-				fn to_be(self) -> Self;
-				fn to_le(self) -> Self;
-				fn checked_add(self, rhs: Self) -> Option<Self>;
-				fn checked_sub(self, rhs: Self) -> Option<Self>;
-				fn checked_mul(self, rhs: Self) -> Option<Self>;
-				fn checked_div(self, rhs: Self) -> Option<Self>;
-				fn checked_div_euclid(self, rhs: Self) -> Option<Self>;
-				fn checked_rem(self, rhs: Self) -> Option<Self>;
-				fn checked_rem_euclid(self, rhs: Self) -> Option<Self>;
-				fn checked_neg(self) -> Option<Self>;
-				fn checked_shl(self, rhs: u32) -> Option<Self>;
-				fn checked_shr(self, rhs: u32) -> Option<Self>;
-				fn checked_pow(self, rhs: u32) -> Option<Self>;
-				@unsafe fn unchecked_add(self, rhs: Self) -> Self;
-				@unsafe fn unchecked_sub(self, rhs: Self) -> Self;
-				@unsafe fn unchecked_mul(self, rhs: Self) -> Self;
-				#[cfg(feature = "rust_187")]
-				fn unbounded_shl(self, rhs: u32) -> Self;
-				#[cfg(feature = "rust_187")]
-				fn unbounded_shr(self, rhs: u32) -> Self;
-				fn saturating_add(self, rhs: Self) -> Self;
-				fn saturating_sub(self, rhs: Self) -> Self;
-				fn saturating_mul(self, rhs: Self) -> Self;
-				fn saturating_div(self, rhs: Self) -> Self;
-				fn saturating_pow(self, rhs: u32) -> Self;
-				fn wrapping_add(self, rhs: Self) -> Self;
-				fn wrapping_sub(self, rhs: Self) -> Self;
-				fn wrapping_mul(self, rhs: Self) -> Self;
-				fn wrapping_div(self, rhs: Self) -> Self;
-				fn wrapping_div_euclid(self, rhs: Self) -> Self;
-				fn wrapping_rem(self, rhs: Self) -> Self;
-				fn wrapping_rem_euclid(self, rhs: Self) -> Self;
-				fn wrapping_neg(self) -> Self;
-				fn wrapping_shl(self, rhs: u32) -> Self;
-				fn wrapping_shr(self, rhs: u32) -> Self;
-				fn wrapping_pow(self, rhs: u32) -> Self;
-				fn overflowing_add(self, rhs: Self) -> (Self, bool);
-				fn overflowing_sub(self, rhs: Self) -> (Self, bool);
-				fn abs_diff(self, rhs: Self) -> Self::Unsigned;
-				fn overflowing_mul(self, rhs: Self) -> (Self, bool);
-				fn overflowing_div(self, rhs: Self) -> (Self, bool);
-				fn overflowing_div_euclid(self, rhs: Self) -> (Self, bool);
-				fn overflowing_rem(self, rhs: Self) -> (Self, bool);
-				fn overflowing_rem_euclid(self, rhs: Self) -> (Self, bool);
-				fn overflowing_neg(self) -> (Self, bool);
-				fn overflowing_shl(self, rhs: u32) -> (Self, bool);
-				fn overflowing_shr(self, rhs: u32) -> (Self, bool);
-				fn overflowing_pow(self, rhs: u32) -> (Self, bool);
-				fn pow(self, rhs: u32) -> Self;
-				fn isqrt(self) -> Self;
-				fn div_euclid(self, rhs: Self) -> Self;
-				fn rem_euclid(self, rhs: Self) -> Self;
-				fn ilog(self, base: Self) -> u32;
-				fn ilog2(self) -> u32;
-				fn ilog10(self) -> u32;
-
-				#[cfg(feature = "rust_187")]
-				fn midpoint(self, rhs: Self) -> Self;
-			}
-		}
-	)+ };
-	(Signed => $($t:ty),+ $(,)?) => { $(
-		impl Signed for $t {
-			items! { $t =>
-				#[cfg(feature = "rust_187")]
-				fn cast_unsigned(self) -> Self::Unsigned;
-				fn checked_abs(self) -> Option<Self>;
-				fn checked_isqrt(self) -> Option<Self>;
-				fn saturating_add_unsigned(self, rhs: Self::Unsigned) -> Self;
-				fn saturating_sub_unsigned(self, rhs: Self::Unsigned) -> Self;
-				fn wrapping_add_unsigned(self, rhs: Self::Unsigned) -> Self;
-				fn wrapping_sub_unsigned(self, rhs: Self::Unsigned) -> Self;
-				fn wrapping_abs(self) -> Self;
-				fn unsigned_abs(self) -> Self::Unsigned;
-				fn overflowing_add_unsigned(self, rhs: Self::Unsigned) -> (Self, bool);
-				fn overflowing_sub_unsigned(self, rhs: Self::Unsigned) -> (Self, bool);
-				fn overflowing_abs(self) -> (Self, bool);
-				fn checked_ilog(self, base: Self) -> Option<u32>;
-				fn checked_ilog2(self) -> Option<u32>;
-				fn checked_ilog10(self) -> Option<u32>;
-				fn abs(self) -> Self;
-				fn signum(self) -> Self;
-				fn is_positive(self) -> bool;
-				fn is_negative(self) -> bool;
-			}
-		}
-	)+ };
-	(Unsigned => $($t:ty),+ $(,)?) => { $(
-		impl Unsigned for $t {
-			items! { $t =>
-				#[cfg(feature = "rust_187")]
-				fn cast_signed(self) -> Self::Signed;
-
-				fn checked_add_signed(self, rhs: Self::Signed) -> Option<Self>;
-				#[cfg(feature = "rust_190")]
-				fn checked_sub_signed(self, rhs: Self::Signed) -> Option<Self>;
-				fn saturating_add_signed(self, rhs: Self::Signed) -> Self;
-				#[cfg(feature = "rust_190")]
-				fn saturating_sub_signed(self, rhs: Self::Signed) -> Self;
-				fn wrapping_add_signed(self, rhs: Self::Signed) -> Self;
-				#[cfg(feature = "rust_190")]
-				fn wrapping_sub_signed(self, rhs: Self::Signed) -> Self;
-
-				#[cfg(feature = "rust_187")]
-				fn is_multiple_of(self, rhs: Self) -> bool;
-				fn is_power_of_two(self) -> bool;
-				fn next_power_of_two(self) -> Self;
-				fn checked_next_power_of_two(self) -> Option<Self>;
-			}
-		}
-	)+ };
-	(Floating => $($t:ident | $u:ty),+ $(,)?) => { $(
-		impl Floating for $t {
-			type Raw = $u;
-
-			items! { $t =>
-				const RADIX: u32;
-				const MANTISSA_DIGITS: u32;
-				const DIGITS: u32;
-				const EPSILON: Self;
-				const MIN: Self;
-				const MIN_POSITIVE: Self;
-				const MAX: Self;
-				const MIN_EXP: i32;
-				const MAX_EXP: i32;
-				const MIN_10_EXP: i32;
-				const MAX_10_EXP: i32;
-				const NAN: Self;
-				const INFINITY: Self;
-				const NEG_INFINITY: Self;
-			}
-
-			items! { $t =>
-				mod const PI: Self;
-				mod const FRAC_PI_2: Self;
-				mod const FRAC_PI_3: Self;
-				mod const FRAC_PI_4: Self;
-				mod const FRAC_PI_6: Self;
-				mod const FRAC_PI_8: Self;
-				mod const FRAC_1_PI: Self;
-				mod const FRAC_2_PI: Self;
-				mod const FRAC_2_SQRT_PI: Self;
-				mod const SQRT_2: Self;
-				mod const FRAC_1_SQRT_2: Self;
-				mod const E: Self;
-				mod const LOG2_E: Self;
-				mod const LOG10_E: Self;
-				mod const LN_2: Self;
-				mod const LN_10: Self;
-			}
-
-			items! { $t =>
-				#[cfg(feature = "std")] fn floor(self) -> Self;
-				#[cfg(feature = "std")] fn ceil(self) -> Self;
-				#[cfg(feature = "std")] fn round(self) -> Self;
-				#[cfg(feature = "std")] fn round_ties_even(self) -> Self;
-				#[cfg(feature = "std")] fn trunc(self) -> Self;
-				#[cfg(feature = "std")] fn fract(self) -> Self;
-				#[cfg(feature = "std")] fn abs(self) -> Self;
-				#[cfg(feature = "std")] fn signum(self) -> Self;
-				#[cfg(feature = "std")] fn copysign(self, sign: Self) -> Self;
-				#[cfg(feature = "std")] fn mul_add(self, a: Self, b: Self) -> Self;
-				#[cfg(feature = "std")] fn div_euclid(self, rhs: Self) -> Self;
-				#[cfg(feature = "std")] fn rem_euclid(self, rhs: Self) -> Self;
-				#[cfg(feature = "std")] fn powi(self, n: i32) -> Self;
-				#[cfg(feature = "std")] fn powf(self, n: Self) -> Self;
-				#[cfg(feature = "std")] fn sqrt(self) -> Self;
-				#[cfg(feature = "std")] fn exp(self) -> Self;
-				#[cfg(feature = "std")] fn exp2(self) -> Self;
-				#[cfg(feature = "std")] fn ln(self) -> Self;
-				#[cfg(feature = "std")] fn log(self, base: Self) -> Self;
-				#[cfg(feature = "std")] fn log2(self) -> Self;
-				#[cfg(feature = "std")] fn log10(self) -> Self;
-				#[cfg(feature = "std")] fn cbrt(self) -> Self;
-				#[cfg(feature = "std")] fn hypot(self, other: Self) -> Self;
-				#[cfg(feature = "std")] fn sin(self) -> Self;
-				#[cfg(feature = "std")] fn cos(self) -> Self;
-				#[cfg(feature = "std")] fn tan(self) -> Self;
-				#[cfg(feature = "std")] fn asin(self) -> Self;
-				#[cfg(feature = "std")] fn acos(self) -> Self;
-				#[cfg(feature = "std")] fn atan(self) -> Self;
-				#[cfg(feature = "std")] fn atan2(self, other: Self) -> Self;
-				#[cfg(feature = "std")] fn sin_cos(self) -> (Self, Self);
-				#[cfg(feature = "std")] fn exp_m1(self) -> Self;
-				#[cfg(feature = "std")] fn ln_1p(self) -> Self;
-				#[cfg(feature = "std")] fn sinh(self) -> Self;
-				#[cfg(feature = "std")] fn cosh(self) -> Self;
-				#[cfg(feature = "std")] fn tanh(self) -> Self;
-				#[cfg(feature = "std")] fn asinh(self) -> Self;
-				#[cfg(feature = "std")] fn acosh(self) -> Self;
-				#[cfg(feature = "std")] fn atanh(self) -> Self;
-
-				fn is_nan(self) -> bool;
-				fn is_infinite(self) -> bool;
-				fn is_finite(self) -> bool;
-				fn is_normal(self) -> bool;
-				fn classify(self) -> FpCategory;
-				fn is_sign_positive(self) -> bool;
-				fn is_sign_negative(self) -> bool;
-				fn next_up(self) -> Self;
-				fn next_down(self) -> Self;
-				fn recip(self) -> Self;
-				fn to_degrees(self) -> Self;
-				fn to_radians(self) -> Self;
-				fn max(self, other: Self) -> Self;
-				fn min(self, other: Self) -> Self;
-				fn midpoint(self, other: Self) -> Self;
-				fn to_bits(self) -> Self::Raw;
-				fn clamp(self, min: Self, max: Self) -> Self;
-			}
-			items! { $t =>
-				fn total_cmp(&self, other: &Self) -> cmp::Ordering;
-			}
-			items! { $t =>
-				fn from_bits(bits: Self::Raw) -> Self;
-			}
-		}
-	)+ };
-	($which:ty => $($t:ty),+ $(,)?) => { $(
-		impl $which for $t {}
-	)+ };
-}
+impl seal::Sealed for bool {}
 
 impl Fundamental for bool {
+	const BITS: u32 = 8;
+	const MAX: bool = true;
+	const MIN: bool = false;
+
 	#[inline(always)]
 	fn as_bool(self) -> bool {
 		self
@@ -560,7 +213,13 @@ impl Fundamental for bool {
 	}
 }
 
+impl seal::Sealed for char {}
+
 impl Fundamental for char {
+	const BITS: u32 = 32;
+	const MAX: Self = <char>::MAX;
+	const MIN: Self = <char>::MIN;
+
 	#[inline(always)]
 	fn as_bool(self) -> bool {
 		self != '\0'
@@ -659,114 +318,182 @@ impl_for!(Fundamental =>
 	f64 => |this: f64| (-Self::EPSILON ..= Self::EPSILON).contains(&this),
 );
 
-impl_for!(Numeric =>
-	i8, i16, i32, i64, i128, isize,
-	u8, u16, u32, u64, u128, usize,
-	f32, f64,
-);
+/// Indicates that the implementor is exactly `SIZE_EQU` bits wide.
+pub trait SizeEquals<const SIZE_EQU: usize>: Fundamental {}
 
-impl_for!(Integral => {
-	i8, i8, u8;
-	i16, i16, u16;
-	i32, i32, u32;
-	i64, i64, u64;
-	i128, i128, u128;
-	isize, isize, usize;
-	u8, i8, u8;
-	u16, i16, u16;
-	u32, i32, u32;
-	u64, i64, u64;
-	u128, i128, u128;
-	usize, isize, usize;
-});
+/// Indicates that the implementor is at least `SIZE_MIN` bits wide (inclusive).
+pub trait SizeGreater<const SIZE_MIN: usize>: Fundamental {}
 
-impl_for!(Signed => i8, i16, i32, i64, i128, isize);
+/// Indicates that the implementor is at most `SIZE_MAX` bits wide (inclusive).
+pub trait SizeLesser<const SIZE_MAX: usize>: Fundamental {}
 
-impl_for!(Unsigned => u8, u16, u32, u64, u128, usize);
+/// Declares that a type is exactly eight bits wide.
+#[deprecated = "use SizeEquals<8>"]
+pub trait Is8: SizeEquals<8> {}
 
-impl_for!(Floating => f32 | u32, f64 | u64);
+/// Declares that a type is exactly sixteen bits wide.
+#[deprecated = "use SizeEquals<16>"]
+pub trait Is16: SizeEquals<16> {}
 
-impl_for!(Is8 => i8, u8);
-impl_for!(Is16 => i16, u16);
-impl_for!(Is32 => i32, u32, f32);
-impl_for!(Is64 => i64, u64, f64);
-impl_for!(Is128 => i128, u128);
+/// Declares that a type is exactly thirty-two bits wide.
+#[deprecated = "use SizeEquals<32>"]
+pub trait Is32: SizeEquals<32> {}
+
+/// Declares that a type is exactly sixty-four bits wide.
+#[deprecated = "use SizeEquals<64>"]
+pub trait Is64: SizeEquals<64> {}
+
+/// Declares that a type is exactly one hundred twenty-eight bits wide.
+#[deprecated = "use SizeEquals<128>"]
+pub trait Is128: SizeEquals<128> {}
+
+/// Declares that a type is eight or more bits wide.
+#[deprecated = "use SizeGreater<8>"]
+pub trait AtLeast8: SizeGreater<8> {}
+
+/// Declares that a type is sixteen or more bits wide.
+#[deprecated = "use SizeGreater<16>"]
+pub trait AtLeast16: SizeGreater<16> {}
+
+/// Declares that a type is thirty-two or more bits wide.
+#[deprecated = "use SizeGreater<32>"]
+pub trait AtLeast32: SizeGreater<32> {}
+
+/// Declares that a type is sixty-four or more bits wide.
+#[deprecated = "use SizeGreater<64>"]
+pub trait AtLeast64: SizeGreater<64> {}
+
+/// Declares that a type is one hundred twenty-eight or more bits wide.
+#[deprecated = "use SizeGreater<128>"]
+pub trait AtLeast128: SizeGreater<128> {}
+
+/// Declares that a type is eight or fewer bits wide.
+#[deprecated = "use SizeLesser<8>"]
+pub trait AtMost8: SizeLesser<8> {}
+
+/// Declares that a type is sixteen or fewer bits wide.
+#[deprecated = "use SizeLesser<16>"]
+pub trait AtMost16: SizeLesser<16> {}
+
+/// Declares that a type is thirty-two or fewer bits wide.
+#[deprecated = "use SizeLesser<32>"]
+pub trait AtMost32: SizeLesser<32> {}
+
+/// Declares that a type is sixty-four or fewer bits wide.
+#[deprecated = "use SizeLesser<64>"]
+pub trait AtMost64: SizeLesser<64> {}
+
+/// Declares that a type is one hundred twenty-eight or fewer bits wide.
+#[deprecated = "use SizeLesser<128>"]
+pub trait AtMost128: SizeLesser<128> {}
+
+mod deprecations {
+	#![allow(deprecated)]
+	use super::*;
+	impl<T> Is8 for T where T: SizeEquals<8> {}
+	impl<T> Is16 for T where T: SizeEquals<16> {}
+	impl<T> Is32 for T where T: SizeEquals<32> {}
+	impl<T> Is64 for T where T: SizeEquals<64> {}
+	impl<T> Is128 for T where T: SizeEquals<128> {}
+	impl<T> AtLeast8 for T where T: SizeGreater<8> {}
+	impl<T> AtLeast16 for T where T: SizeGreater<16> {}
+	impl<T> AtLeast32 for T where T: SizeGreater<32> {}
+	impl<T> AtLeast64 for T where T: SizeGreater<64> {}
+	impl<T> AtLeast128 for T where T: SizeGreater<128> {}
+	impl<T> AtMost8 for T where T: SizeLesser<8> {}
+	impl<T> AtMost16 for T where T: SizeLesser<16> {}
+	impl<T> AtMost32 for T where T: SizeLesser<32> {}
+	impl<T> AtMost64 for T where T: SizeLesser<64> {}
+	impl<T> AtMost128 for T where T: SizeLesser<128> {}
+}
+
+impl_for!(SizeEquals<8> => i8, u8);
+impl_for!(SizeEquals<16> => i16, u16);
+impl_for!(SizeEquals<32> => i32, u32, f32);
+impl_for!(SizeEquals<64> => i64, u64, f64);
+impl_for!(SizeEquals<128> => i128, u128);
 
 #[cfg(target_pointer_width = "16")]
-impl_for!(Is16 => isize, usize);
+impl_for!(SizeEquals<16> => isize, usize);
 
 #[cfg(target_pointer_width = "32")]
-impl_for!(Is32 => isize, usize);
+impl_for!(SizeEquals<32> => isize, usize);
 
 #[cfg(target_pointer_width = "64")]
-impl_for!(Is64 => isize, usize);
+impl_for!(SizeEquals<64> => isize, usize);
 
-impl_for!(AtLeast8 =>
+impl_for!(SizeGreater<8> =>
 	i8, i16, i32, i64, i128, isize,
 	u8, u16, u32, u64, u128, usize,
 	f32, f64,
 );
-impl_for!(AtLeast16 => i16, i32, i64, i128, u16, u32, u64, u128, f32, f64);
-impl_for!(AtLeast32 => i32, i64, i128, u32, u64, u128, f32, f64);
-impl_for!(AtLeast64 => i64, i128, u64, u128, f64);
-impl_for!(AtLeast128 => i128, u128);
+impl_for!(SizeGreater<16> => i16, i32, i64, i128, u16, u32, u64, u128, f32, f64);
+impl_for!(SizeGreater<32> => i32, i64, i128, u32, u64, u128, f32, f64);
+impl_for!(SizeGreater<64> => i64, i128, u64, u128, f64);
+impl_for!(SizeGreater<128> => i128, u128);
 
 #[cfg(any(
 	target_pointer_width = "16",
 	target_pointer_width = "32",
 	target_pointer_width = "64"
 ))]
-impl_for!(AtLeast16 => isize, usize);
+impl_for!(SizeGreater<16> => isize, usize);
 
 #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
-impl_for!(AtLeast32 => isize, usize);
+impl_for!(SizeGreater<32> => isize, usize);
 
 #[cfg(target_pointer_width = "64")]
-impl_for!(AtLeast64 => isize, usize);
+impl_for!(SizeGreater<64> => isize, usize);
 
-impl_for!(AtMost8 => i8, u8);
-impl_for!(AtMost16 => i8, i16, u8, u16);
-impl_for!(AtMost32 => i8, i16, i32, u8, u16, u32, f32);
-impl_for!(AtMost64 =>
+impl_for!(SizeLesser<8> => i8, u8);
+impl_for!(SizeLesser<16> => i8, i16, u8, u16);
+impl_for!(SizeLesser<32> => i8, i16, i32, u8, u16, u32, f32);
+impl_for!(SizeLesser<64> =>
 	i8, i16, i32, i64, isize,
 	u8, u16, u32, u64, usize,
 	f32, f64,
 );
-impl_for!(AtMost128 =>
+impl_for!(SizeLesser<128> =>
 	i8, i16, i32, i64, i128, isize,
 	u8, u16, u32, u64, u128, usize,
 	f32, f64,
 );
 
 #[cfg(target_pointer_width = "16")]
-impl_for!(AtMost16 => isize, usize);
+impl_for!(SizeLesser<16> => isize, usize);
 
 #[cfg(any(target_pointer_width = "16", target_pointer_width = "32"))]
-impl_for!(AtMost32 => isize, usize);
+impl_for!(SizeLesser<32> => isize, usize);
 
 #[cfg(test)]
 mod tests {
 	use static_assertions::*;
 
 	use super::*;
+	use crate::num::{
+		Floating,
+		Integral,
+		Signed,
+		Unsigned,
+	};
 
 	assert_impl_all!(bool: Fundamental);
 	assert_impl_all!(char: Fundamental);
 
-	assert_impl_all!(i8: Integral, Signed, Is8);
-	assert_impl_all!(i16: Integral, Signed, Is16);
-	assert_impl_all!(i32: Integral, Signed, Is32);
-	assert_impl_all!(i64: Integral, Signed, Is64);
-	assert_impl_all!(i128: Integral, Signed, Is128);
+	assert_impl_all!(i8: Integral, Signed, SizeEquals<8>);
+	assert_impl_all!(i16: Integral, Signed, SizeEquals<16>);
+	assert_impl_all!(i32: Integral, Signed, SizeEquals<32>);
+	assert_impl_all!(i64: Integral, Signed, SizeEquals<64>);
+	assert_impl_all!(i128: Integral, Signed, SizeEquals<128>);
 	assert_impl_all!(isize: Integral, Signed);
 
-	assert_impl_all!(u8: Integral, Unsigned, Is8);
-	assert_impl_all!(u16: Integral, Unsigned, Is16);
-	assert_impl_all!(u32: Integral, Unsigned, Is32);
-	assert_impl_all!(u64: Integral, Unsigned, Is64);
-	assert_impl_all!(u128: Integral, Unsigned, Is128);
+	assert_impl_all!(u8: Integral, Unsigned, SizeEquals<8>);
+	assert_impl_all!(u16: Integral, Unsigned, SizeEquals<16>);
+	assert_impl_all!(u32: Integral, Unsigned, SizeEquals<32>);
+	assert_impl_all!(u64: Integral, Unsigned, SizeEquals<64>);
+	assert_impl_all!(u128: Integral, Unsigned, SizeEquals<128>);
 	assert_impl_all!(usize: Integral, Unsigned);
 
-	assert_impl_all!(f32: Floating, Is32);
-	assert_impl_all!(f64: Floating, Is64);
+	assert_impl_all!(f32: Floating, SizeEquals<32>);
+	assert_impl_all!(f64: Floating, SizeEquals<64>);
 }

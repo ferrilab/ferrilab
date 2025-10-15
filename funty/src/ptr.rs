@@ -4,96 +4,62 @@ use core::{
 	any,
 	cmp,
 	fmt,
-	hash::{
-		Hash,
-		Hasher,
-	},
-	marker::PhantomData,
-	ptr::{
-		self,
-		NonNull,
-	},
+	hash,
+	mem,
 };
 
-#[doc = include_str!("../doc/permission.md")]
-pub trait Permission {
-	/// The raw pointer type that drives memory accesses for this `Permission`.
-	/// This is necessary because `*const T` and `*mut T` are different types,
-	/// and tools such as Miri track how `*mut` pointers are created, and
-	/// by using an associated type we can avoid improperly using a `*mut T`
-	/// pointer inside a `Pointer<T, Shared>` that never had unique access
-	/// permissions.
-	type Ptr<T: ?Sized>: RawPtr<T>;
+mod details;
+mod error;
+mod nonnull;
 
-	/// The corresponding reference type.
-	type Ref<'a, T: 'a + ?Sized>: RawRef<'a, T>;
+pub use self::{
+	details::WrapFunty,
+	error::{
+		MisalignedError,
+		NonNullError,
+		NonUniqueError,
+	},
+	nonnull::NonNullPointer,
+};
 
-	/// Either `"*const"` or `"*mut"`; used for debug printing.
-	const DEBUG_PREFIX: &'static str;
-
-	// These are utility functions that should not be called directly by public
-	// consumers. They exist to provide specific behaviors that the `Pointer`
-	// type needs, but cannot directly express.
-
-	/// Casts the referent type of the pointer.
+#[doc = include_str!("../doc/ptr/trait.Permission.md")]
+pub trait Permission: details::Impl {
+	/// Forwards a type-hidden [`Reference`] into a callback as `&T`.
 	///
-	/// This can be used to cast a pointer-to-unsized to pointer-to-sized, but
-	/// cannot be used to cast any pointer to pointer-to-unsized. Pointers to
-	/// unsized types (currently only slices and trait objects) must be created
-	/// through dedicated APIs which are not yet stabilized on the raw pointer
-	/// types.
-	#[doc(hidden)]
-	fn cast<T: ?Sized, U>(ptr: Self::Ptr<T>) -> Self::Ptr<U>;
+	/// The callback receives a re-borrow of the original referent, and is
+	/// forbidden from leaking its argument reference out through the return
+	/// value.
+	fn do_with_ref<'a, T, R>(
+		r: &Self::Ref<'a, T>,
+		func: impl FnOnce(&T) -> R,
+	) -> R
+	where
+		T: 'a + ?Sized;
 
-	/// Creates a raw `*const T` primitive.
-	#[doc(hidden)]
-	fn into_const<T: ?Sized>(ptr: Self::Ptr<T>) -> *const T;
-
-	/// Attempts to create a raw `*mut T` primitive.
+	/// Attempts to forward a type-hidden [`Reference`] into a callback as `&mut
+	/// T`.
 	///
-	/// This is only allowed to succeed where `Self::Ptr<T>` is `*mut T`.
-	#[doc(hidden)]
-	fn try_into_mut<T: ?Sized>(ptr: Self::Ptr<T>) -> Option<*mut T>;
-
-	/// Attempts to unwind the permission stack until it bottoms out at a raw
-	/// mutable pointer.
+	/// If the invocant permission is not [`Unique`], then this function exits
+	/// with an error. If it is `Unique`, then the callback is invoked
+	/// with a re-borrow of the original referent, and is forbidden from leaking
+	/// its argument reference out through the return value.
 	///
-	/// The `Shared` implementation returns `None`, the `Unique` implementation
-	/// returns `Some`, and the `(Shared, P)` implementation recurses into `P`.
-	#[doc(hidden)]
-	fn unwind_to_unique<T: ?Sized>(ptr: Self::Ptr<T>) -> Option<*mut T>;
-
-	/// Wraps a raw `*const T` primitive as the `Raw` associated type.
-	#[doc(hidden)]
-	fn from_const<T: ?Sized>(ptr: *const T) -> Self::Ptr<T>;
-
-	/// Dereferences a pointer and produces a reference to the pointed-to value.
+	/// # Details
 	///
-	/// ## Safety
-	///
-	/// The pointer must be non-null and well-aligned for `T`, and the
-	/// pointed-to location must outlive the conjured `'a` lifetime and not have
-	/// any other outstanding references which violate the Rust
-	/// many-shared-xor-one-mutable reference rule.
-	#[doc(hidden)]
-	unsafe fn ptr_to_ref<'a, T: 'a + ?Sized>(
-		ptr: Self::Ptr<T>,
-	) -> Self::Ref<'a, T>;
-
-	/// Combines a base pointer and a length into a slice pointer.
-	///
-	/// ## Safety
-	///
-	/// The region `ptr[.. len]` must be within a single provenance region.
-	#[doc(hidden)]
-	unsafe fn ptr_to_slice<T: Sized>(
-		ptr: Self::Ptr<T>,
-		len: usize,
-	) -> Self::Ptr<[T]>;
-
-	/// Gets the raw address of a pointer.
-	#[doc(hidden)]
-	fn addr<T: ?Sized>(ptr: Self::Ptr<T>) -> usize;
+	/// This reborrowing is necessary because `&mut T` references are not
+	/// `Copy`, and therefore cannot be passed through function calls by value.
+	/// Literal `&mut T` instances cause implicit `&mut *val` re-borrowing
+	/// de-references, but type-obscured `Reference<'a, T, Unique>` instances do
+	/// not. Therefore, this function enables client code to temporarily view a
+	/// `Reference` as its true `&mut T` typing without incurring a destruction
+	/// of the _reference_ value (as distinct from the pointed-to referent
+	/// value).
+	fn try_with_mut_ref<'a, T, R>(
+		r: &mut Self::Ref<'a, T>,
+		func: impl FnOnce(&mut T) -> R,
+	) -> Result<R, NonUniqueError<T>>
+	where
+		T: 'a + ?Sized;
 }
 
 /// Equivalent to `*const` pointers or `&` references.
@@ -104,171 +70,56 @@ pub struct Shared;
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Unique;
 
-impl Permission for Shared {
-	type Ptr<T: ?Sized> = *const T;
-	type Ref<'a, T: 'a + ?Sized> = &'a T;
-
-	const DEBUG_PREFIX: &'static str = "*const";
-
-	#[inline(always)]
-	fn cast<T: ?Sized, U>(ptr: *const T) -> *const U {
-		ptr.cast::<U>()
-	}
-
-	#[inline(always)]
-	fn into_const<T: ?Sized>(ptr: *const T) -> *const T {
-		ptr
-	}
-
-	#[inline(always)]
-	fn try_into_mut<T: ?Sized>(_: *const T) -> Option<*mut T> {
-		None
-	}
-
-	#[inline(always)]
-	fn unwind_to_unique<T: ?Sized>(_: *const T) -> Option<*mut T> {
-		None
-	}
-
-	#[inline(always)]
-	fn from_const<T: ?Sized>(ptr: *const T) -> *const T {
-		ptr
-	}
-
-	#[inline(always)]
-	unsafe fn ptr_to_ref<'a, T: 'a + ?Sized>(ptr: *const T) -> &'a T {
-		&*ptr
-	}
-
-	#[inline(always)]
-	unsafe fn ptr_to_slice<T: Sized>(ptr: *const T, len: usize) -> *const [T] {
-		ptr::slice_from_raw_parts(ptr, len)
-	}
-
-	#[inline(always)]
-	fn addr<T: ?Sized>(ptr: *const T) -> usize {
-		ptr.cast::<()>() as usize
-	}
-}
-
-impl Permission for Unique {
-	type Ptr<T: ?Sized> = *mut T;
-	type Ref<'a, T: 'a + ?Sized> = &'a mut T;
-
-	const DEBUG_PREFIX: &'static str = "*mut";
-
-	#[inline(always)]
-	fn cast<T: ?Sized, U>(ptr: *mut T) -> *mut U {
-		ptr.cast::<U>()
-	}
-
-	#[inline(always)]
-	fn into_const<T: ?Sized>(ptr: *mut T) -> *const T {
-		ptr.cast_const()
-	}
-
-	#[inline(always)]
-	fn try_into_mut<T: ?Sized>(ptr: *mut T) -> Option<*mut T> {
-		Some(ptr)
-	}
-
-	#[inline(always)]
-	fn unwind_to_unique<T: ?Sized>(ptr: *mut T) -> Option<*mut T> {
-		Some(ptr)
-	}
-
-	#[inline(always)]
-	fn from_const<T: ?Sized>(ptr: *const T) -> *mut T {
-		ptr.cast_mut()
-	}
-
-	#[inline(always)]
-	unsafe fn ptr_to_ref<'a, T: 'a + ?Sized>(ptr: *mut T) -> &'a mut T {
-		&mut *ptr
-	}
-
-	#[inline(always)]
-	unsafe fn ptr_to_slice<T: Sized>(ptr: *mut T, len: usize) -> *mut [T] {
-		ptr::slice_from_raw_parts_mut(ptr, len)
-	}
-
-	#[inline(always)]
-	fn addr<T: ?Sized>(ptr: *mut T) -> usize {
-		ptr.cast::<()>() as usize
-	}
-}
-
-impl<P> Permission for (Shared, P)
-where P: Permission
+impl<P> Permission for P
+where P: details::Impl
 {
-	type Ptr<T: ?Sized> = *const T;
-	type Ref<'a, T: 'a + ?Sized> = &'a T;
-
-	const DEBUG_PREFIX: &'static str = Shared::DEBUG_PREFIX;
-
 	#[inline(always)]
-	fn cast<T: ?Sized, U>(ptr: *const T) -> *const U {
-		ptr.cast::<U>()
+	fn do_with_ref<'a, T, R>(
+		r: &Self::Ref<'a, T>,
+		func: impl FnOnce(&T) -> R,
+	) -> R
+	where
+		T: 'a + ?Sized,
+	{
+		<P as details::Impl>::impl_do_with_ref(r, func)
 	}
 
 	#[inline(always)]
-	fn into_const<T: ?Sized>(ptr: *const T) -> *const T {
-		ptr
-	}
-
-	#[inline(always)]
-	fn try_into_mut<T: ?Sized>(_: *const T) -> Option<*mut T> {
-		None
-	}
-
-	#[inline(always)]
-	fn unwind_to_unique<T: ?Sized>(ptr: *const T) -> Option<*mut T> {
-		P::unwind_to_unique(P::from_const(ptr))
-	}
-
-	#[inline(always)]
-	fn from_const<T: ?Sized>(ptr: *const T) -> *const T {
-		ptr
-	}
-
-	#[inline(always)]
-	unsafe fn ptr_to_ref<'a, T: 'a + ?Sized>(ptr: *const T) -> &'a T {
-		&*ptr
-	}
-
-	#[inline(always)]
-	unsafe fn ptr_to_slice<T: Sized>(ptr: *const T, len: usize) -> *const [T] {
-		ptr::slice_from_raw_parts(ptr, len)
-	}
-
-	#[inline(always)]
-	fn addr<T: ?Sized>(ptr: *const T) -> usize {
-		ptr.cast::<()>() as usize
+	fn try_with_mut_ref<'a, T, R>(
+		r: &mut Self::Ref<'a, T>,
+		func: impl FnOnce(&mut T) -> R,
+	) -> Result<R, NonUniqueError<T>>
+	where
+		T: 'a + ?Sized,
+	{
+		<P as details::Impl>::impl_try_with_mut_ref(r, func)
 	}
 }
 
 #[repr(transparent)]
-#[doc = include_str!("../doc/pointers.md")]
+#[doc = include_str!("../doc/ptr/struct.Pointer.md")]
 pub struct Pointer<T, P>
 where
 	T: ?Sized,
 	P: Permission,
 {
+	/// The underlying raw pointer. This is `*const` for `Shared` or
+	/// `(Shared, P)` and `*mut` for `Unique`.
 	ptr: P::Ptr<T>,
 }
 
 impl<T> Pointer<T, Shared>
 where T: ?Sized
 {
-	/// Produces a new `Pointer` from a raw `const` pointer.
+	/// Wraps a raw const-pointer.
 	#[inline(always)]
-	pub const fn new(ptr: *const T) -> Self {
+	pub const fn from_const(ptr: *const T) -> Self {
 		Self { ptr }
 	}
 
-	/// Produces the enclosed raw pointer.
+	/// Unwraps the pointer into its underlying `*const T` primitive.
 	#[inline(always)]
-	pub const fn into_inner(self) -> *const T {
+	pub const fn into_raw(self) -> *const T {
 		self.ptr
 	}
 }
@@ -276,190 +127,16 @@ where T: ?Sized
 impl<T> Pointer<T, Unique>
 where T: ?Sized
 {
-	/// Produces a new `Pointer` from a raw `mut` pointer.
+	/// Wraps a raw mut-pointer.
 	#[inline(always)]
-	pub const fn new(ptr: *mut T) -> Self {
+	pub const fn from_mut(ptr: *mut T) -> Self {
 		Self { ptr }
 	}
 
-	/// Produces the enclosed raw pointer.
+	/// Unwraps the pointer into its underlying `*mut T` primitive.
 	#[inline(always)]
-	pub const fn into_inner(self) -> *mut T {
+	pub const fn into_raw(self) -> *mut T {
 		self.ptr
-	}
-
-	/// Produces a unique reference to the pointed-to value.
-	///
-	/// ## Safety
-	///
-	/// This function requires the following:
-	///
-	/// - the `Pointer` is well-aligned for `T`.
-	/// - the pointed-to location contains an initialized `T` value.
-	/// - no other reference or `Reference` pointing to the location exists for
-	///   the duration of the produced reference’s existence.
-	/// - the pointed-to location exists for the full duration of the conjured
-	///   `'a` lifetime.
-	#[inline(always)]
-	pub unsafe fn as_mut<'a>(self) -> Option<&'a mut T> {
-		if self.is_null() {
-			return None;
-		}
-		Some(&mut *self.ptr)
-	}
-
-	/// Runs the destructor on the pointed-to location.
-	///
-	/// ## Safety
-	///
-	/// The value at the pointed-to location must be currently initialized.
-	#[inline(always)]
-	pub unsafe fn drop_in_place(self) {
-		self.ptr.drop_in_place();
-	}
-}
-
-impl<T> Pointer<T, Unique>
-where T: Sized
-{
-	/// Copies objects pointed to by `src` into the region pointed to by
-	/// `self`.
-	///
-	/// ## Safety
-	///
-	/// - the memory region of `src[.. count]` must contain contiguous
-	///   fully-initialized `T` values.
-	/// - the memory region of `self[.. count]` must be within a single
-	///   allocation.
-	/// - the values stored in `src[.. count]` must not have their destructors
-	///   run, as they are now alive in `self[.. count]`.
-	#[inline(always)]
-	pub unsafe fn copy_from<P: Permission>(
-		self,
-		src: Pointer<T, P>,
-		count: usize,
-	) {
-		self.ptr.copy_from(
-			<(Shared, P)>::into_const::<T>(src.cast_const().ptr),
-			count,
-		);
-	}
-
-	/// Same as `copy_from`, except that you guarantee that the memory regions
-	/// `self[.. count]` and `src[.. count]` are fully disjoint.
-	///
-	/// ## Safety
-	///
-	/// The copying behavior from the source region to the self region is not
-	/// specified. As such, the two regions **must not** overlap at all in the
-	/// memory space.
-	#[inline(always)]
-	pub unsafe fn copy_from_nonoverlapping<P: Permission>(
-		self,
-		src: Pointer<T, P>,
-		count: usize,
-	) {
-		self.ptr.copy_from_nonoverlapping(
-			<(Shared, P)>::into_const::<T>(src.cast_const().ptr),
-			count,
-		);
-	}
-
-	/// Writes a new value into the pointed-to location.
-	///
-	/// The pointed-to value does not have its destructor run.
-	///
-	/// ## Safety
-	///
-	/// You must ensure that the pointed-to value is properly destroyed before
-	/// overwriting it.
-	#[inline(always)]
-	pub unsafe fn write(self, value: T) {
-		self.ptr.write(value);
-	}
-
-	/// Fills the memory region with a byte pattern for `count` *elements* (not
-	/// bytes).
-	///
-	/// ## Safety
-	///
-	/// You must ensure that the values stored in `self[.. count]` are properly
-	/// destroyed before calling this function, and that the byte pattern
-	/// `[byte; mem::size_of::<T>()]` is a valid object representation for `T`
-	/// values.
-	#[inline(always)]
-	pub unsafe fn write_bytes(self, byte: u8, count: usize) {
-		self.ptr.write_bytes(byte, count);
-	}
-
-	/// Equivalent to `write`, with the additional guarantee that the *compiler*
-	/// will not omit this store.
-	///
-	/// This store does not synchronize across threads, nor does it create a
-	/// causal dependency with any other memory accesses in the current thread.
-	/// Its only guarantee is that the compiler will emit a store instruction.
-	///
-	/// ## Safety
-	///
-	/// See `write`.
-	#[inline(always)]
-	pub unsafe fn write_volatile(self, value: T) {
-		self.ptr.write_volatile(value);
-	}
-
-	/// Equivalent to `write`, except that it is tolerant of the address not
-	/// being well-aligned for `T`.
-	///
-	/// ## Safety
-	///
-	/// See `write`.
-	#[inline(always)]
-	pub unsafe fn write_unaligned(self, value: T) {
-		self.ptr.write_unaligned(value);
-	}
-
-	/// Exchanges the argument with the pointed-to value.
-	///
-	/// ## Safety
-	///
-	/// The pointed-to value must be properly initialized, and no other
-	/// reference to it may exist when this function is called.
-	#[inline(always)]
-	pub unsafe fn replace(self, value: T) -> T {
-		self.ptr.replace(value)
-	}
-
-	/// Exchanges the pointed-to values between this and another `Pointer`.
-	///
-	/// ## Safety
-	///
-	/// The pointed-to values must be properly initialized, and no other
-	/// references to them may exist when this function is called.
-	#[inline(always)]
-	pub unsafe fn swap(self, with: Self) {
-		self.ptr.swap(with.ptr);
-	}
-}
-
-impl<T, P> Pointer<T, (Shared, P)>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	/// Removes the leading `Shared` from the permission stack.
-	#[inline(always)]
-	pub fn cast_unshared(self) -> Pointer<T, P> {
-		Pointer {
-			ptr: <P>::from_const(self.into_const_ptr()),
-		}
-	}
-
-	/// Recursively unwinds the permission stack until it bottoms out at
-	/// `Unique`. Returns `None` if the base permission is `Shared`.
-	#[inline(always)]
-	pub fn unwind_to_unique(self) -> Option<Pointer<T, Unique>> {
-		P::unwind_to_unique(self.cast_unshared().ptr)
-			.map(Pointer::<T, Unique>::new)
 	}
 }
 
@@ -468,396 +145,772 @@ where
 	T: ?Sized,
 	P: Permission,
 {
-	/// Constructs a `Pointer` from its enclosed associated type.
+	/// Create a new `Pointer` with any permission from a raw const pointer.
 	///
-	/// This takes a raw pointer when `P` is known, but is only the `P::Ptr`
-	/// associated type when `P` is generic.
-	#[inline(always)]
-	pub fn from_ptr(ptr: P::Ptr<T>) -> Self {
-		Self { ptr }
-	}
-
-	/// Converts this `Pointer` to its enclosed associated type.
+	/// # Safety
 	///
-	/// This is a raw pointer when `P` is known, but remains the `P::Ptr`
-	/// associated type when `P` is generic.
+	/// This is a module-internal API, and can only be used in immediate
+	/// conjunction with `Self::into_raw_const()` of the **same** `Permission`
+	/// type, or a type that is known to be in a valid relation to the original
+	/// permission. It is not marked as `unsafe` because it is private to this
+	/// module.
 	#[inline(always)]
-	pub fn as_ptr(self) -> P::Ptr<T> {
-		self.ptr
-	}
-
-	/// Produces a raw immutable pointer.
-	#[inline(always)]
-	pub fn into_const_ptr(self) -> *const T {
-		P::into_const::<T>(self.ptr)
-	}
-
-	/// Attempts to produce a raw mutable pointer.
-	///
-	/// Returns `None` when `P` is anything other than `Unique`.
-	///
-	/// If you have a history stack `(Shared, impl Permission)`, you can unwind
-	/// the stack all the way to the original `Unique` by using
-	/// `.unwind_to_unique()`.
-	#[inline(always)]
-	pub fn try_into_mut_ptr(self) -> Option<*mut T> {
-		P::try_into_mut::<T>(self.ptr)
-	}
-
-	/// Tests if this points to the null address.
-	#[inline(always)]
-	pub fn is_null(self) -> bool {
-		self.ptr.is_null()
-	}
-
-	/// Changes the apparent type of the pointed-to value.
-	///
-	/// Pointer metadata such as region length or trait vtable can only be
-	/// discarded, not transformed or conjured, by this function.
-	#[inline(always)]
-	pub fn cast<U: Sized>(self) -> Pointer<U, P> {
-		let Self { ptr } = self;
-		Pointer {
-			ptr: <P as Permission>::cast::<T, U>(ptr),
+	const fn new_from_const(ptr: *const T) -> Self {
+		Self {
+			ptr: unsafe { mem::transmute_copy(&ptr) },
 		}
 	}
 
-	/// Creates a shared reference to the pointed-to value.
+	/// Unwrap a `Pointer` into a raw const pointer.
 	///
-	/// ## Safety
-	///
-	/// This function requires the following:
-	///
-	/// - the `Pointer` is well-aligned for `T`.
-	/// - the pointed-to location contains an initialized `T` value.
-	/// - no `&mut T` or `Reference<T, Unique>` pointing to the location exists
-	///   for the duration of the produced reference’s existence.
-	/// - the pointed-to location exists for the full duration of the conjured
-	///   `'a` lifetime.
+	/// This is only useful for accessing the `const fn` methods on `<*T>`. It
+	/// is distinct from `.into_raw()` to indicate that this is an internal API
+	/// and should be paired with `Self::new_from_const`, which is similarly
+	/// private.
 	#[inline(always)]
-	pub unsafe fn as_ref<'a>(self) -> Option<&'a T> {
-		if self.is_null() {
-			return None;
-		};
-		Some(&*P::into_const(self.ptr))
+	const fn into_raw_const(self) -> *const T {
+		unsafe { mem::transmute_copy(&self.ptr) }
 	}
 
-	/// Produces a reference to the pointed-to value.
+	/// Reversibly degrades a pointer to `Shared` permissions, by pushing a
+	/// `Shared` to the front of its permission history stack.
 	///
-	/// ## Safety
-	///
-	/// This function requires the following:
-	///
-	/// - the `Pointer` is well-aligned for `T`.
-	/// - the pointed-to location contains an initialized `T` value.
-	/// - if `P` is `Unique`, no other reference to the pointed-to value may
-	///   exist for the duration of the produced reference’s existence.
-	/// - if `P` is `Shared`, then no `Unique` or `&mut` reference to the
-	///   pointed-to value may exist for the duration.
-	/// - the pointed-to location exists for the full duration of the conjured
-	///   `'a` lifetime.
+	/// There is no difference in behavior between the `Shared` and
+	/// `(Shared, Shared)` permissions. This is primarily useful for blunting
+	/// `Unique`-permissioned pointers for a limited period, and allowing them
+	/// to recover later.
 	#[inline(always)]
-	pub unsafe fn as_reference<'a>(self) -> Option<Reference<'a, T, P>> {
-		if self.is_null() {
-			return None;
-		}
-		Some(P::ptr_to_ref(self.ptr))
+	pub const fn make_shared(self) -> Pointer<T, (Shared, P)> {
+		Pointer::new_from_const(self.into_raw_const())
 	}
 
-	/// Forcibly converts this to a pointer with `Shared` permissions.
+	/// Inverse of [`.make_shared()`](Self::make_shared). Restores the pointer
+	/// to its original `Shared` or `Unique` permission.
 	///
-	/// This is always safe to do.
+	/// Because `Pointer<_, (Shared, _)>` has the same API as
+	/// `Pointer<_, Shared>`, this method is primarily useful only for cutting
+	/// down on monomorphization bloat from repeated `.make_shared()`
+	/// invocations.
 	#[inline(always)]
-	pub fn cast_const(self) -> Pointer<T, Shared> {
-		Pointer {
-			ptr: self.into_const_ptr(),
-		}
+	pub const fn make_unshared(self) -> Pointer<T, P::Base> {
+		Pointer::new_from_const(self.into_raw_const())
 	}
 
-	/// Forcibly converts this to a pointer with `Unique` permissions.
-	///
-	/// ## Safety
-	///
-	/// You must ensure that this pointer was originally drawn from a region
-	/// with `*mut T` permissions. The penalty for violation of this rule on
-	/// memory access is currently not specified, but cannot be relied upon to
-	/// always work.
-	///
-	/// See [`.unwind_to_unique()`][utu] for a safe, fallible, alternative.
-	///
-	/// [utu]: Pointer::unwind_to_unique
+	/// Similar to [`.make_shared()`](Self::make_shared), except the cast is
+	/// irreversible.
 	#[inline(always)]
-	pub unsafe fn cast_mut(self) -> Pointer<T, Unique> {
-		Pointer {
-			ptr: self.into_const_ptr().cast_mut(),
-		}
+	pub const fn make_const(self) -> Pointer<T, Shared> {
+		Pointer::from_const(self.into_raw_const())
 	}
 
-	/// Degrades the pointer to no longer have `Unique` permissions.
+	/// Converts a pointer to the `Unique` permission, **only** if `P` has a
+	/// `Unique` base permission.
 	///
-	/// This prepends `Shared` to the `Permission` stack. The resulting pointer
-	/// can remove this `Shared` and restore the current permission stack by
-	/// calling `.cast_unshared()`.
+	/// Use this instead of [`.cast_mut()`](Self::cast_mut). That function
+	/// panics when the base permission is `Shared`.
 	///
-	/// Only the permission stack `(Shared, Unique)` has the method
-	/// `.cast_mut()`, which directly produces a `Pointer<T, Unique>`.
-	#[inline(always)]
-	pub fn cast_shared(self) -> Pointer<T, (Shared, P)> {
-		let ptr = P::into_const(self.ptr);
-		let ptr = <(Shared, P)>::from_const(ptr);
-		Pointer { ptr }
-	}
-
-	/// Gets the raw value of the address to which this points.
-	#[inline(always)]
-	pub fn addr(self) -> usize {
-		P::addr::<T>(self.ptr)
+	/// # Returns
+	///
+	/// - `Ok`: a wrapped `*mut T` pointer
+	/// - `Err`: a marker indicating that the pointer did not have any write
+	///   permission in its history.
+	#[inline]
+	pub fn make_mut(self) -> Result<Pointer<T, Unique>, NonUniqueError<T>> {
+		P::try_into_mut_ptr(self.ptr).map(Into::into)
 	}
 }
 
+/// Mirrors of the pointer fundamental API that work on all pointers.
+impl<T, P> Pointer<T, P>
+where
+	T: ?Sized,
+	P: Permission,
+{
+	/// Tests if the pointer is null.
+	///
+	/// Note that unsized types may have many possible null pointers, as only
+	/// the raw data pointer is considered, not their length, vtable, etc.
+	/// Therefore, two pointers that are null may still not compare equal to
+	/// each other.
+	///
+	/// # Original
+	///
+	/// [`<*T>::is_null`](https://doc.rust-lang.org/std/primitive.pointer.html#method.is_null)
+	///
+	/// # Examples
+	///
+	/// ```rust
+	/// # use funty::prelude::*;
+	/// let s: &str = "Follow the rabbit";
+	/// let ptr: Pointer<str, Shared> = s.into();
+	/// assert!(!ptr.is_null());
+	/// ```
+	#[inline(always)]
+	pub const fn is_null(self) -> bool {
+		self.into_raw_const().is_null()
+	}
+
+	/// Casts to a pointer of another type.
+	///
+	/// # Original
+	///
+	/// [`<*T>::cast`](https://doc.rust-lang.org/std/primitive.pointer.html#method.cast)
+	///
+	/// # Notes
+	///
+	/// This can only discard, but not conjure, pointer metadata. Therefore, a
+	/// slice or dyn-trait pointer can be cast to an object pointer, but an
+	/// object pointer cannot be cast to a slice- or dyn-trait- pointer.
+	#[inline(always)]
+	pub const fn cast<U>(self) -> Pointer<U, P>
+	where U: Sized {
+		Pointer::new_from_const(self.into_raw_const().cast::<U>())
+	}
+
+	/// Changes constness without changing the type.
+	///
+	/// This is a bit safer than `as` because it wouldn’t silently change the
+	/// type if the code is refactored.
+	///
+	/// # Original
+	///
+	/// [`<*T>::cast_const`](https://doc.rust-lang.org/std/primitive.pointer.html#method.cast_const)
+	///
+	/// # Alternatives
+	///
+	/// - [`.make_shared()`](Pointer::make_shared) produces a `Pointer<T,
+	///   (Shared, P)>`, which acts like a const-pointer, but can later pop its
+	///   permission stack and restore its original permission.
+	/// - [`.make_const()`](Pointer::make_const) produces a `Pointer<T,
+	///   Shared>`. It discards its permission stack entirely.
+	#[inline(always)]
+	#[deprecated = "prefer `make_shared`; its pointer can be safely made \
+	                mutable again"]
+	pub const fn cast_const(self) -> *const T {
+		self.into_raw_const()
+	}
+
+	/// Changes constness without changing the type.
+	///
+	/// This is a bit safer than `as` because it wouldn’t silently change the
+	/// type if the code is refactored.
+	///
+	/// # Original
+	///
+	/// [`<*T>::cast_mut`](https://doc.rust-lang.org/std/primitive.pointer.html#method.cast_mut)
+	///
+	/// # Behavior Differences
+	///
+	/// This **panics** if the root permission is `Shared`. This type **does
+	/// not** allow conjuring uniqueness permissions from air; uniqueness
+	/// **must** be recorded from the beginning of the type’s usage.
+	///
+	/// # Examples
+	///
+	/// This code succeeds, because the initial memory grant has mutability:
+	///
+	/// ```rust
+	/// # use funty::prelude::*;
+	/// let mut data: u8 = 5;
+	/// let ptr_m: Pointer<u8, Unique> = (&mut data).into();
+	/// let ptr_c = ptr_m.make_shared();
+	/// let raw_m: *mut u8 = ptr_c.cast_mut();
+	/// ```
+	///
+	/// This code fails, because the initial memory grant lacks mutability:
+	///
+	/// ```rust,should_panic
+	/// # use funty::prelude::*;
+	/// let data: u8 = 5;
+	/// let ptr_c: Pointer<u8, Shared> = (&data).into();
+	/// let raw_m: *mut u8 = ptr_c.cast_mut();
+	/// ```
+	#[inline]
+	#[track_caller]
+	#[deprecated = "use `make_mut` instead"]
+	pub const fn cast_mut(self) -> *mut T {
+		match self.make_mut() {
+			| Ok(ptr) => ptr.into_raw(),
+			| Err(_) => {
+				panic!("funty refuses to conjure a *mut T from a *const T")
+			},
+		}
+	}
+
+	/// Gets the “address” portion of the pointer.
+	///
+	/// This is similar to `self.cast_const() as usize`, except that the
+	/// [provenance][0] of the pointer is discarded and not [exposed][1]. This
+	/// means that casting the returned address back to a pointer yields a
+	/// [pointer without provenance], which is undefined behavior to
+	/// dereference. To properly restore the lost information and obtain a
+	/// dereferenceable pointer, use [`with_addr`][2] or [`map_addr`][3].
+	///
+	/// If using those APIs is not possible because there is no way to preserve
+	/// a pointer with the required provenance, then Strict Provenance might not
+	/// be for you. Use pointer-integer casts or [`expose_provenance`][4] and
+	/// [`with_exposed_provenance`][5] instead. However, note that this makes
+	/// your code less portable and less amenable to tools that check for
+	/// compliance with the Rust memory model.
+	///
+	/// On most platforms this will produce a value with the same bytes as the
+	/// original pointer, because all the bytes are dedicated to describing the
+	/// address. Platforms which need to store additional information in the
+	/// pointer may perform a change of representation to produce a value
+	/// containing only the address portion of the pointer. What that means is
+	/// up to the platform to define.
+	///
+	/// This is a [Strict Provenance][6] API.
+	///
+	/// # Original
+	///
+	/// [`<*T>::addr`](https://doc.rust-lang.org/std/primitive.pointer.html#method.addr)
+	///
+	/// [0]: https://doc.rust-lang.org/std/ptr/index.html#provenance
+	/// [1]: https://doc.rust-lang.org/std/ptr/index.html#exposed-provenance
+	/// [2]: without_provenance
+	/// [3]: Pointer::with_addr
+	/// [4]: Pointer::map_addr
+	/// [5]: Pointer::expose_provenance
+	/// [6]: with_exposed_provenance
+	#[inline(always)]
+	pub fn addr(self) -> usize {
+		self.into_raw_const().addr()
+	}
+
+	/// Exposes the [“provenance”][0] part of the pointer for future use in
+	/// [`with_exposed_provenance`] and returns the “address” portion.
+	///
+	/// This is equivalent to `self as usize`, which semantically discards
+	/// provenance information. Furthermore, this (like the `as` cast) has the
+	/// implicit side-effect of marking the provenance as ‘exposed’, so on
+	/// platforms that support it you can later call [`with_exposed_provenance`]
+	/// to reconstitute the original pointer including its provenance.
+	///
+	/// Due to its inherent ambiguity, [`with_exposed_provenance`] may not be
+	/// supported by tools that help you to stay conformant with the Rust memory
+	/// model. It is recommended to use [Strict Provenance][1] APIs such as
+	/// [`with_addr`][2] wherever possible, in which case [`addr`][3] should be
+	/// used instead of `expose_provenance`.
+	///
+	/// On most platforms this will produce a value with the same bytes as the
+	/// original pointer, because all the bytes are dedicated to describing the
+	/// address. Platforms which need to store additional information in the
+	/// pointer may not support this operation, since the ‘expose’ side-effect
+	/// which is required for [`with_exposed_provenance`] to work is typically
+	/// not available.
+	///
+	/// This is an [Exposed Provenance][4] API.
+	///
+	/// # Original
+	///
+	/// [`<*T>::expose_provenance`](https://doc.rust-lang.org/std/primitive.pointer.html#method.expose_provenance)
+	///
+	/// [0]: https://doc.rust-lang.org/std/ptr/index.html#provenance
+	/// [1]: https://doc.rust-lang.org/std/ptr/index.html#strict-provenance
+	/// [2]: Pointer::with_addr
+	/// [3]: Pointer::addr
+	/// [4]: https://doc.rust-lang.org/std/ptr/index.html#exposed-provenance
+	#[inline(always)]
+	pub fn expose_provenance(self) -> usize {
+		self.into_raw_const().expose_provenance()
+	}
+
+	/// Creates a new pointer with the given address and the [provenance][0] of
+	/// `self`.
+	///
+	/// This is similar to a `addr as *const T` cast, but copies the
+	/// _provenance_ of `self` to the new pointer. This avoids the inherent
+	/// ambiguity of the unary cast.
+	///
+	/// This is equivalent to using [`wrapping_offset`][1] to offset `self` to
+	/// the given address, and therefore has all the same capabilities and
+	/// restrictions.
+	///
+	/// This is a [Strict Provenance][2] API.
+	///
+	/// # Original
+	///
+	/// [`<*T>::with_addr`](https://doc.rust-lang.org/std/primitive.pointer.html#method.with_addr)
+	///
+	/// [0]: https://doc.rust-lang.org/std/ptr/index.html#provenance
+	/// [1]: Pointer::wrapping_offset
+	/// [2]: https://doc.rust-lang.org/std/ptr/index.html#strict-provenance
+	#[inline(always)]
+	pub fn with_addr(self, addr: usize) -> Self {
+		Self::new_from_const(self.into_raw_const().with_addr(addr))
+	}
+
+	/// Creates a new pointer by mapping `self`’s address to a new one,
+	/// preserving the provenance of self.
+	///
+	/// This is a convenience for [`with_addr`][0]; see that method for details.
+	///
+	/// This is a [Strict Provenance][1] API.
+	///
+	/// # Original
+	///
+	/// [`<*T>::map_addr`](https://doc.rust-lang.org/std/primitive.pointer.html#method.map_addr)
+	///
+	/// [0]: Pointer::with_addr
+	/// [1]: https://doc.rust-lang.org/std/ptr/index.html#strict-provenance
+	#[inline(always)]
+	pub fn map_addr(self, func: impl FnOnce(usize) -> usize) -> Self {
+		Self::new_from_const(self.into_raw_const().map_addr(func))
+	}
+
+	/// Promotes this pointer to a reference with the same permission. Fails if
+	/// the pointer is null.
+	///
+	/// # Original
+	///
+	/// [`<*T>::as_ref`](https://doc.rust-lang.org/std/primitive.pointer.html#method.as_ref)
+	///
+	/// # API Differencess
+	///
+	/// Returns `Result` instead of `Option`. The error variant is a ZST with a
+	/// useful message upon `.unwrap()`.
+	///
+	/// # Safety
+	///
+	/// When calling this method, you have to ensure that _either_ the pointer
+	/// is null _or_ the pointer is [convertible to a reference][0].
+	///
+	/// # Null-unchecked version
+	///
+	/// You can convert this back to a raw pointer and dereference that. To
+	/// read, use [`.cast_const()`][1]; to write, use
+	/// [`.cast_mut().unwrap()`][2]. The unwrap on `.cast_mut()` is for ensuring
+	/// write permission, and cannot be bypassed with `funty` APIs.
+	///
+	/// # Examples
+	///
+	/// ```rust
+	/// use funty::prelude::*;
+	/// let data = 10u8;
+	/// let ptr = Pointer::from(&data);
+	///
+	/// unsafe {
+	///   if let Ok(val) = ptr.as_reference() {
+	///     assert_eq!(val, &10);
+	///   }
+	/// }
+	/// ```
+	///
+	/// ```rust
+	/// use funty::prelude::*;
+	/// let data = 10u8;
+	/// let ptr = Pointer::from(&data);
+	///
+	/// unsafe {
+	///   let val = &*ptr.cast_const();
+	///   assert_eq!(val, &10);
+	/// }
+	/// ```
+	///
+	/// [0]: https://doc.rust-lang.org/std/ptr/index.html#pointer-to-reference-conversion
+	/// [1]: Pointer::cast_const
+	/// [2]: Pointer::cast_mut
+	pub const unsafe fn as_reference<'a>(
+		self,
+	) -> Result<Reference<'a, T, P>, NonNullError<T, P>>
+	where T: 'a {
+		match NonNullPointer::<T, P>::from_pointer(self) {
+			| Ok(nnp) => Ok(unsafe { nnp.as_reference() }),
+			| Err(e) => Err(e),
+		}
+	}
+
+	/// Adds a signed offset in bytes to a pointer.
+	///
+	/// `count` is in units of **bytes**.
+	///
+	/// This is purely a convenience for casting to a `u8` pointer and using
+	/// [`offset`][0] on it. See that method for documentation and safety
+	/// requirements.
+	///
+	/// For non-`Sized` pointees this operation changes only the data pointer,
+	/// leaving the metadata untouched.
+	///
+	/// # Original
+	///
+	/// [`<*T>::byte_offset`](https://doc.rust-lang.org/std/primitive.pointer.html#method.byte_offset)
+	///
+	/// [0]: Pointer::offset
+	#[inline(always)]
+	pub const unsafe fn byte_offset(self, count: isize) -> Self {
+		Self::new_from_const(unsafe { self.into_raw_const().byte_offset(count) })
+	}
+
+	/// Adds a signed offset in bytes to a pointer using wrapping arithmetic.
+	///
+	/// `count` is in units of **bytes**.
+	///
+	/// This is purely a convenience for casting to a `u8` pointer and using
+	/// [`wrapping_offset`][0] on it. See that method for documentation.
+	///
+	/// For non-`Sized` pointees this operation changes only the data pointer,
+	/// leaving the metadata untouched.
+	///
+	/// # Original
+	///
+	/// [`<*T>::wrapping_byte_offset`](https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_byte_offset)
+	///
+	/// [0]: Self::wrapping_offset
+	#[inline(always)]
+	pub const fn wrapping_byte_offset(self, count: isize) -> Self {
+		Self::new_from_const(self.into_raw_const().wrapping_byte_offset(count))
+	}
+
+	/// Calculates the distance between two pointers within the same allocation.
+	/// The returned value is in units of **bytes**.
+	///
+	/// This is purely a convenience for casting to a `u8` pointer and using
+	/// [`offset_from`][0] on it. See that method for documentation and safety
+	/// requirements.
+	///
+	/// For non-`Sized` pointees this operation considers only the data
+	/// pointers, ignoring the metadata.
+	///
+	/// # Original
+	///
+	/// [`<*T>::byte_offset_from`](https://doc.rust-lang.org/std/primitive.pointer.html#method.byte_offset_from)
+	///
+	/// # Safety
+	///
+	/// `self` and `origin` **must** be derived from the same allocation and
+	/// have the same provenance.
+	///
+	/// [0]: Self::offset_from
+	pub const unsafe fn byte_offset_from<U, Q>(
+		self,
+		origin: Pointer<U, Q>,
+	) -> isize
+	where
+		U: ?Sized,
+		Q: Permission,
+	{
+		unsafe {
+			self.into_raw_const()
+				.byte_offset_from(origin.into_raw_const())
+		}
+	}
+
+	/// Calculates the distance between two pointers within the same allocation,
+	/// _where it’s known that `self` is equal to or greater than `origin`_. The
+	/// returned value is in units of T: the distance in bytes is divided by
+	/// `size_of::<T>()`.
+	///
+	/// This computes the same value that [`offset_from`][0] would compute, but
+	/// with the added precondition that the offset is guaranteed to be
+	/// non-negative. This method is equivalent to
+	/// `usize::try_from(self.offset_from(origin)).unwrap_unchecked()`, but it
+	/// provides slightly more information to the optimizer, which can sometimes
+	/// allow it to optimize slightly better with some backends.
+	///
+	///This method can be thought of as recovering the `count` that was passed
+	/// to [`add`][1] (or, with the parameters in the other order, to
+	/// [`sub`][2]). The following are all equivalent, assuming that their
+	/// safety preconditions are met:
+	///
+	/// ```rust,ignore
+	/// ptr.offset_from_unsigned(origin) == count
+	/// origin.add(count) == ptr
+	/// ptr.sub(count) == origin
+	/// ```
+	///
+	/// # Safety
+	///
+	/// - The distance between the pointers must be non-negative (`self >=
+	///   origin`)
+	/// - _All_ the safety conditions of [`offset_from`][0] apply to this method
+	///   as well; see it for the full details.
+	///
+	/// Importantly, despite the return type of this method being able to
+	/// represent a larger offset, it’s still not permitted to pass pointers
+	/// which differ by more than `isize::MAX` bytes. As such, the result of
+	/// this method will always be less than or equal to `isize::MAX as usize`.
+	///
+	/// # Panics
+	///
+	/// This function panics if T is a Zero-Sized Type (“ZST”).
+	///
+	/// # Examples
+	///
+	/// ```rust
+	/// # use funty::ptr::*;
+	/// let a = [0; 5];
+	/// let ptr1 = Pointer::<i32, Shared>::from_const(&a[1]);
+	/// let ptr2 = Pointer::<i32, Shared>::from_const(&a[3]);
+	/// unsafe {
+	///     assert_eq!(ptr2.offset_from_unsigned(ptr1), 2);
+	///     assert_eq!(ptr1.add(2), ptr2);
+	///     assert_eq!(ptr2.sub(2), ptr1);
+	///     assert_eq!(ptr2.offset_from_unsigned(ptr2), 0);
+	/// }
+	///
+	/// // This would be incorrect, as the pointers are not correctly ordered:
+	/// // ptr1.offset_from_unsigned(ptr2)
+	/// ```
+	///
+	/// [0]: Self::offset_from
+	/// [1]: Self::add
+	/// [2]: Self::sub
+	#[inline(always)]
+	#[cfg(feature = "rust_187")]
+	pub const unsafe fn byte_offset_from_unsigned<U, Q>(
+		self,
+		origin: Pointer<U, Q>,
+	) -> usize
+	where
+		U: ?Sized,
+		Q: Permission,
+	{
+		unsafe {
+			self.into_raw_const()
+				.byte_offset_from_unsigned(origin.into_raw_const())
+		}
+	}
+}
+
+/// Mirrors of the pointer fundamental API that require a `Sized` pointee.
 impl<T, P> Pointer<T, P>
 where
 	T: Sized,
 	P: Permission,
 {
-	/// Produces the canonical dangling pointer for `T`.
+	/// Adds a signed offset to a pointer.
 	///
-	/// Note that the dangling pointer is always considered to be conjured from
-	/// nothing and thus does not have provenance, so this pointer cannot be
-	/// dereferenced until it has been overwritten with a different value.
+	/// `count` is in units of T; e.g., a count of 3 represents a pointer offset
+	/// of `3 * size_of::<T>()` bytes.
+	///
+	/// # Original
+	///
+	/// [`<*T>::offset`](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)
+	///
+	/// # Safety
+	///
+	/// If any of the following conditions are violated, the result is Undefined
+	/// Behavior:
+	///
+	/// - The offset in bytes, `count * size_of::<T>()`, computed on
+	///   mathematical integers (without “wrapping around”), must fit in an
+	///   `isize`.
+	///
+	/// - If the computed offset is non-zero, then `self` must be [derived
+	///   from][0] a pointer to some [allocation][1], and the entire memory
+	///   range between `self` and the result must be in bounds of that
+	///   allocation. In particular, this range must not “wrap around” the edge
+	///   of the address space. Note that “range” here refers to a half-open
+	///   range as usual in Rust, i.e., `self..result` for non-negative offsets
+	///   and `result..self` for negative offsets.
+	///
+	/// Allocations can never be larger than `isize::MAX` bytes, so if the
+	/// computed offset stays in bounds of the allocation, it is guaranteed to
+	/// satisfy the first requirement. This implies, for instance, that
+	/// `vec.as_ptr().add(vec.len())` (for `vec: Vec<T>`) is always safe.
+	///
+	/// Consider using [`wrapping_offset`][2] instead if these constraints are
+	/// difficult to satisfy. The only advantage of this method is that it
+	/// enables more aggressive compiler optimizations.
+	///
+	/// [0]: https://doc.rust-lang.org/std/ptr/index.html#provenance
+	/// [1]: https://doc.rust-lang.org/std/ptr/index.html#allocation
+	/// [2]: Pointer::wrapping_offset
 	#[inline(always)]
-	pub fn dangling() -> Self {
-		Self {
-			ptr: P::from_const(NonNull::<T>::dangling().as_ptr().cast_const()),
+	pub const unsafe fn offset(self, count: isize) -> Self {
+		Self::new_from_const(unsafe { self.into_raw_const().offset(count) })
+	}
+
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/struct.Pointer.fn.wrapping_offset.md")]
+	pub const fn wrapping_offset(self, count: isize) -> Self {
+		Self::new_from_const(self.into_raw_const().wrapping_offset(count))
+	}
+
+	#[inline(always)]
+	pub const unsafe fn offset_from<Q>(self, origin: Pointer<T, Q>) -> isize
+	where Q: Permission {
+		unsafe { self.into_raw_const().offset_from(origin.into_raw_const()) }
+	}
+
+	#[inline(always)]
+	#[cfg(feature = "rust_187")]
+	pub const unsafe fn offset_from_unsigned<Q>(
+		self,
+		origin: Pointer<T, Q>,
+	) -> usize
+	where
+		Q: Permission,
+	{
+		unsafe {
+			self.into_raw_const()
+				.offset_from_unsigned(origin.into_raw_const())
 		}
 	}
 
-	/// Tests if this points to the canonical “sentinel” address for a type.
-	///
-	/// Since most targets Rust supports do not permit addressing the zero page,
-	/// Rust considers addresses which match the alignment of a type (that is,
-	/// the addresses `0x1`, `0x2`, `0x4`, `0x8`, `0x10`, ... probably `0x1000`)
-	/// to be “unlikely” to point to validly-initialized or dereferenceable
-	/// memory, and uses these values to indicate that some structure which
-	/// contains a pointer has been validly initialized, but has not been
-	/// granted a region of memory to which it can usefully point.
-	///
-	/// This is a convenience function to support that use case, but should not
-	/// be considered to indicate anything else about the pointed-to location.
-	/// This behavior is determined entirely by the user, not by this type.
 	#[inline(always)]
-	pub fn is_dangling(self) -> bool {
-		self == Self::dangling()
+	pub const unsafe fn add(self, count: usize) -> Self {
+		Self::new_from_const(unsafe { self.into_raw_const().add(count) })
 	}
 
-	/// Adjusts the memory address by some number of `T` elements.
-	///
-	/// ## Safety
-	///
-	/// The resulting pointer must be within the same provenance region as the
-	/// source pointer.
 	#[inline(always)]
-	pub unsafe fn offset(self, by: isize) -> Self {
-		Self {
-			ptr: self.ptr.offset(by),
-		}
+	pub const unsafe fn byte_add(self, count: usize) -> Self {
+		Self::new_from_const(unsafe { self.into_raw_const().byte_add(count) })
 	}
 
-	/// Adjusts the memory address by some number of `T` elements.
-	///
-	/// Note: the resulting pointer is permitted to be outside the provenance
-	/// region of the source pointer. However, it will not be safe to
-	/// dereference until it has been brought back within the original
-	/// provenance bounds.
 	#[inline(always)]
-	pub fn wrapping_offset(self, by: isize) -> Self {
-		Self {
-			ptr: self.ptr.wrapping_offset(by),
-		}
+	pub const unsafe fn sub(self, count: usize) -> Self {
+		Self::new_from_const(unsafe { self.into_raw_const().sub(count) })
 	}
 
-	/// Produces the number of `T` elements between this pointer and the
-	/// provided origin.
-	///
-	/// This is positive when `self` is higher in the memory space than `origin`
-	/// and negative when `self` is lower in the memory space than `origin`.
-	///
-	/// ## Safety
-	///
-	/// Both pointers must be within the same provenance region. This is most
-	/// likely to be the case when `self` has been produced by calling
-	/// `origin.offset()`.
 	#[inline(always)]
-	pub unsafe fn offset_from(self, origin: Self) -> isize {
-		self.ptr.offset_from(origin.ptr)
+	pub const unsafe fn byte_sub(self, count: usize) -> Self {
+		Self::new_from_const(unsafe { self.into_raw_const().byte_sub(count) })
 	}
 
-	/// Adjusts the memory address upwards in the memory space by some number of
-	/// `T` elements.
-	///
-	/// ## Safety
-	///
-	/// The resulting pointer must be within the same provenance region as the
-	/// source pointer.
 	#[inline(always)]
-	pub unsafe fn add(self, count: usize) -> Self {
-		debug_assert!(
-			count < (isize::MAX as usize),
-			"Addend ({}) exceeds maximum ({})",
-			count,
-			isize::MAX
-		);
-		self.offset(count as isize)
+	pub const fn wrapping_add(self, count: usize) -> Self {
+		Self::new_from_const(self.into_raw_const().wrapping_add(count))
 	}
 
-	/// Adjusts the memory address downwards in the memory space by some number
-	/// of `T` elements.
-	///
-	/// ## Safety
-	///
-	/// The resulting pointer must be within the same provenance region as the
-	/// source pointer.
 	#[inline(always)]
-	pub unsafe fn sub(self, count: usize) -> Self {
-		debug_assert!(
-			count < (isize::MAX as usize),
-			"Subtrahend ({}) exceeds maximum ({})",
-			count,
-			isize::MAX
-		);
-		self.offset(-(count as isize))
+	pub const fn wrapping_byte_add(self, count: usize) -> Self {
+		Self::new_from_const(self.into_raw_const().wrapping_byte_add(count))
 	}
 
-	/// Adjusts the memory address upwards in the memory space by some number of
-	/// `T` elements.
-	///
-	/// Note: the resulting pointer is permitted to be outside the provenance
-	/// region of the source pointer. However, it will not be safe to
-	/// dereference until it has been brought back within the original
-	/// provenance bounds.
 	#[inline(always)]
-	pub fn wrapping_add(self, count: usize) -> Self {
-		debug_assert!(
-			count < (isize::MAX as usize),
-			"Addend ({}) exceeds maximum ({})",
-			count,
-			isize::MAX
-		);
-		self.wrapping_offset(count as isize)
+	pub const fn wrapping_sub(self, count: usize) -> Self {
+		Self::new_from_const(self.into_raw_const().wrapping_sub(count))
 	}
 
-	/// Adjusts the memory address downwards in the memory space by some number
-	/// of `T` elements.
-	///
-	/// Note: the resulting pointer is permitted to be outside the provenance
-	/// region of the source pointer. However, it will not be safe to
-	/// dereference until it has been brought back within the original
-	/// provenance bounds.
 	#[inline(always)]
-	pub fn wrapping_sub(self, count: usize) -> Self {
-		debug_assert!(
-			count < (isize::MAX as usize),
-			"Subtrahend ({}) exceeds maximum ({})",
-			count,
-			isize::MAX
-		);
-		self.wrapping_offset(-(count as isize))
+	pub const fn wrapping_byte_sub(self, count: usize) -> Self {
+		Self::new_from_const(self.into_raw_const().wrapping_byte_sub(count))
 	}
 
-	/// Reads the value out of the pointed-to location.
-	///
-	/// ## Safety
-	///
-	/// The pointed-to location is now de-initialized, and must not have its
-	/// destructor run unless the location is re-initialized with a new value,
-	/// such as through `write`.
 	#[inline(always)]
-	pub unsafe fn read(self) -> T {
-		self.ptr.read()
+	#[doc = include_str!("../doc/ptr/fn.read.md")]
+	pub const unsafe fn read(self) -> T {
+		unsafe { self.into_raw_const().read() }
 	}
 
-	/// Equivalent to `read`, with the additional guarantee that the *compiler*
-	/// will not omit this load.
-	///
-	/// This load does not synchronize across threads, nor does it create a
-	/// causal dependency with any other memory accesses in the current thread.
-	/// Its only guarantee is that the compiler will emit a load instruction.
-	///
-	/// ## Safety
-	///
-	/// See `read`.
 	#[inline(always)]
 	pub unsafe fn read_volatile(self) -> T {
-		self.ptr.read_volatile()
+		unsafe { self.into_raw_const().read_volatile() }
 	}
 
-	/// Equivalent to `read`, except that it is tolerant of the address not
-	/// being well-aligned for `T`.
-	///
-	/// ## Safety
-	///
-	/// See `read`.
 	#[inline(always)]
-	pub unsafe fn read_unaligned(self) -> T {
-		self.ptr.read_unaligned()
+	pub const unsafe fn read_unaligned(self) -> T {
+		unsafe { self.into_raw_const().read_unaligned() }
 	}
 
-	/// Copies objects pointed to by `self` into the region pointed to by
-	/// `dest`.
-	///
-	/// ## Safety
-	///
-	/// - the memory region of `self[.. count]` must contain contiguous
-	///   fully-initialized `T` values.
-	/// - the memory region of `dest[.. count]` must be within a single
-	///   allocation.
-	///
-	/// ## Non-Effects
-	///
-	/// This does not run destructors on values stored in `dest[.. count]`, and
-	/// any values stored there will become leaked.
 	#[inline(always)]
-	pub unsafe fn copy_to(self, dest: Pointer<T, Unique>, count: usize) {
-		self.ptr.copy_to(dest.ptr, count)
+	#[doc = include_str!("../doc/ptr/fn.copy.md")]
+	pub const unsafe fn copy_to(self, dest: Pointer<T, Unique>, count: usize) {
+		unsafe { dest.copy_from(self.make_const(), count) }
 	}
 
-	/// Same as `copy_t`, except that you guarantee that the memory regions
-	/// `self[.. count]` and `dest[.. count`] are fully disjoint.
-	///
-	/// ## Safety
-	///
-	/// The copying behavior from the self region to the destination region is
-	/// not specified. As such, the two regions **must not** overlap at all in
-	/// the memory space.
 	#[inline(always)]
-	pub unsafe fn copy_to_nonoverlapping(
+	#[doc = include_str!("../doc/ptr/fn.copy_nonoverlapping.md")]
+	pub const unsafe fn copy_to_nonoverlapping(
 		self,
 		dest: Pointer<T, Unique>,
 		count: usize,
 	) {
-		self.ptr.copy_to_nonoverlapping(dest.ptr, count)
+		unsafe { dest.copy_from_nonoverlapping(self.make_const(), count) }
 	}
 
-	/// Computes the positive offset, measured in `T` elements, that must be
-	/// applied to this pointer in order to bring its address to the requested
-	/// alignment.
-	///
-	/// The requested alignment is measured in bytes, and is most likely to be
-	/// produced by calling `mem::align_of::<U>()`.
 	#[inline(always)]
 	pub fn align_offset(self, align: usize) -> usize {
-		self.ptr.align_offset(align)
+		self.into_raw_const().align_offset(align)
 	}
 
-	/// Converts this into a slice pointer, beginning at the pointed-to element
-	/// and extending upwards in memory for `len` total elements.
-	///
-	/// ## Safety
-	///
-	/// `self[.. len]` must be within a single contiguous provenance region.
 	#[inline(always)]
-	pub unsafe fn make_slice(self, len: usize) -> Pointer<[T], P> {
-		Pointer::from_raw_parts(self, len)
+	pub fn is_aligned(self) -> bool {
+		self.into_raw_const().is_aligned()
+	}
+}
+
+impl<T> Pointer<T, Unique> {
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/fn.copy.md")]
+	pub const unsafe fn copy_from<Q>(self, src: Pointer<T, Q>, count: usize)
+	where Q: Permission {
+		unsafe { self.into_raw().copy_from(src.into_raw_const(), count) }
+	}
+
+	/// Copies `count * size_of::<T>()` bytes from `src` to `self`. The source
+	/// and destination may _not_ overlap.
+	///
+	/// NOTE this has the _opposite_ argument order to
+	/// [`copy_to_nonoverlapping`].
+	///
+	/// See [`copy_to_nonoverlapping`] for safety concerns and examples.
+	///
+	/// # Original
+	///
+	/// [`<*mut T>::copy_from_nonoverlapping`][0]
+	///
+	/// [0]: https://doc.rust-lang.org/std/primitive.pointer.html#method.copy_from_nonoverlapping
+	/// [`copy_to_nonoverlapping`]: Self::copy_to_nonoverlapping
+	#[inline(always)]
+	pub const unsafe fn copy_from_nonoverlapping<Q>(
+		self,
+		src: Pointer<T, Q>,
+		count: usize,
+	) where
+		Q: Permission,
+	{
+		unsafe {
+			self.into_raw()
+				.copy_from_nonoverlapping(src.into_raw_const(), count)
+		}
+	}
+
+	#[doc = include_str!("../doc/ptr/fn.write.md")]
+	pub const unsafe fn write(self, val: T) {
+		unsafe {
+			self.into_raw().write(val);
+		}
+	}
+
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/fn.write_bytes.md")]
+	pub const unsafe fn write_bytes(self, val: u8, count: usize) {
+		unsafe {
+			self.into_raw().write_bytes(val, count);
+		}
+	}
+
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/fn.write_volatile.md")]
+	pub unsafe fn write_volatile(self, val: T) {
+		unsafe {
+			self.into_raw().write_volatile(val);
+		}
+	}
+
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/fn.write_unaligned.md")]
+	pub const unsafe fn write_unaligned(self, val: T) {
+		unsafe {
+			self.into_raw().write_unaligned(val);
+		}
+	}
+
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/fn.replace.md")]
+	pub const unsafe fn replace(self, src: T) -> T {
+		unsafe { self.into_raw().replace(src) }
+	}
+
+	#[inline(always)]
+	#[doc = include_str!("../doc/ptr/fn.swap.md")]
+	pub const unsafe fn swap(self, with: Self) {
+		unsafe {
+			self.into_raw().swap(with.into_raw());
+		}
 	}
 }
 
@@ -866,18 +919,46 @@ where
 	T: Sized,
 	P: Permission,
 {
-	/// Produces a slice pointer from its raw parts.
-	///
-	/// ## Safety
-	///
-	/// The provided element pointer must point to a region of memory that is
-	/// within a single allocation for at least `len` contiguous elements of
-	/// `T`. The pointed-to region does not need to be initialized.
 	#[inline(always)]
-	pub unsafe fn from_raw_parts(ptr: Pointer<T, P>, len: usize) -> Self {
-		Self {
-			ptr: P::ptr_to_slice::<T>(ptr.ptr, len),
-		}
+	pub const fn slice_from_raw_parts(ptr: Pointer<T, P>, len: usize) -> Self {
+		Self::new_from_const(core::ptr::slice_from_raw_parts(
+			ptr.into_raw_const(),
+			len,
+		))
+	}
+
+	/// Returns the length of a raw slice.
+	///
+	/// The returned value is the number of elements, not the number of bytes.
+	///
+	/// This function is safe, even when the raw slice cannot be cast to a slice
+	/// reference because the pointer is null or unaligned.
+	///
+	/// # Original
+	///
+	/// [`<*const [T]>::len`](https://doc.rust-lang.org/std/primitive.pointer.html#method.len)
+	///
+	/// # Examples
+	///
+	/// ```rust
+	/// use funty::ptr::*;
+	///
+	/// let slice = Pointer::slice_from_raw_parts(Pointer::<i8, Shared>::null(), 3);
+	/// assert_eq!(slice.len(), 3);
+	/// ```
+	#[inline(always)]
+	pub const fn len(self) -> usize {
+		self.into_raw_const().len()
+	}
+
+	/// Tests if the raw slice has a length of 0.
+	///
+	/// # Original
+	///
+	/// [`<*const [T]>`](https://doc.rust-lang.org/std/primitive.pointer.html#method.is_empty)
+	#[inline(always)]
+	pub const fn is_empty(self) -> bool {
+		self.into_raw_const().is_empty()
 	}
 }
 
@@ -886,12 +967,11 @@ where
 	T: ?Sized,
 	P: Permission,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
 		if fmt.alternate() {
 			write!(fmt, "({} {})", P::DEBUG_PREFIX, any::type_name::<T>())?;
 		}
-		fmt::Debug::fmt(&P::into_const(self.ptr), fmt)
+		fmt::Debug::fmt(&self.into_raw_const(), fmt)
 	}
 }
 
@@ -900,9 +980,8 @@ where
 	T: ?Sized,
 	P: Permission,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-		fmt::Pointer::fmt(&P::into_const(self.ptr), fmt)
+		fmt::Pointer::fmt(&self.into_raw_const(), fmt)
 	}
 }
 
@@ -931,37 +1010,40 @@ where
 {
 	#[inline]
 	fn cmp(&self, other: &Self) -> cmp::Ordering {
-		let this = P::into_const(self.ptr);
-		let that = P::into_const(other.ptr);
-		this.cmp(&that)
+		self.into_raw_const()
+			.cast::<()>()
+			.cmp(&other.into_raw_const().cast::<()>())
 	}
 }
 
-impl<T, P1, P2> PartialEq<Pointer<T, P2>> for Pointer<T, P1>
+impl<T1, T2, P1, P2> PartialEq<Pointer<T2, P2>> for Pointer<T1, P1>
 where
-	T: ?Sized,
+	T1: ?Sized,
+	T2: ?Sized,
 	P1: Permission,
 	P2: Permission,
 {
 	#[inline]
-	fn eq(&self, other: &Pointer<T, P2>) -> bool {
-		let this = P1::into_const(self.ptr);
-		let that = P2::into_const(other.ptr);
-		this == that
+	fn eq(&self, other: &Pointer<T2, P2>) -> bool {
+		core::ptr::eq(
+			self.into_raw_const().cast::<()>(),
+			other.into_raw_const().cast::<()>(),
+		)
 	}
 }
 
-impl<T, P1, P2> PartialOrd<Pointer<T, P2>> for Pointer<T, P1>
+impl<T1, T2, P1, P2> PartialOrd<Pointer<T2, P2>> for Pointer<T1, P1>
 where
-	T: ?Sized,
+	T1: ?Sized,
+	T2: ?Sized,
 	P1: Permission,
 	P2: Permission,
 {
 	#[inline]
-	fn partial_cmp(&self, other: &Pointer<T, P2>) -> Option<cmp::Ordering> {
-		let this = P1::into_const(self.ptr);
-		let that = P2::into_const(other.ptr);
-		this.partial_cmp(&that)
+	fn partial_cmp(&self, other: &Pointer<T2, P2>) -> Option<cmp::Ordering> {
+		self.into_raw_const()
+			.cast::<()>()
+			.partial_cmp(&other.into_raw_const().cast::<()>())
 	}
 }
 
@@ -969,8 +1051,8 @@ impl<T> From<*const T> for Pointer<T, Shared>
 where T: ?Sized
 {
 	#[inline(always)]
-	fn from(src: *const T) -> Self {
-		Self::new(src)
+	fn from(ptr: *const T) -> Self {
+		Self::from_const(ptr)
 	}
 }
 
@@ -979,7 +1061,7 @@ where T: ?Sized
 {
 	#[inline(always)]
 	fn from(src: &T) -> Self {
-		Self::new(src)
+		Self::from_const(src)
 	}
 }
 
@@ -987,8 +1069,8 @@ impl<T> From<*mut T> for Pointer<T, Unique>
 where T: ?Sized
 {
 	#[inline(always)]
-	fn from(src: *mut T) -> Self {
-		Self::new(src)
+	fn from(ptr: *mut T) -> Self {
+		Self::from_mut(ptr)
 	}
 }
 
@@ -997,18 +1079,19 @@ where T: ?Sized
 {
 	#[inline(always)]
 	fn from(src: &mut T) -> Self {
-		Self::new(src)
+		Self::from_mut(src)
 	}
 }
 
-impl<T, P> Hash for Pointer<T, P>
+impl<T, P> hash::Hash for Pointer<T, P>
 where
 	T: ?Sized,
 	P: Permission,
 {
 	#[inline]
-	fn hash<H: Hasher>(&self, hasher: &mut H) {
-		P::into_const(self.ptr).hash(hasher);
+	fn hash<H>(&self, hasher: &mut H)
+	where H: hash::Hasher {
+		self.into_raw_const().hash(hasher);
 	}
 }
 
@@ -1019,547 +1102,8 @@ where
 {
 }
 
-#[repr(transparent)]
-#[doc = include_str!("../doc/nonnull.md")]
-pub struct NonNullPtr<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	/// The enclosed non-null pointer. Only the standard library can guarantee
-	/// the presence of niches on types, or this type would just wrap `Pointer`.
-	inner: NonNull<T>,
-	/// Remember the `Permission`.
-	_perm: PhantomData<P>,
-}
-
-impl<T> NonNullPtr<T, Shared>
-where T: ?Sized
-{
-	/// Wraps a raw pointer, returning `None` if it is null.
-	#[inline(always)]
-	pub fn new(ptr: *const T) -> Option<Self> {
-		NonNull::new(ptr.cast_mut()).map(Self::from_nonnull)
-	}
-
-	/// Wraps a raw pointer.
-	///
-	/// ## Safety
-	///
-	/// The pointer must not be null.
-	#[inline(always)]
-	pub const unsafe fn new_unchecked(ptr: *const T) -> Self {
-		Self::from_nonnull(NonNull::new_unchecked(ptr.cast_mut()))
-	}
-}
-
-impl<T> NonNullPtr<T, Unique>
-where T: ?Sized
-{
-	/// Wraps a raw pointer, returning `None` if it is null.
-	#[inline(always)]
-	pub fn new(ptr: *mut T) -> Option<Self> {
-		NonNull::new(ptr).map(Self::from_nonnull)
-	}
-
-	/// Wraps a raw pointer.
-	///
-	/// ## Safety
-	///
-	/// The pointer must not be null.
-	#[inline(always)]
-	pub const unsafe fn new_unchecked(ptr: *mut T) -> Self {
-		Self::from_nonnull(NonNull::new_unchecked(ptr))
-	}
-}
-
-impl<T, P> NonNullPtr<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	/// Encloses an existing non-null pointer.
-	#[inline(always)]
-	pub const fn from_nonnull(ptr: NonNull<T>) -> Self {
-		Self {
-			inner: ptr,
-			_perm: PhantomData,
-		}
-	}
-
-	/// Converts a `Pointer` to a `NonNullPtr`, returning `None` if it was null.
-	#[inline(always)]
-	pub fn from_pointer(ptr: Pointer<T, P>) -> Option<Self> {
-		NonNull::new(ptr.into_const_ptr().cast_mut()).map(Self::from_nonnull)
-	}
-
-	/// Marks a `Pointer` as being non-null, without inspecting its value.
-	///
-	/// ## Safety
-	///
-	/// The pointer must not be null.
-	#[inline(always)]
-	pub unsafe fn from_pointer_unchecked(ptr: Pointer<T, P>) -> Self {
-		Self::from_nonnull(NonNull::new_unchecked(
-			ptr.into_const_ptr().cast_mut(),
-		))
-	}
-
-	/// Shortcut for `Self::from_pointer(Pointer::from_ptr(P::Ptr<T>))`.
-	#[inline(always)]
-	pub fn from_permission_ptr(ptr: P::Ptr<T>) -> Option<Self> {
-		Self::from_pointer(Pointer::from_ptr(ptr))
-	}
-
-	/// Produces the internal non-null pointer, discarding the permission type.
-	///
-	/// You are responsible for ensuring that this pointer is not used in
-	/// violation of the provenance from which it was constructed.
-	#[inline(always)]
-	pub const fn into_inner(self) -> NonNull<T> {
-		self.inner
-	}
-
-	/// Casts this to point to a different type at the same address.
-	#[inline(always)]
-	pub const fn cast<U: Sized>(self) -> NonNullPtr<U, P> {
-		let Self { inner, _perm } = self;
-		NonNullPtr {
-			inner: inner.cast::<U>(),
-			_perm,
-		}
-	}
-
-	/// Overwrites the permission type with `Shared`.
-	#[inline(always)]
-	pub const fn cast_const(self) -> NonNullPtr<T, Shared> {
-		NonNullPtr {
-			inner: self.inner,
-			_perm: PhantomData,
-		}
-	}
-
-	/// Overwrites the permission type with `Unique`.
-	///
-	/// ## Safety
-	///
-	/// The original pointer must have been drawn from a provenance region with
-	/// mutable permissions.
-	#[inline(always)]
-	pub const unsafe fn cast_mut(self) -> NonNullPtr<T, Unique> {
-		NonNullPtr {
-			inner: self.inner,
-			_perm: PhantomData,
-		}
-	}
-
-	/// Prepends `Shared` to the permission history.
-	#[inline(always)]
-	pub const fn cast_shared(self) -> NonNullPtr<T, (Shared, P)> {
-		NonNullPtr {
-			inner: self.inner,
-			_perm: PhantomData,
-		}
-	}
-
-	/// Discards the non-null guarantee.
-	#[inline(always)]
-	pub fn as_pointer(self) -> Pointer<T, P> {
-		Pointer::from_ptr(P::from_const(self.inner.as_ptr().cast_const()))
-	}
-
-	/// Unconditionally produces a reference to the pointed-to value.
-	///
-	/// ## Safety
-	///
-	/// The pointed-to value must be initialized, must outlive the conjured `'a`
-	/// lifetime`, and must have no other references to it that violate Rust’s
-	/// rules. If `P` is `Unique`, no other references may exist at all; if `P`
-	/// is shared, then no `Unique` reference may exist.
-	#[inline(always)]
-	pub unsafe fn as_reference<'a>(self) -> Reference<'a, T, P> {
-		P::ptr_to_ref(self.as_pointer().as_ptr())
-	}
-
-	/// Gets the bare address to which the pointer points.
-	#[inline(always)]
-	pub fn addr(self) -> usize {
-		self.inner.as_ptr().cast::<()>() as usize
-	}
-}
-
-impl<T, P> NonNullPtr<T, (Shared, P)>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	/// Removes the leading `Shared` from the permission stack.
-	#[inline(always)]
-	pub fn cast_unshared(self) -> NonNullPtr<T, P> {
-		NonNullPtr {
-			inner: self.inner,
-			_perm: PhantomData,
-		}
-	}
-}
-
-impl<T, P> NonNullPtr<T, P>
-where
-	T: Sized,
-	P: Permission,
-{
-	/// Produces the canonical dangling pointer for `T`.
-	#[inline(always)]
-	pub const fn dangling() -> Self {
-		Self {
-			inner: NonNull::dangling(),
-			_perm: PhantomData,
-		}
-	}
-
-	/// Converts a base pointer into a slice pointer.
-	///
-	/// ## Safety
-	///
-	/// The memory region `self[.. len]` must be a single contiguous provenance
-	/// region.
-	#[inline(always)]
-	pub unsafe fn make_slice(self, len: usize) -> NonNullPtr<[T], P> {
-		NonNullPtr::from_pointer_unchecked(self.as_pointer().make_slice(len))
-	}
-}
-
-impl<T, P> Clone for NonNullPtr<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	#[inline(always)]
-	fn clone(&self) -> Self {
-		*self
-	}
-}
-
-impl<T> From<&T> for NonNullPtr<T, Shared>
-where T: ?Sized
-{
-	#[inline(always)]
-	fn from(src: &T) -> Self {
-		unsafe { Self::new_unchecked(src) }
-	}
-}
-
-impl<T> From<&mut T> for NonNullPtr<T, Unique>
-where T: ?Sized
-{
-	#[inline(always)]
-	fn from(src: &mut T) -> Self {
-		unsafe { Self::new_unchecked(src) }
-	}
-}
-
-impl<T> TryFrom<*const T> for NonNullPtr<T, Shared>
-where T: ?Sized
-{
-	type Error = NullPtrError<T, Shared>;
-
-	#[inline]
-	fn try_from(ptr: *const T) -> Result<Self, Self::Error> {
-		Self::new(ptr).ok_or_else(NullPtrError::<T, Shared>::new)
-	}
-}
-
-impl<T> TryFrom<*mut T> for NonNullPtr<T, Unique>
-where T: ?Sized
-{
-	type Error = NullPtrError<T, Unique>;
-
-	#[inline]
-	fn try_from(ptr: *mut T) -> Result<Self, Self::Error> {
-		Self::new(ptr).ok_or_else(NullPtrError::<T, Unique>::new)
-	}
-}
-
-impl<T, P> TryFrom<Pointer<T, P>> for NonNullPtr<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	type Error = NullPtrError<T, P>;
-
-	#[inline(always)]
-	fn try_from(ptr: Pointer<T, P>) -> Result<Self, Self::Error> {
-		let const_ptr = ptr.into_const_ptr();
-		let nonnull = NonNull::new(const_ptr.cast_mut())
-			.ok_or_else(NullPtrError::<T, P>::new)?;
-		Ok(Self::from_nonnull(nonnull))
-	}
-}
-
-impl<T, P> Copy for NonNullPtr<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-}
-
-#[doc = include_str!("../doc/references.md")]
-pub type Reference<'a, T, P> = <P as Permission>::Ref<'a, T>;
-
-/// Emitted when a NULL pointer is provided to an API that does not accept it.
-pub struct NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	_type: PhantomData<*const T>,
-	_perm: PhantomData<P>,
-}
-
-impl<T, P> NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	/// Creates a `NullPtrError` value.
-	#[inline(always)]
-	pub const fn new() -> Self {
-		Self {
-			_type: PhantomData,
-			_perm: PhantomData,
-		}
-	}
-
-	/// Downgrade the permission to just be `Shared`.
-	#[inline(always)]
-	pub const fn cast_const(self) -> NullPtrError<T, Shared> {
-		NullPtrError::new()
-	}
-}
-
-impl<T, P> Clone for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	#[inline(always)]
-	fn clone(&self) -> Self {
-		*self
-	}
-}
-
-impl<T, P> Eq for NullPtrError<T, P>
-where
-	T: 'static + ?Sized,
-	P: 'static + Permission,
-{
-}
-
-impl<T, P> Ord for NullPtrError<T, P>
-where
-	T: 'static + ?Sized,
-	P: 'static + Permission,
-{
-	#[inline(always)]
-	fn cmp(&self, _: &Self) -> cmp::Ordering {
-		cmp::Ordering::Equal
-	}
-}
-
-impl<T1, T2, P1, P2> PartialEq<NullPtrError<T2, P2>> for NullPtrError<T1, P1>
-where
-	T1: 'static + ?Sized,
-	T2: 'static + ?Sized,
-	P1: 'static + Permission,
-	P2: 'static + Permission,
-{
-	#[inline(always)]
-	fn eq(&self, _: &NullPtrError<T2, P2>) -> bool {
-		(any::TypeId::of::<T1>(), any::TypeId::of::<P1>())
-			== (any::TypeId::of::<T2>(), any::TypeId::of::<P2>())
-	}
-}
-
-impl<T1, T2, P1, P2> PartialOrd<NullPtrError<T2, P2>> for NullPtrError<T1, P1>
-where
-	T1: 'static + ?Sized,
-	T2: 'static + ?Sized,
-	P1: 'static + Permission,
-	P2: 'static + Permission,
-{
-	#[inline(always)]
-	fn partial_cmp(&self, _: &NullPtrError<T2, P2>) -> Option<cmp::Ordering> {
-		(any::TypeId::of::<T1>(), any::TypeId::of::<P1>())
-			.partial_cmp(&(any::TypeId::of::<T2>(), any::TypeId::of::<P2>()))
-	}
-}
-
-impl<T, P> fmt::Debug for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-		write!(
-			fmt,
-			"NullPtrError<{}, {}>",
-			any::type_name::<T>(),
-			any::type_name::<P>(),
-		)
-	}
-}
-
-impl<T, P> fmt::Display for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-		write!(
-			fmt,
-			"provided a NULL pointer to a non-null `{} {}`",
-			P::DEBUG_PREFIX,
-			any::type_name::<T>(),
-		)
-	}
-}
-
-impl<T, P> Copy for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-}
-
-unsafe impl<T, P> Send for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-}
-
-unsafe impl<T, P> Sync for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-}
-
-#[cfg(feature = "std")]
-impl<T, P> std::error::Error for NullPtrError<T, P>
-where
-	T: ?Sized,
-	P: Permission,
-{
-}
-
-/// Unifying bridge over `*const T` and `*mut T`.
-#[doc(hidden)]
-pub trait RawPtr<T: ?Sized>: Copy {
-	fn is_null(self) -> bool;
-
-	unsafe fn offset(self, by: isize) -> Self
-	where T: Sized;
-
-	fn wrapping_offset(self, by: isize) -> Self
-	where T: Sized;
-
-	unsafe fn offset_from(self, origin: Self) -> isize
-	where T: Sized;
-
-	unsafe fn read(self) -> T
-	where T: Sized;
-
-	unsafe fn read_volatile(self) -> T
-	where T: Sized;
-
-	unsafe fn read_unaligned(self) -> T
-	where T: Sized;
-
-	unsafe fn copy_to(self, dest: *mut T, count: usize)
-	where T: Sized;
-
-	unsafe fn copy_to_nonoverlapping(self, dest: *mut T, count: usize)
-	where T: Sized;
-
-	fn align_offset(self, align: usize) -> usize
-	where T: Sized;
-}
-
-macro_rules! impl_raw_ptr {
-	($($t:ty),+) => { $(
-		impl<T: ?Sized> RawPtr<T> for $t {
-			#[inline(always)]
-			fn is_null(self) -> bool {
-				self.is_null()
-			}
-
-			#[inline(always)]
-			unsafe fn offset(self, by: isize) -> Self
-			where T: Sized {
-				self.offset(by)
-			}
-
-			#[inline(always)]
-			fn wrapping_offset(self, by: isize) -> Self
-			where T: Sized {
-				self.wrapping_offset(by)
-			}
-
-			#[inline(always)]
-			unsafe fn offset_from(self, origin: Self) -> isize
-			where T: Sized {
-				self.offset_from(origin)
-			}
-
-			#[inline(always)]
-			unsafe fn read(self) -> T
-			where T: Sized {
-				self.read()
-			}
-
-			#[inline(always)]
-			unsafe fn read_volatile(self) -> T
-			where T: Sized {
-				self.read_volatile()
-			}
-
-			#[inline(always)]
-			unsafe fn read_unaligned(self) -> T
-			where T: Sized {
-				self.read_unaligned()
-			}
-
-			#[inline(always)]
-			unsafe fn copy_to(self, dest: *mut T, count: usize)
-			where T: Sized {
-				self.copy_to(dest, count);
-			}
-
-			#[inline(always)]
-			unsafe fn copy_to_nonoverlapping(self, dest: *mut T, count: usize)
-			where T: Sized {
-				self.copy_to_nonoverlapping(dest, count);
-			}
-
-			#[inline(always)]
-			fn align_offset(self, align: usize) -> usize
-			where T: Sized {
-				self.align_offset(align)
-			}
-		}
-	)+ };
-}
-
-impl_raw_ptr!(*const T, *mut T);
-
-/// Unifying bridge over `&T` and `&mut T`.
-#[doc(hidden)]
-pub trait RawRef<'a, T: ?Sized> {}
-
-impl<'a, T: 'a + ?Sized> RawRef<'a, T> for &'a T {}
-
-impl<'a, T: 'a + ?Sized> RawRef<'a, T> for &'a mut T {}
+#[doc = include_str!("../doc/ptr/type.Reference.md")]
+pub type Reference<'a, T, P> = <P as details::Impl>::Ref<'a, T>;
 
 #[cfg(test)]
 mod tests {
@@ -1583,11 +1127,10 @@ mod tests {
 
 		let mut data = 0usize;
 		let data_ptr = &mut data as *mut usize;
-		let base: Pointer<usize, Unique> =
-			Pointer::<usize, Unique>::new(data_ptr);
-		let one: Pointer<usize, (Shared, Unique)> = base.cast_shared();
-		let two: Pointer<usize, (Shared, (Shared, Unique))> = one.cast_shared();
+		let base: Pointer<usize, Unique> = Pointer::from(data_ptr);
+		let one: Pointer<usize, (Shared, Unique)> = base.make_shared();
+		let two: Pointer<usize, (Shared, (Shared, Unique))> = one.make_shared();
 
-		assert!(matches!(two.unwind_to_unique(), Some(p) if p == base));
+		assert!(matches!(two.make_mut(), Ok(p) if p == base));
 	}
 }
