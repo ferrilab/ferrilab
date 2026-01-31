@@ -1,0 +1,59 @@
+[package]
+name = "pointdexter"
+version = "1.0.0"
+edition = "2024"
+
+categories = [
+	"no-std",
+	"memory-management",
+	"rust-patterns",
+]
+description = "unifies *const/*mut pointers using the trait system"
+documentation = "https://docs.rs/pointdexter"
+homepage = "https://ferrilab.github.io/ferrilab"
+include = [
+	"Cargo.toml",
+	"README.md",
+	"LICENSE.txt",
+	"src/*.rs",
+	"doc/*.md",
+	"assets/extra.css",
+]
+keywords = [
+	"no-std",
+	"primitives",
+	"traits",
+	"pointers",
+]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ferrilab/ferrilab"
+rust-version = "1.85"
+
+[package.metadata.docs.rs]
+features = [
+	"rust_now",
+]
+rustdoc-args = [
+	"--extend-css",
+	"assets/extra.css",
+]
+
+[dependencies]
+
+[dev-dependencies]
+static_assertions = "1"
+
+[features]
+default = [
+	"rust_now",
+]
+rust_186 = []
+rust_187 = ["rust_186"]
+rust_188 = ["rust_187"]
+rust_189 = ["rust_188"]
+rust_190 = ["rust_189"]
+rust_191 = ["rust_190"]
+rust_192 = ["rust_191"]
+rust_193 = ["rust_192"]
+rust_now = ["rust_193"]

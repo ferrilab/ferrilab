@@ -2,6 +2,7 @@
 members = [
 	"bitvec",
 	"funty",
+	"pointdexter",
 	"radium",
 ]
 resolver = "2"
@@ -11,4 +12,5 @@ resolver = "2"
 [patch.crates-io]
 bitvec = { path = "bitvec" }
 funty = { path = "funty" }
+pointdexter = { path = "pointdexter" }
 radium = { path = "radium" }

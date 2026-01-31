@@ -1,0 +1,58 @@
+<svg version="1.1" viewBox="0 -80 520 112" xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g id="main">
+    <path class="pen pen-sq stroke-fg" d="
+      M 19 24 l 0 -72 l 24 0 l 0 48 l -24 0
+      m 48 0 l 0 -48 l 24 0 l 0 48 l -24 0
+      m 48 0 l 0 -48
+      m 24 48 l 0 -48 l 12 0 l 12 12 l 0 36
+      m 24 -72 l 0 72 l 12 0
+      m 48 -48 l -24 0 l 0 48 l 24 0 l 0 -72
+      m 24 48 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0
+      m 24 0 l 0 -12 l 24 -24 l 0 -12 m -24 0 l 0 12 l 24 24 l 0 12
+      m 48 0 l -12 0 l 0 -72 m -12 24 l 24 0
+      m 24 24 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0
+      m 24 0 l 0 -48 l 24 0
+      " />
+    <path class="stroke-fg fill-fg" stroke-width="0" d="
+      M 19 0
+      m 144 -56 l 44 0 l 0 16 l -28 0"
+      />
+    <path class="pen pen-sq stroke-accent" d="M 19 -72 m 96 0 l 0 0" />
+  </g>
+  <style type="text/css">
+    :root {
+      --color-fg: black;
+      --color-bg: white;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-fg: white;
+        --color-bg: black;
+      }
+    }
+    .stroke-fg { stroke: var(--color-fg); }
+    .stroke-bg { stroke: var(--color-bg); }
+    .fill-fg { fill: var(--color-fg); }
+    .fill-bg { fill: var(--color-bg); }
+    .stroke-accent { stroke: #ff4f00; }
+    .fill-accent { fill: #ff4f00; }
+    svg {
+      height: 512px;
+    }
+    #main {
+      transform: skewX(-18deg);
+    }
+    .pen {
+      fill: none;
+      stroke-width: 16px;
+      stroke-linecap: square;
+    }
+    .pen-sq {
+      stroke-linejoin: miter;
+    }
+    .pen-bv {
+      stroke-linejoin: bevel;
+    }
+  </style>
+</svg>

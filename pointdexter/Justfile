@@ -1,0 +1,33 @@
+########################################################################
+#                               Justfile                               #
+#                                                                      #
+# Set of routines to execute for project development and management.   #
+# Written against `just 1.46.0`.                                       #
+########################################################################
+
+default:
+	just --list
+
+build:
+	cargo         build --no-default-features
+	cargo +stable build        --all-features
+
+check:
+	cargo         clippy --no-default-features
+	cargo +stable clippy        --all-features
+
+dev: check doc test
+
+doc:
+	cargo +stable rustdoc --all-features -- \
+		-e assets/extra.css --document-private-items
+
+format:
+	cargo +nightly fmt
+
+package:
+	cargo package --allow-dirty
+
+test:
+	cargo         test --no-default-features
+	cargo +stable test        --all-features
