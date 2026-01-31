@@ -1,4 +1,4 @@
-# `bitvec`
+# ![Bitvec](assets/bitvec.svg)
 
 This is Ferrilab’s largest, most complex, project and likely the reason you’re
 reading this guide. It provides a system that allows Rust code to treat memory

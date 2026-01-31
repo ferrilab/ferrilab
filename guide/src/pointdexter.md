@@ -1,8 +1,12 @@
-# Permission Changes
+# ![Pointdexter](assets/pointdexter.svg)
 
-`funty` uses the `Permission` trait to create a graph of safe transitions
-between raw pointers and `Pointer`, and between different type parameters
-attached to `Pointer` values.
+This crate is like `funty`, but for specifically for pointers rather than the
+general register primitives. It defines replacement types for raw pointers,
+`NonNull`, and references, and elevates the const/mut distinction into the trait
+system.
+
+The `Permission` trait and its implementors – `Shared`, `Unique`, and `(Shared,
+impl Permission)` – power the crate.
 
 `Pointer`s can be constructed from both raw pointers: `*const T` produces
 `Pointer<T, Shared>`, and `*mut T` produces `Pointer<T, Unique>`. Once

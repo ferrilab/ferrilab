@@ -1,0 +1,35 @@
+<svg version="1.1" viewBox="0 -80 304 112" xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- <rect x="0" y="-80" width="304" height="112" fill="lightgrey" /> -->
+  <g id="main">
+    <path class="pen-sq stroke-fg" d="
+      M 12 0 l 0 -48 l 24 0
+      m 24 0 l 24 0 l 0 48 l -24 0 l 0 -24 l 24 0
+      m 48 -24 l -24 0 l 0 48 l 24 0 l 0 -72
+      m 24 72 l 0 -48
+      m 24 0 l 0 48 l 24 0 l 0 -48
+      m 24 0 l 0 48 m 0 -48 l 24 0 l 0 48 m 0 -48 l 24 0 l 0 48
+      " />
+    <path class="pen-sq stroke-accent" d="M 12 0 m 96 0 m 48 -72 l 0 0" />
+  </g>
+  <style type="text/css">
+    .stroke-fg { stroke: black; }
+    @media (prefers-color-scheme: dark) {
+      .stroke-fg { stroke: white; }
+    }
+    .stroke-accent { stroke: #ff4f00; }
+    svg {
+      height: 512px;
+    }
+    #main {
+      transform: skewX(-18deg);
+    }
+    .pen-sq {
+      fill: none;
+      stroke-width: 16px;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+  </style>
+</svg>
+<!-- radium -->

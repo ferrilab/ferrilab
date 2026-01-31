@@ -8,6 +8,17 @@
 default:
 	just --list
 
+book: book_install
+	mdbook build guide
+
+@book_install:
+	cargo +nightly install mdbook --vers ^0.4
+	cargo +nightly install mdbook-admonish --vers ^1.20
+	cargo +nightly install mdbook-mermaid --vers ^0.16
+
+book_serve: book_install
+	mdbook serve guide
+
 build:
 	just bitvec/build
 	cargo build --no-default-features

@@ -1,39 +1,55 @@
 ########################################################################
 #                 Ferrilab Project Guide Configuration                 #
 #                                                                      #
-# Controls `mdbook 0.4.21`, which builds the project’s user guide.     #
+# Controls `mdbook 0.4.52`, which builds the project’s user guide.     #
 ########################################################################
 
 [book]
 title = "A User’s Guide to the Ferrilab Project"
 authors = [
-	"myrrlyn <self@myrrlyn.dev>",
+	"myrrlyn <self@myrrlyn.net>",
 ]
 description = "A more thorough exploration of Ferrilab’s crates."
-src = "./guide"
 language = "en-US"
 
 [rust]
-edition = "2021"
+edition = "2024"
 
 [build]
-build-dir = "./target/guide"
+build-dir = "../target/guide"
 create-missing = true
 
-# `cargo +nightly install mdbook-admonish --vers 1.8.0`
 # Allows `admonish <level>` code-blocks which create informational blocks.
 [preprocessor.admonish]
 command = "mdbook-admonish"
-assets_version = "2.0.0" # do not edit: managed by `mdbook-admonish install`
+assets_version = "3.1.0" # do not edit: managed by `mdbook-admonish install`
+after = [
+	"links",
+]
+
+# Allows using Mermaid to render UML diagrams.
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
 
 [output.html]
 git-repository-url = "https://github.com/ferrilab/ferrilab"
-mathjax-support = true
 site-url = "/ferrilab/"
+edit-url-template = "https://github.com/ferrilab/ferrilab/edit/main/guide/{path}"
+admonitions = true
+definition-lists = true
+mathjax-support = true
+smart-punctuation = true
+preferred-dark-theme = "ayu"
 additional-css = [
-	"./guide/assets/mdbook-admonish.css",
+	"./src/assets/mdbook-admonish.css",
+]
+additional-js = [
+	"./src/assets/mermaid.min.js",
+	"./src/assets/mermaid-init.js",
 ]
 
+
 [output.html.playground]
+copyable = true
 line-numbers = true
 runnable = false

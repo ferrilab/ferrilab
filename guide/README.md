@@ -3,8 +3,7 @@
 ## Usage
 
 The guide is built by the `mdbook` tool and is hosted at
-<https://ferrilab.github.io/ferrilab>. To write it locally, run `cargo +nightly
-install mdbook --vers 0.4.21`.
+<https://ferrilab.github.io/ferrilab>.
 
 ## Licensing
 

@@ -1,0 +1,43 @@
+<svg version="1.1" viewBox="-11 -80 278 112" xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- <rect x="-11" y="-80" width="278" height="112" fill="lightgrey" /> -->
+  <mask id="mask">
+    <rect x="-11" y="-80" width="278" height="96" fill="white" />
+  </mask>
+  <g id="main" mask="url(#mask)">
+    <path class="pen-sq stroke-fg" d="
+      M   0 -72 l  0  72 l  24   0 l  0 -48 l -24 0
+      M  48   0 l  0 -48
+      M  72   0 m 24   0 l -12   0 l  0 -72 m -12  24 l 24   0
+      M 120   0 m  0 -48 l   0  36 l 12  12 l  12 -12 l  0 -36
+      M 168   0 m  0 -24 l  24   0 l  0 -24 l -24   0 l  0  48 l 24 0
+      M 216   0 m 24   0 l -24   0 l  0 -48 l  24   0
+      " />
+    <path class="pen-sq stroke-accent" d="M 0 0 m 48 -72 l 0 0" />
+  </g>
+  <style type="text/css">
+    .stroke-fg { stroke: black; }
+    @media (prefers-color-scheme: dark) {
+      .stroke-fg { stroke: white; }
+    }
+    .stroke-accent { stroke: #ff4f00; }
+    svg {
+      height: 512px;
+    }
+    #main {
+      transform: skewX(-18deg);
+    }
+    path {
+      fill: none;
+      stroke-width: 16px;
+      stroke-linecap: square;
+    }
+    .pen-sq {
+      stroke-linejoin: miter;
+    }
+    .pen-bv {
+      stroke-linejoin: bevel;
+    }
+  </style>
+</svg>
+<!-- bitvec -->

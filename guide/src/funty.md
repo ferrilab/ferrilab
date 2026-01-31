@@ -1,4 +1,4 @@
-# `funty`
+# ![Funty](assets/funty.svg)
 
 The `funty` crate (***fun***damental ***ty***pes) provides traits that unify
 the Rust non-pointer primitives. It also unifies pointers and references by
@@ -42,25 +42,3 @@ less.
 You can use these traits as generic constraints in code that needs to accept a
 range of different primitives. The integral traits provide Peano constants (zero
 and one), and can be constructed from literals for non-`const` work.
-
-## Pointer Unification
-
-The `funty::ptr` module provides `Pointer` and `NonNullPtr` types which are
-replacements for raw pointers and `core::ptr::NonNull`, respectively. They work
-by lifting the `*const T`/`*mut T` distinction into the trait system, through
-the `Permission` trait and the `Shared`, `Unique`, and `(Shared, Unique)` types.
-
-The `Permission` trait and its implementors implement a less-capable version of
-the stacked-borrows experimental model found in Miri. `Pointer<T, P>` implements
-the read-only APIs found on both `*const` and `*mut` pointers, while
-`Pointer<T, Unique>` alone implements the write APIs only present on `*mut`
-pointers. Additionally, type-level transitions allow *safely* casting `Unique`
-pointers down to read-only and back up to `Unique`, and *unsafely* casting
-directly to a permission that you specify.
-
-The `NonNullPtr` behaves similarly to `Pointer`, except that it encloses a
-`core::ptr::NonNull` in order to regain the null-pointer niche optimization. Its
-API strives to match both the `NonNull` and `Pointer` APIs. As both raw pointers
-and `NonNull` still have large amounts of unstable API surface in the standard
-library, these types will continue to grow in response to both Ferrilab’s needs
-and the standard library’s evolution.

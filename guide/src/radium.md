@@ -1,4 +1,4 @@
-# Radium
+# ![Radium](assets/radium.svg)
 
 The [`radium`] crate provides a unifying model for shared-mutability over the
 primitives. It does *not* handle more complex shared-mutability topics such as
@@ -63,8 +63,10 @@ shows how the `Radium` trait can be used by a worker function to manipulate
 data, and how the different types can be used to work in sequence or in
 parallel.
 
-> Note: Radium’s MSRV is 1.60, while the scoped-threads API used here stabilized
-> in 1.63.
+```admonish note
+Radium’s MSRV is 1.60, while the scoped-threads API used here stabilized in
+1.63.
+```
 
 ```rust
 use radium::{Radium, types::{RadiumU64, Atom, Isotope, Radon}};
