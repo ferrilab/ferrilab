@@ -1,24 +1,20 @@
-<svg version="1.1" viewBox="0 -80 520 112" xmlns="http://www.w3.org/2000/svg"
-  xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg version="1.1" viewBox="-19 -80 514 112" xmlns="http://www.w3.org/2000/svg">
   <g id="main">
     <path class="pen" d="
-      M 19 24 l 0 -72 l 24 0 l 0 48 l -24 0
-      m 48 0 l 0 -48 l 24 0 l 0 48 l -24 0
-      m 48 0 l 0 -48
-      m 24 48 l 0 -48 l 12 0 l 12 12 l 0 36
-      m 24 -72 l 0 72 l 12 0
-      m 48 -48 l -24 0 l 0 48 l 24 0 l 0 -72
-      m 24 48 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0
-      m 24 0 l 0 -12 l 24 -24 l 0 -12 m -24 0 l 0 12 l 24 24 l 0 12
-      m 48 0 l -12 0 l 0 -72 m -12 24 l 24 0
-      m 24 24 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0
-      m 24 0 l 0 -48 l 24 0
+      M  0  24 v -72 h  24     v  48    h -24
+      m 48   0 v -48 h  24     v  48    h -24
+      m 48   0 v -48
+      m 24  48 v -48 h  12     l  12 12 v  36
+      m 24 -72 v  72 h  12
+      m 48 -72 v  72 h -24     v -48    h  24
+      m 24  24 h  24 v -24     h -24    v  48   h 24
+      m 24   0 v -12 l  24 -24 v -12    m -24 0 v 12 l 24 24 v 12
+      m 48   0 h -12 v -72     m -12 24 h  24
+      m 24  24 h  24 v -24     h -24    v  48   h 24
+      m 24   0 v -48 h  24
       " />
-    <path class="stroke-fg" d="
-      M 19 0
-      m 144 -56 l 44 0 l 0 16 l -28 0"
-      />
-    <path class="pen stroke-accent" d="M 19 -72 m 96 0 l 0 0" />
+    <path d="M 144 -56 h 44 v 16 h -28" />
+    <path class="pen accent" d="M 96 -72 h 0" />
   </g>
   <style type="text/css">
     path {
@@ -31,11 +27,7 @@
         fill: white;
       }
     }
-    .stroke-accent { stroke: #ff4f00; }
-    .fill-accent { fill: #ff4f00; }
-    svg {
-      height: 512px;
-    }
+    .accent { stroke: #ff4f00; }
     #main {
       transform: skewX(-18deg);
     }
@@ -43,7 +35,6 @@
       fill: none;
       stroke-width: 16px;
       stroke-linecap: square;
-      stroke-linejoin: miter;
     }
   </style>
 </svg>

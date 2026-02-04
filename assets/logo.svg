@@ -2,21 +2,24 @@
   xmlns:xlink="http://www.w3.org/1999/xlink">
   <g transform="skewX(-18)">
     <path d="
-        M 0 -12 l 0 -96 l 168 0 m -24 24 l -144 0
-        M 24 -36 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0
-        m 24 0 l 0 -48 l 24 0
-        m 24 48 l 0 -48 l 24 0
-        m 24 48 l 0 -48
-        M 0 12 l 0 72 l 144 0
-        M 24 12 l 24 0 l 0 48 l -24 0 l 0 -24 l 24 0
-        m 24 0 l 24 0 l 0 24 l -24 0 l 0 -48
-        m 96 0 l 0 48
+        M 0 -12 v -96 h 168 m -24 24 h -144
+        M 24 -36 h 24 v -24 h -24 v 48 h 24
+        m 24 0 v -48 h 24
+        m 24 48 v -48 h 24
+        m 24 48 v -48
+        M 0 12 v 72 h 144
+        M 24 12 h 24 v 48 h -24 v -24 h 24
+        m 24 0 h 24 v 24 h -24 v -48
+        m 96 0 v 48
       " />
-    <path class="stroke-accent" d="M 168 84 l 0 0 m 0 -168 l 0 0" />
+    <path class="accent" d="M 168 84 v 0 m 0 -168 v 0" />
   </g>
   <style type="text/css">
     path {
       stroke: black;
+      fill: none;
+      stroke-width: 16px;
+      stroke-linecap: square;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -25,19 +28,12 @@
       }
     }
 
-    .stroke-accent {
+    .accent {
       stroke: #ff4f00;
     }
 
     * {
       shape-rendering: crispEdges;
-    }
-
-    path {
-      fill: none;
-      stroke-width: 16px;
-      stroke-linecap: square;
-      stroke-linejoin: miter;
     }
   </style>
 </svg>

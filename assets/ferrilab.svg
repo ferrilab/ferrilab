@@ -1,18 +1,16 @@
-<svg version="1.1" viewBox="0 -104 340 112" xmlns="http://www.w3.org/2000/svg"
-  xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg version="1.1" viewBox="-11 -104 354 112" xmlns="http://www.w3.org/2000/svg">
   <g id="main">
-    <path class="stroke-fg" d="
-      M 12 0
-      l 16 0 l 0 -72 l 132 0 m -132 0 l 0 -24 l 156 0 m -156 96
-      m 24 0 m 0 -24 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0
-      m 24 0 l 0 -48 l 18 0 m 0 48
-      m 24 0 l 0 -48 l 18 0 m 0 48
-      m 24 0 l 0 -48 m 0 48
-      m 24 0 l 0 -96 m 0 96 l 96 0 m -96 -96
-      m 24 24 l 24 0 l 0 48 l -24 0 l 0 -24 l 24 0
-      m 24 -24 l 24 0 l 0 48 l -24 0 l 0 -72
+    <path d="
+      M 0 0 h 16 v -72 h 144 m -144 0 v -24 h 168 m -168 96
+      m 24 -24 h 24 v -24 h -24 v 48 h 24
+      m 24 0 v -48 h 24
+      m 24 48 v -48 h 24
+      m 24 48 v -48
+      m 24 48 v -96 m 0 96 h 96
+      m -72 -72 h 24 v 48 h -24 v -24 h 24
+      m 24 -24 h 24 v 48 h -24 v -72
       " />
-    <path class="stroke-accent" d="M 12 0 m 172 -72 l 0 0" />
+    <path class="accent" d="M 184 -72 v 0" />
   </g>
   <style type="text/css">
     * {
@@ -23,17 +21,17 @@
       transform: skewX(-18deg);
     }
 
-    .stroke-fg {
+    path {
       stroke: black;
     }
 
     @media (prefers-color-scheme: dark) {
-      .stroke-fg {
+      path {
         stroke: white;
       }
     }
 
-    .stroke-accent {
+    .accent {
       stroke: #ff4f00;
     }
 

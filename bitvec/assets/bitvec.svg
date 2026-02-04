@@ -1,46 +1,38 @@
 <svg version="1.1" viewBox="-11 -80 278 112" xmlns="http://www.w3.org/2000/svg">
   <mask id="mask">
-    <rect x="-11" y="-80" width="278" height="96" fill="white" />
+    <path fill="#fff" d="M -11 -80 h 278 v 96 H -11 z" />
   </mask>
   <g id="main" mask="url(#mask)">
-    <path class="stroke-fg" d="
-      M   0 -72 v  72 h 24 v -48 h -24
-      M  48   0 v -48
-      M  96   0 h -12 v -72    m -12  24 h  24
-      M 120 -48 v  36 l  12 12 l  12 -12 v -36
-      M 168 -24 h  24 v -24    h -24     v  48 h 24
-      M 240   0 h -24 v -48    h  24
+    <path d="
+      M  0 -72 v  72 h  24    v -48     h -24
+      m 48  48 v -48
+      m 48  48 h -12 v -72    m -12  24 h  24
+      m 24   0 v  36 l  12 12 l  12 -12 v -36
+      m 24  24 h  24 v -24    h -24     v  48 h 24
+      m 48   0 h -24 v -48    h  24
       " />
-    <path class="stroke-accent" d="M 48 -72 h 0" />
+    <path style="stroke:#ff4f00" d="M 48 -72 h 0" />
   </g>
   <style type="text/css">
     * {
       shape-rendering: crispEdges;
     }
 
-    .stroke-fg {
+    g > path {
       stroke: black;
+      fill: none;
+      stroke-width: 16px;
+      stroke-linecap: square;
     }
 
     @media (prefers-color-scheme: dark) {
-      .stroke-fg {
+      g > path {
         stroke: white;
       }
     }
 
-    .stroke-accent {
-      stroke: #ff4f00;
-    }
-
     #main {
       transform: skewX(-18deg);
-    }
-
-    path {
-      fill: none;
-      stroke-width: 16px;
-      stroke-linecap: square;
-      stroke-linejoin: miter;
     }
   </style>
 </svg>

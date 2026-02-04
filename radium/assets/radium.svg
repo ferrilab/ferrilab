@@ -1,19 +1,22 @@
-<svg version="1.1" viewBox="0 -80 304 112" xmlns="http://www.w3.org/2000/svg"
+<svg version="1.1" viewBox="-12 -80 304 112" xmlns="http://www.w3.org/2000/svg"
   xmlns:xlink="http://www.w3.org/1999/xlink">
   <g id="main">
     <path d="
-      M 12 0 l 0 -48 l 24 0
-      m 24 0 l 24 0 l 0 48 l -24 0 l 0 -24 l 24 0
-      m 48 -24 l -24 0 l 0 48 l 24 0 l 0 -72
-      m 24 72 l 0 -48
-      m 24 0 l 0 48 l 24 0 l 0 -48
-      m 24 0 l 0 48 m 0 -48 l 24 0 l 0 48 m 0 -48 l 24 0 l 0 48
+      M 0 0 v -48 h 24
+      m 24 0 h 24 v 48 h -24 v -24 h 24
+      m 48 -24 h -24 v 48 h 24 v -72
+      m 24 72 v -48
+      m 24 0 v 48 h 24 v -48
+      m 24 0 v 48 m 0 -48 h 24 v 48 m 0 -48 h 24 v 48
       " />
-    <path class="stroke-accent" d="M 12 0 m 96 0 m 48 -72 l 0 0" />
+    <path class="accent" d="M 144 -72 h 0" />
   </g>
   <style type="text/css">
     path {
       stroke: black;
+      fill: none;
+      stroke-width: 16px;
+      stroke-linecap: square;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -22,7 +25,7 @@
       }
     }
 
-    .stroke-accent {
+    .accent {
       stroke: #ff4f00;
     }
 
@@ -32,13 +35,6 @@
 
     #main {
       transform: skewX(-18deg);
-    }
-
-    path {
-      fill: none;
-      stroke-width: 16px;
-      stroke-linecap: square;
-      stroke-linejoin: miter;
     }
   </style>
 </svg>
