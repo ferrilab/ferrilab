@@ -2,7 +2,7 @@
 #                               Justfile                               #
 #                                                                      #
 # Set of routines to execute for project development and management.   #
-# Written against `just 1.8.0`.                                        #
+# Written against `just 1.46.0`.                                       #
 ########################################################################
 
 # For some reason, rustup does not appear to propagate correctly in Just's
@@ -25,9 +25,6 @@ check:
 # Runs the entire build sequence for all targets.
 do_all: install build_all uninstall
 	@true
-
-format:
-	cargo +nightly fmt
 
 # Installs every target not already installed.
 install:

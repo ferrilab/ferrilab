@@ -26,11 +26,11 @@ unsafe impl BitOrder for Swizzle {
 	fn at<R>(index: BitIdx<R>) -> BitPos<R>
 	where R: BitRegister {
 		match bits_of::<R>() {
-			8 => BitPos::new(index.into_inner() ^ 0b100).unwrap(),
-			16 => BitPos::new(index.into_inner() ^ 0b1100).unwrap(),
-			32 => BitPos::new(index.into_inner() ^ 0b11100).unwrap(),
-			64 => BitPos::new(index.into_inner() ^ 0b111100).unwrap(),
-			_ => unreachable!("No other integers are supported"),
+			| 8 => BitPos::new(index.into_inner() ^ 0b100).unwrap(),
+			| 16 => BitPos::new(index.into_inner() ^ 0b1100).unwrap(),
+			| 32 => BitPos::new(index.into_inner() ^ 0b11100).unwrap(),
+			| 64 => BitPos::new(index.into_inner() ^ 0b111100).unwrap(),
+			| _ => unreachable!("No other integers are supported"),
 		}
 	}
 }

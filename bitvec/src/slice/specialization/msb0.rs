@@ -117,7 +117,7 @@ where T: BitStore
 		let mut accum = 0;
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value();
 				accum += val.leading_zeros() as usize
 					- elem.head().into_inner() as usize;
@@ -126,7 +126,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = head {
 					let val = elem.load_value();
 					accum += val.leading_zeros() as usize
@@ -160,7 +160,7 @@ where T: BitStore
 	pub(crate) fn sp_last_one(&self) -> Option<usize> {
 		let mut out = self.len().checked_sub(1)?;
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value();
 				let dead_bits =
 					bits_of::<T::Mem>() - elem.tail().into_inner() as usize;
@@ -170,7 +170,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = tail {
 					let val = elem.load_value();
 					let dead_bits =
@@ -206,7 +206,7 @@ where T: BitStore
 		let mut accum = 0;
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value() | !elem.mask().into_inner();
 				accum += val.leading_ones() as usize
 					- elem.head().into_inner() as usize;
@@ -215,7 +215,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = head {
 					let val = elem.load_value() | !elem.mask().into_inner();
 					accum += val.leading_ones() as usize
@@ -249,7 +249,7 @@ where T: BitStore
 	pub(crate) fn sp_last_zero(&self) -> Option<usize> {
 		let mut out = self.len().checked_sub(1)?;
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value() | !elem.mask().into_inner();
 				let dead_bits =
 					bits_of::<T::Mem>() - elem.tail().into_inner() as usize;
@@ -259,7 +259,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = tail {
 					let val = elem.load_value() | !elem.mask().into_inner();
 					let dead_bits =

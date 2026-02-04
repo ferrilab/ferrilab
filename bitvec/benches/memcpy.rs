@@ -38,8 +38,8 @@ const SCALARS: &[usize] = &[1, 2, 4, 8, 16, 24, 32, 40, 52, 64];
 //  The maximum number of bits in a memory region.
 const MAX_BITS: usize = 64 * FACTOR * 8;
 
-fn make_slots<T, const LEN: usize>()
--> ([MaybeUninit<T>; LEN], [MaybeUninit<T>; LEN])
+fn make_slots<T, const LEN: usize>(
+) -> ([MaybeUninit<T>; LEN], [MaybeUninit<T>; LEN])
 where T: BitStore {
 	(
 		MaybeUninit::<T>::uninit_array::<LEN>(),
@@ -63,8 +63,8 @@ where
 }
 
 pub fn benchmarks(crit: &mut Criterion) {
-	fn steps()
-	-> impl Iterator<Item = (impl Fn(&'static str) -> BenchmarkId, usize, Throughput)>
+	fn steps(
+	) -> impl Iterator<Item = (impl Fn(&'static str) -> BenchmarkId, usize, Throughput)>
 	{
 		SCALARS.iter().map(|&n| {
 			(

@@ -605,10 +605,10 @@ where
 			(self.as_bitspan().head(), src.as_bitspan().head());
 		if to_head == from_head {
 			match (self.domain_mut(), src.domain()) {
-				(Domain::Enclave(mut to), Domain::Enclave(from)) => {
+				| (Domain::Enclave(mut to), Domain::Enclave(from)) => {
 					to.store_value(from.load_value());
 				},
-				(
+				| (
 					Domain::Region {
 						head: to_head,
 						body: to_body,
@@ -630,7 +630,7 @@ where
 						to.store_value(from.load_value());
 					}
 				},
-				_ => unreachable!(
+				| _ => unreachable!(
 					"bit-slices with equal type parameters, lengths, and heads \
 					 will always have equal domains"
 				),
@@ -1061,15 +1061,17 @@ where
 	#[inline]
 	pub fn count_ones(&self) -> usize {
 		match self.domain() {
-			Domain::Enclave(elem) => elem.load_value().count_ones() as usize,
-			Domain::Region { head, body, tail } => {
+			| Domain::Enclave(elem) => elem.load_value().count_ones() as usize,
+			| Domain::Region { head, body, tail } => {
 				head.map_or(0, |elem| elem.load_value().count_ones() as usize)
 					+ body
 						.iter()
 						.map(BitStore::load_value)
 						.map(|elem| elem.count_ones() as usize)
-						.sum::<usize>() + tail
-					.map_or(0, |elem| elem.load_value().count_ones() as usize)
+						.sum::<usize>()
+					+ tail.map_or(0, |elem| {
+						elem.load_value().count_ones() as usize
+					})
 			},
 		}
 	}
@@ -1089,10 +1091,10 @@ where
 	#[inline]
 	pub fn count_zeros(&self) -> usize {
 		match self.domain() {
-			Domain::Enclave(elem) => (elem.load_value()
+			| Domain::Enclave(elem) => (elem.load_value()
 				| !elem.mask().into_inner())
 			.count_zeros() as usize,
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				head.map_or(0, |elem| {
 					(elem.load_value() | !elem.mask().into_inner()).count_zeros()
 						as usize
@@ -1504,11 +1506,12 @@ where
 	/// Shifts the contents of a bit-slice “right” (away from the zero-index),
 	/// clearing the “left” bits to `0`.
 	///
-	/// This is a strictly-worse analogue to taking `bits = &bits[.. bits.len()
-	/// - by]`: it must modify the entire memory region that `bits` governs, and
-	/// destroys contained information. Unless the actual memory layout and
-	/// contents of your bit-slice matters to your program, you should
-	/// *probably* prefer to munch your way backward through a bit-slice handle.
+	/// This is a strictly-worse alternative to taking `bits = &bits[..
+	/// bits.len() - by]`: it must modify the entire memory region that `bits`
+	/// governs, and destroys contained information. Unless the actual memory
+	/// layout and contents of your bit-slice matters to your program, you
+	/// should *probably* prefer to munch your way backward through a bit-slice
+	/// handle.
 	///
 	/// Note also that the “right” here is semantic only, and **does not**
 	/// necessarily correspond to a right-shift instruction applied to the

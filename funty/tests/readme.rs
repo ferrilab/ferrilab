@@ -7,14 +7,3 @@ fn readme_1() {
 	}
 	assert_eq!(invert_middle_bits(0xAAu8), 0b1001_0110u8);
 }
-
-#[test]
-fn readme_2() {
-	use funty::ptr::*;
-	let data = 0u32;
-	let raw: *const u32 = &data;
-	let ptr = Pointer::from_const(raw);
-	assert!(ptr.make_mut().is_err());
-	assert!(!raw.cast_mut().is_null());
-	assert_eq!(unsafe { ptr.read() }, 0);
-}

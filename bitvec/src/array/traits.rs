@@ -250,7 +250,6 @@ where
 	A: BitViewSized,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		self.as_bitspan().render(fmt, "Array", None)?;
 		fmt.write_str(" ")?;
@@ -312,30 +311,28 @@ impl TryFromBitSliceError {
 }
 
 impl Debug for TryFromBitSliceError {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.write_str("TryFromBitSliceError::")?;
 		match self.0 {
-			InnerError::UnequalLen { actual, expected } => {
+			| InnerError::UnequalLen { actual, expected } => {
 				write!(fmt, "UnequalLen({} != {})", actual, expected)
 			},
-			InnerError::Misaligned => fmt.write_str("Misaligned"),
+			| InnerError::Misaligned => fmt.write_str("Misaligned"),
 		}
 	}
 }
 
 #[cfg(not(tarpaulin_include))]
 impl Display for TryFromBitSliceError {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		match self.0 {
-			InnerError::UnequalLen { actual, expected } => write!(
+			| InnerError::UnequalLen { actual, expected } => write!(
 				fmt,
 				"bit-slice with length {} cannot be viewed as bit-array with \
 				 length {}",
 				actual, expected,
 			),
-			InnerError::Misaligned => fmt.write_str(
+			| InnerError::Misaligned => fmt.write_str(
 				"a bit-slice must begin at the front edge of a storage element \
 				 in order to be viewed as a bit-array",
 			),

@@ -112,9 +112,9 @@ impl<'de> Visitor<'de> for FieldVisitor {
 	fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
 	where E: serde::de::Error {
 		match value {
-			"width" => Ok(Field::Width),
-			"index" => Ok(Field::Index),
-			_ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+			| "width" => Ok(Field::Width),
+			| "index" => Ok(Field::Index),
+			| _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
 		}
 	}
 }
@@ -333,12 +333,12 @@ where R: BitRegister
 
 		while let Some(key) = map.next_key()? {
 			match key {
-				Field::Width => {
+				| Field::Width => {
 					if width.replace(map.next_value::<u8>()?).is_some() {
 						return Err(<V::Error>::duplicate_field("width"));
 					}
 				},
-				Field::Index => {
+				| Field::Index => {
 					if index.replace(map.next_value::<u8>()?).is_some() {
 						return Err(<V::Error>::duplicate_field("index"));
 					}

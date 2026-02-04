@@ -57,11 +57,11 @@ impl<'de> Visitor<'de> for FieldVisitor {
 	fn visit_str<E>(self, value: &str) -> core::result::Result<Self::Value, E>
 	where E: serde::de::Error {
 		match value {
-			"order" => Ok(Field::Order),
-			"head" => Ok(Field::Head),
-			"bits" => Ok(Field::Bits),
-			"data" => Ok(Field::Data),
-			_ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+			| "order" => Ok(Field::Order),
+			| "head" => Ok(Field::Head),
+			| "bits" => Ok(Field::Bits),
+			| "data" => Ok(Field::Data),
+			| _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
 		}
 	}
 }

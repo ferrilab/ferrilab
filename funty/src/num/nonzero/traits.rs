@@ -10,9 +10,7 @@ use super::{
 	ZeroValueError,
 	Zeroable,
 };
-use crate::num::{
-	Signed,
-};
+use crate::num::Signed;
 
 impl<T> Clone for NonZero<T>
 where T: Zeroable
@@ -46,8 +44,8 @@ widen_into! {
 	u64 =>                i128,                       u128;
 }
 
-/// Implements TryFrom<Left> for Left aand TryFrom<NonZero<Left>> for each
-/// NonZero<Right>.
+/// Implements `TryFrom<Left> for Left` and `TryFrom<NonZero<Left>> for-each
+/// NonZero<Right>`.
 macro_rules! impl_tryfrom {
 	( $($src:ty $(=> $($dst:ty),+ $(,)?)?);+ $(;)? ) => { $(
 		impl TryFrom<$src> for NonZero<$src> {
@@ -306,7 +304,6 @@ where
 	T: Zeroable + FromStr,
 	<T as FromStr>::Err: error::Error,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			| Self::NotIntegerString(err) => fmt::Display::fmt(err, fmt),

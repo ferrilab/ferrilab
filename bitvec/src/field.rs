@@ -53,12 +53,12 @@ pub trait BitField {
 		}
 		else {
 			match option_env!("CARGO_PKG_REPOSITORY") {
-				Some(env) => unreachable!(
+				| Some(env) => unreachable!(
 					"This architecture is not supported! Please consider \
 					 filing an issue at {}",
 					env
 				),
-				None => unreachable!(
+				| None => unreachable!(
 					"This architecture is not supported! Please consider \
 					 filing an issue"
 				),
@@ -79,12 +79,12 @@ pub trait BitField {
 		}
 		else {
 			match option_env!("CARGO_PKG_REPOSITORY") {
-				Some(env) => unreachable!(
+				| Some(env) => unreachable!(
 					"This architecture is not supported! Please consider \
 					 filing an issue at {}",
 					env
 				),
-				None => unreachable!(
+				| None => unreachable!(
 					"This architecture is not supported! Please consider \
 					 filing an issue"
 				),
@@ -122,8 +122,8 @@ where T: BitStore
 
 		match self.domain() {
 			//  In Lsb0, the head counts distance from LSedge to first live bit.
-			Domain::Enclave(elem) => get(elem, elem.head().into_inner()),
-			Domain::Region { head, body, tail } => {
+			| Domain::Enclave(elem) => get(elem, elem.head().into_inner()),
+			| Domain::Region { head, body, tail } => {
 				let mut accum = I::ZERO;
 
 				if let Some(elem) = tail {
@@ -158,8 +158,8 @@ where T: BitStore
 		check::<I>("load", len);
 
 		match self.domain() {
-			Domain::Enclave(elem) => get(elem, elem.head().into_inner()),
-			Domain::Region { head, body, tail } => {
+			| Domain::Enclave(elem) => get(elem, elem.head().into_inner()),
+			| Domain::Region { head, body, tail } => {
 				let mut accum = I::ZERO;
 
 				if let Some(elem) = head {
@@ -190,11 +190,11 @@ where T: BitStore
 		check::<I>("store", self.len());
 
 		match self.domain_mut() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let shamt = elem.head().into_inner();
 				set(elem, value, shamt);
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = head {
 					let shamt = elem.head().into_inner();
 					set(elem, value, shamt);
@@ -221,11 +221,11 @@ where T: BitStore
 		check::<I>("store", self.len());
 
 		match self.domain_mut() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let shamt = elem.head().into_inner();
 				set(elem, value, shamt);
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = tail {
 					let shamt = elem.tail().into_inner() as usize;
 					set(elem, value, 0);
@@ -258,11 +258,11 @@ where T: BitStore
 		check::<I>("load", len);
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let shamt = bits_of::<T>() as u8 - elem.tail().into_inner();
 				get(elem, shamt)
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				let mut accum = I::ZERO;
 
 				if let Some(elem) = tail {
@@ -296,11 +296,11 @@ where T: BitStore
 		check::<I>("load", len);
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let shamt = bits_of::<T>() as u8 - elem.tail().into_inner();
 				get(elem, shamt)
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				let mut accum = I::ZERO;
 
 				if let Some(elem) = head {
@@ -331,11 +331,11 @@ where T: BitStore
 		check::<I>("store", self.len());
 
 		match self.domain_mut() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let shamt = bits_of::<T>() as u8 - elem.tail().into_inner();
 				set(elem, value, shamt);
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = head {
 					let shamt =
 						bits_of::<T>() - elem.head().into_inner() as usize;
@@ -363,11 +363,11 @@ where T: BitStore
 		check::<I>("store", self.len());
 
 		match self.domain_mut() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let shamt = bits_of::<T>() as u8 - elem.tail().into_inner();
 				set(elem, value, shamt);
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = tail {
 					let tail = elem.tail().into_inner() as usize;
 					let shamt = bits_of::<T>() - tail;

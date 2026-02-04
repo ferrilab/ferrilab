@@ -190,8 +190,8 @@ where
 	#[inline]
 	pub fn split_first(&self) -> Option<(BitRef<Const, T, O>, &Self)> {
 		match self.len() {
-			0 => None,
-			_ => unsafe {
+			| 0 => None,
+			| _ => unsafe {
 				let (head, rest) = self.split_at_unchecked(1);
 				Some((head.get_unchecked(0), rest))
 			},
@@ -228,8 +228,8 @@ where
 		&mut self,
 	) -> Option<(BitRef<Mut, T::Alias, O>, &mut BitSlice<T::Alias, O>)> {
 		match self.len() {
-			0 => None,
-			_ => unsafe {
+			| 0 => None,
+			| _ => unsafe {
 				let (head, rest) = self.split_at_unchecked_mut(1);
 				Some((head.get_unchecked_mut(0), rest))
 			},
@@ -261,8 +261,8 @@ where
 	#[inline]
 	pub fn split_last(&self) -> Option<(BitRef<Const, T, O>, &Self)> {
 		match self.len() {
-			0 => None,
-			n => unsafe {
+			| 0 => None,
+			| n => unsafe {
 				let (rest, tail) = self.split_at_unchecked(n - 1);
 				Some((tail.get_unchecked(0), rest))
 			},
@@ -299,8 +299,8 @@ where
 		&mut self,
 	) -> Option<(BitRef<Mut, T::Alias, O>, &mut BitSlice<T::Alias, O>)> {
 		match self.len() {
-			0 => None,
-			n => unsafe {
+			| 0 => None,
+			| n => unsafe {
 				let (rest, tail) = self.split_at_unchecked_mut(n - 1);
 				Some((tail.get_unchecked_mut(0), rest))
 			},
@@ -332,8 +332,8 @@ where
 	#[inline]
 	pub fn last(&self) -> Option<BitRef<Const, T, O>> {
 		match self.len() {
-			0 => None,
-			n => Some(unsafe { self.get_unchecked(n - 1) }),
+			| 0 => None,
+			| n => Some(unsafe { self.get_unchecked(n - 1) }),
 		}
 	}
 
@@ -366,8 +366,8 @@ where
 	#[inline]
 	pub fn last_mut(&mut self) -> Option<BitRef<Mut, T, O>> {
 		match self.len() {
-			0 => None,
-			n => Some(unsafe { self.get_unchecked_mut(n - 1) }),
+			| 0 => None,
+			| n => Some(unsafe { self.get_unchecked_mut(n - 1) }),
 		}
 	}
 
@@ -2129,10 +2129,10 @@ where
 	pub fn fill(&mut self, value: bool) {
 		let fill = if value { T::Mem::ALL } else { T::Mem::ZERO };
 		match self.domain_mut() {
-			Domain::Enclave(mut elem) => {
+			| Domain::Enclave(mut elem) => {
 				elem.store_value(fill);
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(mut elem) = head {
 					elem.store_value(fill);
 				}
@@ -2519,7 +2519,7 @@ where
 	///
 	/// [0]: core::slice::SliceIndex::get_unchecked_mut
 	unsafe fn get_unchecked_mut(self, bits: &'a mut BitSlice<T, O>)
-	-> Self::Mut;
+		-> Self::Mut;
 
 	/// Immutably indexes into a bit-slice, panicking if `self` is out of
 	/// bounds.

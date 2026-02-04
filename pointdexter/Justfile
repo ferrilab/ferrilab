@@ -16,14 +16,7 @@ check:
 	cargo         clippy --no-default-features
 	cargo +stable clippy        --all-features
 
-dev: check doc test
-
-doc:
-	cargo +stable rustdoc --all-features -- \
-		-e assets/extra.css --document-private-items
-
-format:
-	cargo +nightly fmt
+dev: check test
 
 package:
 	cargo package --allow-dirty

@@ -324,7 +324,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		self.bitspan.render(fmt, "Box", None)?;
 		fmt.write_str(" ")?;

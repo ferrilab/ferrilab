@@ -650,8 +650,8 @@ where
 	#[inline]
 	pub fn pop(&mut self) -> Option<bool> {
 		match self.len() {
-			0 => None,
-			n => unsafe {
+			| 0 => None,
+			| n => unsafe {
 				let new_len = n - 1;
 				let out = Some(*self.get_unchecked(new_len));
 				self.set_len_unchecked(new_len);

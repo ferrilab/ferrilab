@@ -157,8 +157,8 @@ where
 	#[inline]
 	fn index(&self, index: usize) -> &Self::Output {
 		match *index.index(self) {
-			true => &true,
-			false => &false,
+			| true => &true,
+			| false => &false,
 		}
 	}
 }
@@ -211,7 +211,7 @@ bit in the underlying region.
 **/
 impl<'a, T, O> Not for &'a mut BitSlice<T, O>
 where
-	T: BitStore,
+	T: 'a + BitStore,
 	O: BitOrder,
 {
 	type Output = Self;
@@ -219,10 +219,10 @@ where
 	#[inline]
 	fn not(self) -> Self::Output {
 		match self.domain_mut() {
-			Domain::Enclave(mut elem) => {
+			| Domain::Enclave(mut elem) => {
 				elem.invert();
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(mut elem) = head {
 					elem.invert();
 				}

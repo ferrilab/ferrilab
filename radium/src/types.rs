@@ -34,7 +34,6 @@ where
 	T: Atomic + Debug,
 	T::Atom: Radium<Item = T> + Debug,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Debug::fmt(&self.inner, fmt)
 	}
@@ -81,7 +80,6 @@ where
 	T: Nuclear + Debug,
 	T::Nucleus: Radium<Item = T> + Debug,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Debug::fmt(&self.inner, fmt)
 	}
@@ -128,7 +126,6 @@ where
 	T: Nuclear + Debug,
 	Cell<T>: Radium<Item = T> + Debug,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Debug::fmt(&self.inner, fmt)
 	}

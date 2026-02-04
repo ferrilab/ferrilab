@@ -29,7 +29,6 @@ impl<T> error::Error for ZeroValueError<T> where T: Zeroable {}
 impl<T> fmt::Display for ZeroValueError<T>
 where T: Zeroable
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
 		write!(
 			fmt,

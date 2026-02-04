@@ -116,11 +116,10 @@ fn iter() {
 	let bits = data.into_bitarray::<Lsb0>();
 	let view = data.view_bits::<Lsb0>();
 
-	assert!(
-		bits.into_iter()
-			.zip(view.iter().by_vals())
-			.all(|(a, b)| a == b)
-	);
+	assert!(bits
+		.into_iter()
+		.zip(view.iter().by_vals())
+		.all(|(a, b)| a == b));
 
 	let mut iter = bits.into_iter();
 	assert!(iter.next().is_some());

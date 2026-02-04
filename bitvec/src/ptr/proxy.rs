@@ -348,7 +348,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		unsafe { self.bitptr.span_unchecked(1) }
 			.render(fmt, "Ref", &[("bit", &self.data as &dyn Debug)])
@@ -362,7 +361,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Display::fmt(&self.data, fmt)
 	}
@@ -375,7 +373,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Pointer::fmt(&self.bitptr, fmt)
 	}

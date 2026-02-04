@@ -166,7 +166,6 @@ where
 	A: BitViewSized,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_tuple("IntoIter")
 			.field(&self.as_bitslice())

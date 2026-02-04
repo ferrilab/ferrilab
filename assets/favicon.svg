@@ -1,0 +1,44 @@
+<svg version="1.1" viewBox="0 -116 128 128" xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g id="main">
+    <path class="stroke-accent" d="
+      M 4 0
+      m 24 0
+      m 0 -52 l 62 0
+      " />
+    <path class="stroke-fg" d="
+      M 4 0
+      l 24 0 l 0 -104 l 62 0
+      " />
+  </g>
+  <style type="text/css">
+    * {
+      shape-rendering: crispEdges;
+    }
+
+    .stroke-fg {
+      stroke: black;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .stroke-fg {
+        stroke: white;
+      }
+    }
+
+    .stroke-accent {
+      stroke: #ff4f00;
+    }
+
+    #main {
+      transform: skewX(-18deg);
+    }
+
+    path {
+      stroke-width: 24px;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      fill: none;
+    }
+  </style>
+</svg>

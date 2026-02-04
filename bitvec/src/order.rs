@@ -104,10 +104,10 @@ pub unsafe trait BitOrder: 'static {
 		R: BitRegister,
 	{
 		let (from, upto) = match (from.into(), upto.into()) {
-			(None, None) => return BitMask::ALL,
-			(Some(from), None) => (from, BitEnd::MAX),
-			(None, Some(upto)) => (BitIdx::MIN, upto),
-			(Some(from), Some(upto)) => (from, upto),
+			| (None, None) => return BitMask::ALL,
+			| (Some(from), None) => (from, BitEnd::MAX),
+			| (None, Some(upto)) => (BitIdx::MIN, upto),
+			| (Some(from), Some(upto)) => (from, upto),
 		};
 		from.range(upto).map(Self::select::<R>).sum()
 	}

@@ -119,7 +119,7 @@ where T: BitStore
 		let mut accum = 0;
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value();
 				if has_one(val, elem.mask().into_inner()) {
 					accum += val.trailing_zeros() as usize
@@ -128,7 +128,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = head {
 					let val = elem.load_value();
 					accum += val.trailing_zeros() as usize
@@ -163,7 +163,7 @@ where T: BitStore
 		let mut out = self.len();
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value();
 				let dead_bits =
 					bits_of::<T::Mem>() - elem.tail().into_inner() as usize;
@@ -173,7 +173,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = tail {
 					let val = elem.load_value();
 					let dead_bits =
@@ -209,7 +209,7 @@ where T: BitStore
 		let mut accum = 0;
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value() | !elem.mask().into_inner();
 				accum += val.trailing_ones() as usize
 					- elem.head().into_inner() as usize;
@@ -218,7 +218,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = head {
 					let val = elem.load_value() | !elem.mask().into_inner();
 
@@ -254,7 +254,7 @@ where T: BitStore
 		let mut out = self.len();
 
 		match self.domain() {
-			Domain::Enclave(elem) => {
+			| Domain::Enclave(elem) => {
 				let val = elem.load_value() | !elem.mask().into_inner();
 				let dead_bits =
 					bits_of::<T::Mem>() - elem.tail().into_inner() as usize;
@@ -264,7 +264,7 @@ where T: BitStore
 				}
 				None
 			},
-			Domain::Region { head, body, tail } => {
+			| Domain::Region { head, body, tail } => {
 				if let Some(elem) = tail {
 					let val = elem.load_value() | !elem.mask().into_inner();
 					let dead_bits =

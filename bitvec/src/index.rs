@@ -218,9 +218,9 @@ where R: BitRegister
 		self,
 		upto: BitEnd<R>,
 	) -> impl Iterator<Item = Self>
-	+ DoubleEndedIterator
-	+ ExactSizeIterator
-	+ FusedIterator {
+	       + DoubleEndedIterator
+	       + ExactSizeIterator
+	       + FusedIterator {
 		let (from, upto) = (self.into_inner(), upto.into_inner());
 		debug_assert!(from <= upto, "Ranges must run from low to high");
 		(from .. upto).map(|val| unsafe { Self::new_unchecked(val) })
@@ -229,9 +229,9 @@ where R: BitRegister
 	/// Iterates over all possible index values.
 	#[inline]
 	pub fn range_all() -> impl Iterator<Item = Self>
-	+ DoubleEndedIterator
-	+ ExactSizeIterator
-	+ FusedIterator {
+	       + DoubleEndedIterator
+	       + ExactSizeIterator
+	       + FusedIterator {
 		BitIdx::MIN.range(BitEnd::MAX)
 	}
 
@@ -300,7 +300,6 @@ where R: BitRegister
 impl<R> Binary for BitIdx<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "{:0>1$b}", self.idx, R::INDX as usize)
 	}
@@ -309,7 +308,6 @@ where R: BitRegister
 impl<R> Debug for BitIdx<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitIdx<{}>({})", any::type_name::<R>(), self)
 	}
@@ -318,7 +316,6 @@ where R: BitRegister
 impl<R> Display for BitIdx<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Binary::fmt(self, fmt)
 	}
@@ -379,7 +376,6 @@ where R: BitRegister
 impl<R> Debug for BitIdxError<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitIdxError<{}>({})", any::type_name::<R>(), self.err)
 	}
@@ -389,7 +385,6 @@ where R: BitRegister
 impl<R> Display for BitIdxError<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,
@@ -509,9 +504,9 @@ where R: BitRegister
 	pub fn range_from(
 		from: BitIdx<R>,
 	) -> impl Iterator<Item = Self>
-	+ DoubleEndedIterator
-	+ ExactSizeIterator
-	+ FusedIterator {
+	       + DoubleEndedIterator
+	       + ExactSizeIterator
+	       + FusedIterator {
 		(from.idx ..= Self::MAX.end)
 			.map(|tail| unsafe { BitEnd::new_unchecked(tail) })
 	}
@@ -569,7 +564,6 @@ where R: BitRegister
 impl<R> Binary for BitEnd<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "{:0>1$b}", self.end, R::INDX as usize + 1)
 	}
@@ -578,7 +572,6 @@ where R: BitRegister
 impl<R> Debug for BitEnd<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitEnd<{}>({})", any::type_name::<R>(), self)
 	}
@@ -587,7 +580,6 @@ where R: BitRegister
 impl<R> Display for BitEnd<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Binary::fmt(self, fmt)
 	}
@@ -699,9 +691,9 @@ where R: BitRegister
 
 	/// Iterates over all possible position values.
 	pub(crate) fn range_all() -> impl Iterator<Item = Self>
-	+ DoubleEndedIterator
-	+ ExactSizeIterator
-	+ FusedIterator {
+	       + DoubleEndedIterator
+	       + ExactSizeIterator
+	       + FusedIterator {
 		BitIdx::<R>::range_all()
 			.map(|idx| unsafe { Self::new_unchecked(idx.into_inner()) })
 	}
@@ -710,7 +702,6 @@ where R: BitRegister
 impl<R> Binary for BitPos<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "{:0>1$b}", self.pos, R::INDX as usize)
 	}
@@ -719,7 +710,6 @@ where R: BitRegister
 impl<R> Debug for BitPos<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitPos<{}>({})", any::type_name::<R>(), self)
 	}
@@ -728,7 +718,6 @@ where R: BitRegister
 impl<R> Display for BitPos<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Binary::fmt(self, fmt)
 	}
@@ -809,9 +798,9 @@ where R: BitRegister
 	/// Iterates over all possible selector values.
 	#[inline]
 	pub fn range_all() -> impl Iterator<Item = Self>
-	+ DoubleEndedIterator
-	+ ExactSizeIterator
-	+ FusedIterator {
+	       + DoubleEndedIterator
+	       + ExactSizeIterator
+	       + FusedIterator {
 		BitPos::<R>::range_all().map(BitPos::select)
 	}
 }
@@ -819,7 +808,6 @@ where R: BitRegister
 impl<R> Binary for BitSel<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "{:0>1$b}", self.sel, bits_of::<R>())
 	}
@@ -828,7 +816,6 @@ where R: BitRegister
 impl<R> Debug for BitSel<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitSel<{}>({})", any::type_name::<R>(), self)
 	}
@@ -837,7 +824,6 @@ where R: BitRegister
 impl<R> Display for BitSel<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Binary::fmt(self, fmt)
 	}
@@ -947,7 +933,6 @@ where R: BitRegister
 impl<R> Binary for BitMask<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "{:0>1$b}", self.mask, bits_of::<R>())
 	}
@@ -956,7 +941,6 @@ where R: BitRegister
 impl<R> Debug for BitMask<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitMask<{}>({})", any::type_name::<R>(), self)
 	}
@@ -965,7 +949,6 @@ where R: BitRegister
 impl<R> Display for BitMask<R>
 where R: BitRegister
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Binary::fmt(self, fmt)
 	}

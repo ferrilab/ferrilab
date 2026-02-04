@@ -425,7 +425,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_tuple("Drain").field(&self.as_bitslice()).finish()
 	}
@@ -660,7 +659,7 @@ where
 		}
 
 		let len = match self.splice.size_hint() {
-			(n, None) | (_, Some(n)) => n,
+			| (n, None) | (_, Some(n)) => n,
 		};
 
 		unsafe {

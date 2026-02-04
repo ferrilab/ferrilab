@@ -2,7 +2,7 @@
 #                               Justfile                               #
 #                                                                      #
 # Set of routines to execute for project development and management.   #
-# Written against `just 1.8.0`.                                        #
+# Written against `just 1.46.0`.                                       #
 ########################################################################
 
 default:
@@ -26,7 +26,7 @@ check:
 	cargo clippy        --all-features
 
 # Runs all of the recipes necessary for pre-publish.
-checkout: check build doc test package
+checkout: check build test package
 
 # Runs the cross-compile battery test.
 #
@@ -54,12 +54,13 @@ cross_par: rustup_targets
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,std   < ci/target_check_no_serde.txt
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,alloc < ci/target_check_no_std.txt
 
-doc:
-	cargo doc --all-features --document-private-items
-
 # Looks for undefined behavior in the (non-doc) test suite.
-miri *ARGS:
+miri *ARGS: miri_install
 	cargo +nightly miri test --features atomic,serde,std -q --lib --tests {{ARGS}}
+
+miri_install:
+	rustup toolchain add nightly --component miri
+	cargo +nightly miri setup
 
 package:
 	cargo package --allow-dirty
@@ -93,4 +94,4 @@ test_doc *ARGS:
 # Runs the example programs (suppressing their output)
 test_examples:
 	echo aliasing ipv4 sieve tour \
-	| xargs -n1 cargo run --all-features --example
+	| xargs -n1 cargo +stable run --all-features --example

@@ -15,13 +15,13 @@ contact a maintainer, please reach out to him first.
 In roughly descending order of likelihood that myrrlyn will receive and respond
 to your contact, he can be reached through:
 
-- email: [self@myrrlyn.dev](mailto:self@myrrlyn.dev)
+- email: [self@myrrlyn.net](mailto:self@myrrlyn.net)
+- BlueSky: [@myrrlyn.net](https://bsky.app/profile/myrrlyn.net)
 - GitHub: [@myrrlyn](https://github.com/myrrlyn)
-- Mastodon: [@myrrlyn@hachyderm.io](https://hachyderm.io/myrrlyn)
-- Discord: `@myrrlyn#0611`. He is present in the Rust Programming Language and
-  Rust Programming Language Community servers. If you are in either, you can
+- Mastodon: [@myrrlyn@tacobelllabs.net](https://tacobelllabs.net/myrrlyn)
+- Discord: `@myrrlyn`. He is present in the Rust Programming Language and Rust
+  Programming Language Community servers. If you are in either, you can
   @-mention him in them, or DM him.
-- Reddit: [/u/myrrlyn](https://reddit.com/u/myrrlyn)
 
 ## Expectations and Non-Expectations
 
@@ -99,7 +99,7 @@ To work on the user guide, you will need to install `mdBook`. You can do this
 with
 
 ```shell
-cargo +nightly install mdbook --vers 0.4.28
+just book_install
 ```
 
 or you can search for it in your system package manager.

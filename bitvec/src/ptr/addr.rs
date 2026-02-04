@@ -138,7 +138,6 @@ impl<T> MisalignError<T> {
 
 #[cfg(not(tarpaulin_include))]
 impl<T> Debug for MisalignError<T> {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_tuple("MisalignError")
 			.field(&self.ptr.fmt_pointer())
@@ -149,7 +148,6 @@ impl<T> Debug for MisalignError<T> {
 
 #[cfg(not(tarpaulin_include))]
 impl<T> Display for MisalignError<T> {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,

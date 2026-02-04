@@ -8,7 +8,7 @@ categories = [
 description = "Trait generalization over the primitive types"
 documentation = "https://docs.rs/funty"
 homepage = "https://ferrilab.github.io/ferrilab"
-edition = "2024"
+edition = "2021"
 include = [
 	"Cargo.toml",
 	"README.md",
@@ -17,6 +17,7 @@ include = [
 	"doc/*.md",
 ]
 keywords = [
+	"no-std",
 	"numerics",
 	"primitives",
 	"traits",

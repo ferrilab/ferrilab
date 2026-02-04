@@ -927,10 +927,10 @@ where
 			self.ptr.to_const().align_offset(align),
 			self.bit.into_inner() as usize,
 		) {
-			(0, 0) => 0,
-			(0, head) => align * mem::bits_of::<u8>() - head,
-			(usize::MAX, _) => usize::MAX,
-			(elts, head) => elts.wrapping_mul(width).wrapping_sub(head),
+			| (0, 0) => 0,
+			| (0, head) => align * mem::bits_of::<u8>() - head,
+			| (usize::MAX, _) => usize::MAX,
+			| (elts, head) => elts.wrapping_mul(width).wrapping_sub(head),
 		}
 	}
 }
@@ -1278,10 +1278,10 @@ where
 		match (self.get_addr().to_const() as usize)
 			.cmp(&(other.get_addr().to_const() as usize))
 		{
-			cmp::Ordering::Equal => {
+			| cmp::Ordering::Equal => {
 				self.bit.into_inner().partial_cmp(&other.bit.into_inner())
 			},
-			ord => Some(ord),
+			| ord => Some(ord),
 		}
 	}
 }
@@ -1346,7 +1346,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,
@@ -1365,7 +1364,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_tuple("")
 			.field(&self.get_addr().fmt_pointer())
@@ -1433,11 +1431,10 @@ where T: BitStore
 impl<T> Display for BitPtrError<T>
 where T: BitStore
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		match self {
-			Self::Null(err) => Display::fmt(err, fmt),
-			Self::Misaligned(err) => Display::fmt(err, fmt),
+			| Self::Null(err) => Display::fmt(err, fmt),
+			| Self::Misaligned(err) => Display::fmt(err, fmt),
 		}
 	}
 }

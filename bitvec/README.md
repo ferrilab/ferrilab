@@ -1,6 +1,6 @@
 <div style="text-align: center;" align="center">
 
-# `bitvec`
+# ![`bitvec`][logo]
 
 ## A Magnifying Glass for Memory <!-- omit in toc -->
 
@@ -389,6 +389,19 @@ your code and using the same habits you have with the standard library, both of
 these resources contain all of the information needed to understand what it
 does, how it works, and how it can be useful to you.
 
+<style type="text/css">
+  h2 > img {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSItMTEgLTgwIDI3OCAxMTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PG1hc2sgaWQ9ImEiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0tMTEtODBoMjc4djk2SC0xMXoiLz48L21hc2s+PGcgdHJhbnNmb3JtPSJza2V3WCgtMTgpIiBtYXNrPSJ1cmwoI2EpIj48cGF0aCBkPSJNMC03MlYwaDI0di00OEgwTTQ4IDB2LTQ4TTk2IDBIODR2LTcyTTcyLTQ4aDI0bTI0IDB2MzZsMTIgMTIgMTItMTJ2LTM2bTI0IDI0aDI0di0yNGgtMjRWMGgyNG00OCAwaC0yNHYtNDhoMjQiLz48cGF0aCBzdHlsZT0ic3Ryb2tlOiNmZjRmMDAiIGQ9Ik00OC03MmgwIi8+PC9nPjxzdHlsZT4qe3NoYXBlLXJlbmRlcmluZzpjcmlzcEVkZ2VzfWc+cGF0aHtzdHJva2U6IzAwMDtmaWxsOm5vbmU7c3Ryb2tlLXdpZHRoOjE2cHg7c3Ryb2tlLWxpbmVjYXA6c3F1YXJlfUBtZWRpYSAocHJlZmVycy1jb2xvci1zY2hlbWU6ZGFyayl7Zz5wYXRoe3N0cm9rZTojZmZmfX08L3N0eWxlPjwvc3ZnPg==");
+    background-position: center center;
+    background-repeat: no-repeat;
+    display: block;
+  }
+  h2 > img::before { display: none; }
+  h1 > img, h2 > img {
+    height: 4em;
+  }
+</style>
+
 <!-- Badges -->
 [crate_link]: https://crates.io/crates/bitvec "Crate listing"
 [crate_img]: https://img.shields.io/crates/v/bitvec.svg?style=for-the-badge&color=f46623 "Crate badge"
@@ -420,3 +433,5 @@ does, how it works, and how it can be useful to you.
 [`radium`]: https://crates.io/crates/radium
 [`std::bitset<N>`]: https://en.cppreference.com/w/cpp/utility/bitset
 [`std::vector<bool>`]: https://en.cppreference.com/w/cpp/container/vector_bool
+
+[logo]: assets/bitvec.svg

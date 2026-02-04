@@ -21,6 +21,7 @@ indent_style = tab
 [*.md]
 indent_size = 2
 indent_style = space
+max_line_length = 80
 
 # Rust files use ␉ indentation at four columns.
 [*.rs]

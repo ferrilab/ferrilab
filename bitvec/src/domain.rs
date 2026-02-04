@@ -126,8 +126,8 @@ where
 	#[inline]
 	pub fn enclave(self) -> Option<Reference<'a, M, BitSlice<T, O>>> {
 		match self {
-			Self::Enclave(bits) => Some(bits),
-			_ => None,
+			| Self::Enclave(bits) => Some(bits),
+			| _ => None,
 		}
 	}
 
@@ -144,8 +144,8 @@ where
 		Reference<'a, M, BitSlice<T, O>>,
 	)> {
 		match self {
-			Self::Region { head, body, tail } => Some((head, body, tail)),
-			_ => None,
+			| Self::Region { head, body, tail } => Some((head, body, tail)),
+			| _ => None,
 		}
 	}
 }
@@ -180,7 +180,6 @@ where
 	Reference<'a, M, BitSlice<T, O>>: Debug,
 	Reference<'a, M, BitSlice<T::Unalias, O>>: Debug,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,
@@ -190,10 +189,10 @@ where
 			any::type_name::<O>(),
 		)?;
 		match self {
-			Self::Enclave(elem) => {
+			| Self::Enclave(elem) => {
 				fmt.debug_tuple("Enclave").field(elem).finish()
 			},
-			Self::Region { head, body, tail } => fmt
+			| Self::Region { head, body, tail } => fmt
 				.debug_struct("Region")
 				.field("head", head)
 				.field("body", body)
@@ -277,8 +276,8 @@ where
 	#[inline]
 	pub fn enclave(self) -> Option<PartialElement<'a, M, T, O>> {
 		match self {
-			Self::Enclave(elem) => Some(elem),
-			_ => None,
+			| Self::Enclave(elem) => Some(elem),
+			| _ => None,
 		}
 	}
 
@@ -295,8 +294,8 @@ where
 		Option<PartialElement<'a, M, T, O>>,
 	)> {
 		match self {
-			Self::Region { head, body, tail } => Some((head, body, tail)),
-			_ => None,
+			| Self::Region { head, body, tail } => Some((head, body, tail)),
+			| _ => None,
 		}
 	}
 
@@ -314,22 +313,22 @@ where
 			TryFrom<Reference<'a, M, [T::Unalias]>>,
 	{
 		match self {
-			Self::Enclave(elem) => BitDomain::Enclave(elem.into_bitslice()),
-			Self::Region { head, body, tail } => BitDomain::Region {
+			| Self::Enclave(elem) => BitDomain::Enclave(elem.into_bitslice()),
+			| Self::Region { head, body, tail } => BitDomain::Region {
 				head: head.map_or_else(
 					Default::default,
 					PartialElement::into_bitslice,
 				),
 				body: body.try_into().unwrap_or_else(|_| {
 					match option_env!("CARGO_PKG_REPOSITORY") {
-						Some(env) => unreachable!(
+						| Some(env) => unreachable!(
 							"Construction of a slice with length {} should not \
 							 be possible. If this assumption is outdated, \
 							 please file an issue at {}",
 							(isize::MIN as usize) >> 3,
 							env,
 						),
-						None => unreachable!(
+						| None => unreachable!(
 							"Construction of a slice with length {} should not \
 							 be possible. If this assumption is outdated, \
 							 please consider filing an issue",
@@ -383,12 +382,12 @@ where
 		let base = bitspan.address();
 		let (min, max) = (BitIdx::<T::Mem>::MIN, BitEnd::<T::Mem>::MAX);
 		let ctor = match (head, elts, tail) {
-			(_, 0, _) => Self::empty,
-			(h, _, t) if h == min && t == max => Self::spanning,
-			(_, _, t) if t == max => Self::partial_head,
-			(h, ..) if h == min => Self::partial_tail,
-			(_, 1, _) => Self::minor,
-			_ => Self::major,
+			| (_, 0, _) => Self::empty,
+			| (h, _, t) if h == min && t == max => Self::spanning,
+			| (_, _, t) if t == max => Self::partial_head,
+			| (h, ..) if h == min => Self::partial_tail,
+			| (_, 1, _) => Self::minor,
+			| _ => Self::major,
 		};
 		ctor(base, elts, head, tail)
 	}
@@ -536,7 +535,6 @@ where
 	Address<M, [T::Unalias]>: SliceReferential<'a>,
 	Reference<'a, M, [T::Unalias]>: Debug,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,
@@ -546,10 +544,10 @@ where
 			any::type_name::<O>(),
 		)?;
 		match self {
-			Self::Enclave(elem) => {
+			| Self::Enclave(elem) => {
 				fmt.debug_tuple("Enclave").field(elem).finish()
 			},
-			Self::Region { head, body, tail } => fmt
+			| Self::Region { head, body, tail } => fmt
 				.debug_struct("Region")
 				.field("head", head)
 				.field("body", body)
@@ -581,10 +579,10 @@ where
 	#[inline]
 	fn next(&mut self) -> Option<Self::Item> {
 		match self {
-			Self::Enclave(elem) => {
+			| Self::Enclave(elem) => {
 				elem.load_value().tap(|_| *self = Default::default()).into()
 			},
-			Self::Region { head, body, tail } => {
+			| Self::Region { head, body, tail } => {
 				if let Some(elem) = head.take() {
 					return elem.load_value().into();
 				}
@@ -609,10 +607,10 @@ where
 	#[inline]
 	fn next_back(&mut self) -> Option<Self::Item> {
 		match self {
-			Self::Enclave(elem) => {
+			| Self::Enclave(elem) => {
 				elem.load_value().tap(|_| *self = Default::default()).into()
 			},
-			Self::Region { head, body, tail } => {
+			| Self::Region { head, body, tail } => {
 				if let Some(elem) = tail.take() {
 					return elem.load_value().into();
 				}
@@ -637,8 +635,8 @@ where
 	#[inline]
 	fn len(&self) -> usize {
 		match self {
-			Self::Enclave(_) => 1,
-			Self::Region { head, body, tail } => {
+			| Self::Enclave(_) => 1,
+			| Self::Region { head, body, tail } => {
 				head.is_some() as usize + body.len() + tail.is_some() as usize
 			},
 		}
@@ -667,7 +665,6 @@ macro_rules! fmt {
 			O: BitOrder,
 			T: BitStore,
 		{
-			#[inline]
 			fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 				fmt.debug_list()
 					.entries(self.into_iter().map(FmtForward::$fwd))
@@ -909,7 +906,6 @@ where
 	T: 'a + BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(
 			fmt,

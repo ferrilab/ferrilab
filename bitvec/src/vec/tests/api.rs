@@ -16,9 +16,8 @@ fn ins_del() {
 
 #[test]
 fn walk() {
-	let mut bv = bitvec![
-		0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0
-	];
+	let mut bv =
+		bitvec![0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0];
 	assert_eq!(bv.pop(), Some(false));
 	assert_eq!(bv.count_ones(), 8);
 

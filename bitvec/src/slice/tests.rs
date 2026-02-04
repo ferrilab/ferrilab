@@ -141,17 +141,13 @@ fn bit_counting() {
 	assert!([0u8; 3].view_bits::<Msb0>()[1 .. 23].last_one().is_none());
 
 	assert!([!0u8; 1].view_bits::<Lsb0>()[1 .. 7].first_zero().is_none());
-	assert!(
-		[!0u8; 3].view_bits::<Lsb0>()[1 .. 23]
-			.first_zero()
-			.is_none()
-	);
+	assert!([!0u8; 3].view_bits::<Lsb0>()[1 .. 23]
+		.first_zero()
+		.is_none());
 	assert!([!0u8; 1].view_bits::<Msb0>()[1 .. 7].first_zero().is_none());
-	assert!(
-		[!0u8; 3].view_bits::<Msb0>()[1 .. 23]
-			.first_zero()
-			.is_none()
-	);
+	assert!([!0u8; 3].view_bits::<Msb0>()[1 .. 23]
+		.first_zero()
+		.is_none());
 
 	assert!([!0u8; 1].view_bits::<Lsb0>()[1 .. 7].last_zero().is_none());
 	assert!([!0u8; 3].view_bits::<Lsb0>()[1 .. 23].last_zero().is_none());

@@ -64,7 +64,16 @@ if you track the stable release train. Features begin at `rust_186`, as Rust
 1.85 is the baseline and is always available.
 
 <style type="text/css">
-  h1 img, h2 img { height: 4em; }
+  h2 > img {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIC04MCA1MjAgMTEyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJoZWlnaHQ6NTEycHgiPjxnIHN0eWxlPSJ0cmFuc2Zvcm06c2tld1goLTE4ZGVnKSI+PHBhdGggY2xhc3M9InBlbiIgZD0iTTE5IDI0di03MmgyNFYwSDE5bTQ4IDB2LTQ4aDI0VjBINjdtNDggMHYtNDhtMjQgNDh2LTQ4aDEybDEyIDEyVjBtMjQtNzJWMGgxMm00OC00OGgtMjRWMGgyNHYtNzJtMjQgNDhoMjR2LTI0aC0yNFYwaDI0bTI0IDB2LTEybDI0LTI0di0xMm0tMjQgMHYxMmwyNCAyNFYwbTQ4IDBoLTEydi03Mm0tMTIgMjRoMjRtMjQgMjRoMjR2LTI0aC0yNFYwaDI0bTI0IDB2LTQ4aDI0Ii8+PHBhdGggZD0iTTE2My01Nmg0NHYxNmgtMjgiLz48cGF0aCBjbGFzcz0icGVuIiBkPSJNMTE1LTcyaDAiIHN0eWxlPSJzdHJva2U6I2ZmNGYwMCIvPjwvZz48c3R5bGU+cGF0aHtzdHJva2U6IzAwMDtmaWxsOiMwMDB9QG1lZGlhIChwcmVmZXJzLWNvbG9yLXNjaGVtZTpkYXJrKXtwYXRoe3N0cm9rZTojZmZmO2ZpbGw6I2ZmZn19LnBlbntmaWxsOm5vbmU7c3Ryb2tlLXdpZHRoOjE2cHg7c3Ryb2tlLWxpbmVjYXA6c3F1YXJlfTwvc3R5bGU+PC9zdmc+");
+    background-position: center center;
+    background-repeat: no-repeat;
+    display: block;
+  }
+  h2 > img::before { display: none; }
+  h1 > img, h2 > img {
+    height: 4em;
+  }
 </style>
 
 <!-- Documentation -->
@@ -81,4 +90,4 @@ if you track the stable release train. Features begin at `rust_186`, as Rust
 [msrv_img]: https://img.shields.io/badge/MSRV-1.85-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.85"
 [version_img]: https://img.shields.io/crates/v/pointdexter?color=f46623&style=for-the-badge "pointdexter version badge"
 
-[logo]: ../assets/pointdexter.svg
+[logo]: assets/pointdexter.svg

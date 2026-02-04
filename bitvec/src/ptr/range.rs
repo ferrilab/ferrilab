@@ -285,7 +285,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		let Range { start, end } = self.clone().into_range();
 		Debug::fmt(&start, fmt)?;

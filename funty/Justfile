@@ -2,18 +2,18 @@
 #                               Justfile                               #
 #                                                                      #
 # Set of routines to execute for project development and management.   #
-# Written against `just 1.8.0`.                                        #
+# Written against `just 1.46.0`.                                       #
 ########################################################################
 
 # Builds the library.
 build:
-	cargo build --no-default-features
-	cargo build --all-features
+	cargo         build --no-default-features
+	cargo +stable build        --all-features
 
 # Checks the library for syntax and HIR errors.
 check:
-	cargo clippy --no-default-features
-	cargo clippy --all-features
+	cargo         clippy --no-default-features
+	cargo +stable clippy        --all-features
 
 # Runs all of the recipes necessary for pre-publish.
 checkout: check build doc test package
@@ -22,16 +22,8 @@ checkout: check build doc test package
 ci:
 	just loop dev
 
-# Removes all build artifacts.
-clean:
-	cargo clean
-
 # Runs the development routines.
-dev: format doc test
-
-# Builds the crate documentation.
-doc:
-	cargo doc --all-features --document-private-items
+dev: check test
 
 # Packages the crate in preparation for publishing on crates.io
 package:
@@ -43,5 +35,5 @@ publish: checkout
 
 # Runs the test suites.
 test: check
-	cargo test --no-default-features
-	cargo test --all-features
+	cargo         test --no-default-features
+	cargo +stable test        --all-features

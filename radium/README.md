@@ -1,6 +1,6 @@
 <div style="text-align: center;" align="center">
 
-# Radium
+# ![Radium][logo]
 
 [![Latest Version][version_img]][crate_link]
 [![MSRV][msrv_img]][crate_link]
@@ -112,15 +112,25 @@ your target, consider using the `TARGET_ARCH` matcher, or match on the full
 
 ## Project Origins
 
-**@kneecaw** - <https://twitter.com/kneecaw/status/1132695060812849154>
-> Feelin' lazy: Has someone already written a helper trait abstracting
-> operations over `AtomicUsize` and `Cell<usize>` for generic code which may not
-> care about atomicity?
-
-**@ManishEarth** - <https://twitter.com/ManishEarth/status/1132706585300496384>
-> no but call the crate radium
+> **@kneecaw**: Feelin' lazy: Has someone already written a helper trait
+> abstracting operations over `AtomicUsize` and `Cell<usize>` for generic code
+> which may not care about atomicity?
 >
-> (since people didn't care that it was radioactive and used it in everything)
+> **@ManishEarth**: no but call the crate radium (since people didn't care that
+> it was radioactive and used it in everything)
+
+<style type="text/css">
+  h2 > img {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIC04MCAzMDQgMTEyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIHN0eWxlPSJ0cmFuc2Zvcm06c2tld1goLTE4ZGVnKSI+PHBhdGggZD0iTTEyIDB2LTQ4aDI0bTI0IDBoMjRWMEg2MHYtMjRoMjRtNDgtMjRoLTI0VjBoMjR2LTcybTI0IDcydi00OG0yNCAwVjBoMjR2LTQ4bTI0IDBWMG0wLTQ4aDI0VjBtMC00OGgyNFYwIi8+PHBhdGggZD0iTTE1Ni03MmgwIiBzdHlsZT0ic3Ryb2tlOiNmZjRmMDAiLz48L2c+PHN0eWxlPnBhdGh7c3Ryb2tlOiMwMDB9QG1lZGlhIChwcmVmZXJzLWNvbG9yLXNjaGVtZTpkYXJrKXtwYXRoe3N0cm9rZTojZmZmfX0qe3NoYXBlLXJlbmRlcmluZzpjcmlzcEVkZ2VzfXBhdGh7ZmlsbDpub25lO3N0cm9rZS13aWR0aDoxNnB4O3N0cm9rZS1saW5lY2FwOnNxdWFyZX08L3N0eWxlPjwvc3ZnPg==");
+    background-position: center center;
+    background-repeat: no-repeat;
+    display: block;
+  }
+  h2 > img::before { display: none; }
+  h1 > img, h2 > img {
+    height: 4em;
+  }
+</style>
 
 <!-- Badges -->
 [crate_link]: https://crates.io/crates/radium "Crates.io package"
@@ -141,3 +151,5 @@ your target, consider using the `TARGET_ARCH` matcher, or match on the full
 
 <!-- External links -->
 [0]: https://github.com/rust-lang/rust/blob/master/RELEASES.md#version-1600-2022-04-07
+
+[logo]: assets/radium.svg

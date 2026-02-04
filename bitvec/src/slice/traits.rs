@@ -200,9 +200,9 @@ where
 	fn partial_cmp(&self, rhs: &BitSlice<T2, O2>) -> Option<cmp::Ordering> {
 		for (l, r) in self.iter().by_vals().zip(rhs.iter().by_vals()) {
 			match (l, r) {
-				(true, false) => return Some(cmp::Ordering::Greater),
-				(false, true) => return Some(cmp::Ordering::Less),
-				_ => continue,
+				| (true, false) => return Some(cmp::Ordering::Greater),
+				| (false, true) => return Some(cmp::Ordering::Less),
+				| _ => continue,
 			}
 		}
 		self.len().partial_cmp(&rhs.len())
@@ -365,7 +365,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		self.as_bitspan().render(fmt, "Slice", None)?;
 		fmt.write_str(" ")?;
@@ -378,7 +377,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_list()
 			.entries(self.iter().by_vals().map(|b| b as u8))
@@ -391,7 +389,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Pointer::fmt(&self.as_bitspan(), fmt)
 	}
@@ -410,9 +407,9 @@ where
 		val |= bit as u8;
 	}
 	match val {
-		v @ 0 ..= 9 => b'0' + v,
-		v @ 10 ..= 35 => alpha - 10 + v,
-		_ => unreachable!(
+		| v @ 0 ..= 9 => b'0' + v,
+		| v @ 10 ..= 35 => alpha - 10 + v,
+		| _ => unreachable!(
 			"bit-slices wider than five bits cannot be rendered to ASCII b36"
 		),
 	}

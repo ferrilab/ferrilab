@@ -1,7 +1,0 @@
-.docblock h2:first-of-type {
-    background-image: url("data:image/svg+xml,%3Csvg version='1.1' viewBox='0 -80 520 112' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg id='main'%3E%3Cpath class='pen pen-sq stroke-fg' d='M 19 24 l 0 -72 l 24 0 l 0 48 l -24 0 m 48 0 l 0 -48 l 24 0 l 0 48 l -24 0 m 48 0 l 0 -48 m 24 48 l 0 -48 l 12 0 l 12 12 l 0 36 m 24 -72 l 0 72 l 12 0 m 48 -48 l -24 0 l 0 48 l 24 0 l 0 -72 m 24 48 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0 m 24 0 l 0 -12 l 24 -24 l 0 -12 m -24 0 l 0 12 l 24 24 l 0 12 m 48 0 l -12 0 l 0 -72 m -12 24 l 24 0 m 24 24 l 24 0 l 0 -24 l -24 0 l 0 48 l 24 0 m 24 0 l 0 -48 l 24 0'/%3E%3Cpath class='stroke-fg fill-fg' stroke-width='0' d='M 19 0 m 144 -56 l 44 0 l 0 16 l -28 0'/%3E%3Cpath class='pen pen-sq stroke-accent' d='M 19 -72 m 96 0 l 0 0'/%3E%3C/g%3E%3Cstyle type='text/css'%3E:root%7B--fg:black;--bg:white;%7D@media(prefers-color-scheme:dark)%7B:root%7B--fg:white;--bg:black;%7D%7D.stroke-fg%7Bstroke:var(--fg);%7D.stroke-bg%7Bstroke:var(--bg);%7D.fill-fg%7Bfill:var(--fg);%7D.fill-bg%7Bfill:var(--bg);%7D.stroke-accent%7Bstroke:%23ff4f00;%7D.fill-accent%7Bfill:%23ff4f00;%7Dsvg%7Bheight:512px;%7D%23main%7Btransform:skewX(-18deg);%7D.pen%7Bfill:none;stroke-width:16px;stroke-linecap:square;%7D.pen-sq%7Bstroke-linejoin:miter;%7D.pen-bv%7Bstroke-linejoin:bevel;%7D%3C/style%3E%3C/svg%3E");
-    background-position: center center;
-    background-repeat: no-repeat;
-    font-size: 0 !important;
-    height: 4rem;
-}

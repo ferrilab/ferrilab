@@ -1,7 +1,7 @@
 [package]
 name = "pointdexter"
 version = "1.0.0"
-edition = "2024"
+edition = "2021"
 
 categories = [
 	"no-std",
@@ -17,7 +17,6 @@ include = [
 	"LICENSE.txt",
 	"src/*.rs",
 	"doc/*.md",
-	"assets/extra.css",
 ]
 keywords = [
 	"no-std",
@@ -33,10 +32,6 @@ rust-version = "1.85"
 [package.metadata.docs.rs]
 features = [
 	"rust_now",
-]
-rustdoc-args = [
-	"--extend-css",
-	"assets/extra.css",
 ]
 
 [dependencies]

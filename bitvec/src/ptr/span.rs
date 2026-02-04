@@ -572,8 +572,8 @@ where
 	/// Creates a `Const` span descriptor from a `const` bit-slice pointer.
 	pub(crate) fn from_bitslice_ptr(raw: *const BitSlice<T, O>) -> Self {
 		let slice_nn = match NonNull::new(raw as *const [()] as *mut [()]) {
-			Some(nn) => nn,
-			None => return Self::EMPTY,
+			| Some(nn) => nn,
+			| None => return Self::EMPTY,
 		};
 		let ptr = slice_nn.cast::<()>();
 		let len = unsafe { slice_nn.as_ref() }.len();
@@ -753,7 +753,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		self.render(fmt, "Span", None)
 	}
@@ -765,7 +764,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		Pointer::fmt(&self.address(), fmt)?;
 		fmt.write_str("(")?;
@@ -806,8 +804,8 @@ where T: BitStore
 	#[inline]
 	fn from(err: BitPtrError<T>) -> Self {
 		match err {
-			BitPtrError::Null(err) => Self::Null(err),
-			BitPtrError::Misaligned(err) => Self::Misaligned(err),
+			| BitPtrError::Null(err) => Self::Null(err),
+			| BitPtrError::Misaligned(err) => Self::Misaligned(err),
 		}
 	}
 }
@@ -826,16 +824,17 @@ where T: BitStore
 impl<T> Debug for BitSpanError<T>
 where T: BitStore
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		write!(fmt, "BitSpanError<{}>::", any::type_name::<T::Mem>())?;
 		match self {
-			Self::Null(err) => fmt.debug_tuple("Null").field(&err).finish(),
-			Self::Misaligned(err) => {
+			| Self::Null(err) => fmt.debug_tuple("Null").field(&err).finish(),
+			| Self::Misaligned(err) => {
 				fmt.debug_tuple("Misaligned").field(&err).finish()
 			},
-			Self::TooLong(len) => fmt.debug_tuple("TooLong").field(len).finish(),
-			Self::TooHigh(addr) => {
+			| Self::TooLong(len) => {
+				fmt.debug_tuple("TooLong").field(len).finish()
+			},
+			| Self::TooHigh(addr) => {
 				fmt.debug_tuple("TooHigh").field(addr).finish()
 			},
 		}
@@ -846,19 +845,18 @@ where T: BitStore
 impl<T> Display for BitSpanError<T>
 where T: BitStore
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		match self {
-			Self::Null(err) => Display::fmt(err, fmt),
-			Self::Misaligned(err) => Display::fmt(err, fmt),
-			Self::TooLong(len) => write!(
+			| Self::Null(err) => Display::fmt(err, fmt),
+			| Self::Misaligned(err) => Display::fmt(err, fmt),
+			| Self::TooLong(len) => write!(
 				fmt,
 				"Length {} is too long to encode in a bit-slice, which can \
 				 only accept {} bits",
 				len,
 				BitSpan::<Const, T, Lsb0>::REGION_MAX_BITS,
 			),
-			Self::TooHigh(addr) => write!(
+			| Self::TooHigh(addr) => write!(
 				fmt,
 				"Address {:p} is too high, and produces a span that wraps \
 				 around to the zero address.",

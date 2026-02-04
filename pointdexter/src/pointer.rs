@@ -13,6 +13,10 @@ use core::{
 };
 
 use crate::{
+	permission::{
+		self,
+		Impl as _,
+	},
 	NonNullPointer,
 	NonUniqueError,
 	NullPointerError,
@@ -21,10 +25,6 @@ use crate::{
 	Reference,
 	Shared,
 	Unique,
-	permission::{
-		self,
-		Impl as _,
-	},
 };
 
 // region NEW_API
@@ -541,7 +541,8 @@ where P: Permission
 
 	/// Gets a raw pointer to the underlying array.
 	///
-	/// If `N` is not exactly equal to the length of `self`, then this method returns `None`.
+	/// If `N` is not exactly equal to the length of `self`, then this method
+	/// returns `None`.
 	///
 	/// # Original
 	///
@@ -550,8 +551,8 @@ where P: Permission
 	#[cfg(feature = "rust_193")]
 	pub const fn as_array<const N: usize>(self) -> Option<Pointer<[T; N], P>> {
 		match self.unwrap().as_array::<N>() {
-			Some(ptr) => Some(Pointer::rewrap(ptr)),
-			None => None,
+			| Some(ptr) => Some(Pointer::rewrap(ptr)),
+			| None => None,
 		}
 	}
 }

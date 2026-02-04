@@ -1,6 +1,5 @@
 <svg version="1.1" viewBox="0 -104 236 112" xmlns="http://www.w3.org/2000/svg"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-  <!-- <rect x="0" y="-104" width="236" height="112" fill="lightgrey" /> -->
   <g id="main">
     <path class="pen pen-sq stroke-fg" d="
       M 12 -24 l 0 -60 l 0 -6 l 6 -6 l 6 0 l 84 0
@@ -11,47 +10,41 @@
       M 36 0 l 156 0 l 0 -72 m -24 0 l 0 36 l 24 24 l 0 12
       " />
     <path class="stroke-fg fill-fg" stroke-width="0" d="
-      M 108 -80 l 44 0 l 0 16 l -28 0"
-      />
+      M 108 -80 l 44 0 l 0 16 l -28 0" />
     <path class="stroke-fg fill-fg" stroke-width="0" d="
-      M 124 -32 l 28 0 l 16 16 l -44 0"
-      />
+      M 124 -32 l 28 0 l 16 16 l -44 0" />
     <path class="pen pen-sq stroke-accent" d="M 12 0 l 0 0" />
   </g>
   <style type="text/css">
-    :root {
-      --color-fg: black;
-      --color-bg: white;
+    path {
+      stroke: black;
+      fill: black;
     }
+
     @media (prefers-color-scheme: dark) {
-      :root {
-        --color-fg: white;
-        --color-bg: black;
+      path {
+        stroke: white;
+        fill: white;
       }
     }
-    .stroke-fg { stroke: var(--color-fg); }
-    .stroke-bg { stroke: var(--color-bg); }
-    .fill-fg { fill: var(--color-fg); }
-    .fill-bg { fill: var(--color-bg); }
-    .stroke-accent { stroke: #ff4f00; }
-    .fill-accent { fill: #ff4f00; }
-    svg {
-      height: 512px;
+
+    .stroke-accent {
+      stroke: #ff4f00;
     }
+
+    * {
+      shape-rendering: crispEdges;
+    }
+
     #main {
       transform: skewX(-18deg);
     }
+
     .pen {
       fill: none;
       stroke-width: 16px;
       stroke-linecap: square;
-    }
-    .pen-sq {
       stroke-linejoin: miter;
-    }
-    .pen-bv {
-      stroke-linejoin: bevel;
     }
   </style>
 </svg>
-<!-- funty -->

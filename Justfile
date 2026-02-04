@@ -2,7 +2,7 @@
 #                               Justfile                               #
 #                                                                      #
 # Set of routines to execute for project development and management.   #
-# Written against `just 1.8.0`.                                        #
+# Written against `just 1.46.0`.                                       #
 ########################################################################
 
 default:
@@ -21,18 +21,21 @@ book_serve: book_install
 
 build:
 	just bitvec/build
-	cargo build --no-default-features
-	cargo build        --all-features
+	just funty/build
+	just pointdexter/build
+	just radium/build
 
 check:
-	cargo clippy --no-default-features
-	cargo clippy        --all-features
+	just bitvec/check
+	just funty/check
+	just pointdexter/check
+	just radium/check
 
 clean:
 	cargo clean
 
 cloc *ARGS:
-	tokei -e 'guide/assets/*' {{ARGS}}
+	tokei -e 'assets/'  {{ARGS}}
 
 # Produces coverage reports for the test suite.
 cover *ARGS:
@@ -47,7 +50,8 @@ dev: check doc test
 	@echo "Complete at $(date)"
 
 doc:
-	cargo doc --all-features --document-private-items
+	cargo +stable doc --all-features --document-private-items
+	just book
 
 format:
 	cargo +nightly fmt
@@ -76,5 +80,6 @@ serve:
 
 test: check
 	just bitvec/test
-	cargo test -p funty
-	cargo test -p radium
+	just funty/test
+	just pointdexter/test
+	just radium/test

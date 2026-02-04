@@ -159,8 +159,8 @@ where
 	#[inline]
 	pub fn by_refs(self) -> BitRefIter<'a, T, O> {
 		self.by_vals().map(|bit| match bit {
-			true => &true,
-			false => &false,
+			| true => &true,
+			| false => &false,
 		})
 	}
 
@@ -262,7 +262,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_tuple("Iter").field(&self.as_bitslice()).finish()
 	}
@@ -396,7 +395,6 @@ where
 	T: BitStore,
 	O: BitOrder,
 {
-	#[inline]
 	fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 		fmt.debug_tuple("IterMut")
 			.field(&self.as_bitslice())
@@ -1543,7 +1541,6 @@ macro_rules! split {
 			O: BitOrder,
 			P: FnMut(usize, &bool) -> bool,
 		{
-			#[inline]
 			fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 				fmt.debug_struct(stringify!($iter))
 					.field("slice", &self.slice)
@@ -2044,7 +2041,6 @@ macro_rules! split_n {
 			O: BitOrder,
 			P: FnMut(usize, &bool) -> bool
 		{
-			#[inline]
 			fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
 				fmt.debug_struct(stringify!($outer))
 					.field("slice", &self.inner.slice)
@@ -2167,7 +2163,7 @@ where
 		};
 
 		match pos {
-			Some(n) => {
+			| Some(n) => {
 				//  Split at the index *past* the discovered bit. This is always
 				//  safe, as `split_at(len)` produces `(self, [])`.
 				let (_, rest) = unsafe { self.inner.split_at_unchecked(n + 1) };
@@ -2177,7 +2173,7 @@ where
 				self.front = out + 1;
 				Some(out)
 			},
-			None => {
+			| None => {
 				*self = Default::default();
 				None
 			},
@@ -2203,12 +2199,12 @@ where
 		};
 
 		match pos {
-			Some(n) => {
+			| Some(n) => {
 				let (rest, _) = unsafe { self.inner.split_at_unchecked(n) };
 				self.inner = rest;
 				Some(self.front + n)
 			},
-			None => {
+			| None => {
 				*self = Default::default();
 				None
 			},
@@ -2298,14 +2294,14 @@ where
 		};
 
 		match pos {
-			Some(n) => {
+			| Some(n) => {
 				let (_, rest) = unsafe { self.inner.split_at_unchecked(n + 1) };
 				self.inner = rest;
 				let out = self.front + n;
 				self.front = out + 1;
 				Some(out)
 			},
-			None => {
+			| None => {
 				*self = Default::default();
 				None
 			},
@@ -2331,12 +2327,12 @@ where
 		};
 
 		match pos {
-			Some(n) => {
+			| Some(n) => {
 				let (rest, _) = unsafe { self.inner.split_at_unchecked(n) };
 				self.inner = rest;
 				Some(self.front + n)
 			},
-			None => {
+			| None => {
 				*self = Default::default();
 				None
 			},

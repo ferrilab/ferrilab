@@ -218,22 +218,22 @@ where
 	where V: MapAccess<'de> {
 		while let Some(key) = map.next_key()? {
 			match key {
-				Field::Order => {
+				| Field::Order => {
 					if self.order.replace(map.next_value()?).is_some() {
 						return Err(<V::Error>::duplicate_field("order"));
 					}
 				},
-				Field::Head => {
+				| Field::Head => {
 					if self.head.replace(map.next_value()?).is_some() {
 						return Err(<V::Error>::duplicate_field("head"));
 					}
 				},
-				Field::Bits => {
+				| Field::Bits => {
 					if self.bits.replace(map.next_value()?).is_some() {
 						return Err(<V::Error>::duplicate_field("bits"));
 					}
 				},
-				Field::Data => {
+				| Field::Data => {
 					if self.data.replace(map.next_value()?).is_some() {
 						return Err(<V::Error>::duplicate_field("data"));
 					}
