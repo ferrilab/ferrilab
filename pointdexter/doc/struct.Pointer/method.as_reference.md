@@ -37,7 +37,7 @@ determined to be null or not. See [`is_null`][1] for more information.
 # Examples
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let ptr: Pointer<u8, Shared> = (&10u8).into();
 

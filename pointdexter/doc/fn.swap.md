@@ -42,7 +42,7 @@ Note that even if `T` has size `0`, the pointers must be properly aligned.
 Swapping two non-overlapping regions:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let mut array = [0, 1, 2, 3];
 
@@ -59,7 +59,7 @@ unsafe {
 Swapping two overlapping regions:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let mut array: [i32; 4] = [0, 1, 2, 3];
 

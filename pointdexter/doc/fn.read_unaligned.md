@@ -42,7 +42,7 @@ that constructed pointer together with this function.
 An example of what not to do and how this relates to `read_unaligned` is:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 #[repr(packed, C)]
 struct Packed {
@@ -71,7 +71,7 @@ however.
 Read a `usize` value from a byte buffer:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 fn read_usize(x: &[u8]) -> usize {
   assert!(x.len() >= size_of::<usize>());

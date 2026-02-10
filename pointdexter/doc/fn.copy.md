@@ -53,7 +53,7 @@ the pointers must be properly aligned.
 Efficiently create a Rust vector from an unsafe buffer:
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 /// # Safety
 ///

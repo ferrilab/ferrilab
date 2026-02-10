@@ -71,7 +71,7 @@ Note that even if T has size 0, the pointer must be properly aligned.
 Basic usage:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let mut x = 0;
 let y: Pointer<i32, Unique> = (&mut x).into();

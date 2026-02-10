@@ -13,7 +13,7 @@ Tests if the raw slice has a length of 0.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let slice = Pointer::<u8, Shared>::dangling().make_slice(3);
 assert!(!slice.is_empty());

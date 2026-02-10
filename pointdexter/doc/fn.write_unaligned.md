@@ -47,7 +47,7 @@ that constructed pointer together with this function.
 An example of how to do it and how this relates to `write_unaligned` is:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 #[repr(packed, C)]
 struct Packed {
@@ -75,7 +75,7 @@ Accessing unaligned fields directly with e.g. `packed.unaligned` is safe however
 Write a `usize` value to a byte buffer:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 fn write_usize(x: &mut [u8], val: usize) {
   assert!(x.len() >= size_of::<usize>());

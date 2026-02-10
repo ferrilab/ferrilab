@@ -1,5 +1,5 @@
 [package]
-name = "pointdexter"
+name = "ptxr"
 version = "1.0.0-rc1"
 edition = "2021"
 
@@ -9,13 +9,14 @@ categories = [
 	"rust-patterns",
 ]
 description = "unifies *const/*mut pointers using the trait system"
-documentation = "https://docs.rs/pointdexter"
+documentation = "https://docs.rs/ptxr"
 homepage = "https://ferrilab.github.io/ferrilab"
 include = [
 	"Cargo.toml",
 	"README.md",
 	"LICENSE.txt",
 	"assets/pointdexter.svg",
+	"assets/arborium-header.html",
 	"src/**/*.rs",
 	"doc/**/*.md",
 ]

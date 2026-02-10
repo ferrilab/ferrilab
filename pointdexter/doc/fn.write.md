@@ -38,7 +38,7 @@ Note that even if `T` has size `0`, the pointer must be properly aligned.
 Basic usage:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let mut x = 0;
 let y: Pointer::<i32, Unique> = (&mut x).into();
@@ -53,7 +53,7 @@ unsafe {
 Manually implement [`mem::swap`]:
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 fn swap<T>(a: &mut T, b: &mut T) {
   let a: Pointer<T, Unique> = a.into();

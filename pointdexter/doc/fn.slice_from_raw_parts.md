@@ -24,7 +24,7 @@ pointer-to-scalar to pointer-to-slice called `.make_slice()`.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 // create a slice pointer when starting out with a pointer to the first element
 let x = [5, 6, 7];
@@ -39,7 +39,7 @@ You must ensure that the pointer is valid and not null before dereferencing the
 raw slice. A slice reference must never have a null pointer, even if it’s empty.
 
 ```rust,should_panic
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let danger = ptxr::null::<u8, Shared>().make_slice(0);
 unsafe {

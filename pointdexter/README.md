@@ -59,7 +59,7 @@ Pointdexter is a long name. Its prelude aliases the crate to `ptxr`. If you feel
 very confident, you can alias it to `ptr` and completely shadow the core module.
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let mut data = 5i32;
 

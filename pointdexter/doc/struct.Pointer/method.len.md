@@ -18,7 +18,7 @@ reference because the pointer is null or unaligned.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let slice = ptxr::null::<i8, Shared>().make_slice(3);
 assert_eq!(slice.len(), 3);

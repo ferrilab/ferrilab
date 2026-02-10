@@ -35,7 +35,7 @@ Casting between permissions is most useful in a context which is generic over
 Implementing a destructor for a maybe-writeable cache key:
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 struct CacheKey<P: Permission> {
   local: u32,

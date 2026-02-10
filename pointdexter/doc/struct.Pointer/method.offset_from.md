@@ -58,7 +58,7 @@ This function panics if `T` is a Zero-Sized Type (“ZST”).
 Basic usage:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let a = [0; 5];
 let ptr1: Pointer<i32, Shared> = (&a[1]).into();
@@ -74,7 +74,7 @@ unsafe {
 Incorrect usage:
 
 ```rust,no_run
-use pointdexter::*;
+use ptxr::*;
 
 let ptr1: Pointer<u8, Unique> = Box::into_raw(Box::new(0u8)).into();
 let ptr2: Pointer<u8, Unique> = Box::into_raw(Box::new(1u8)).into();

@@ -37,7 +37,7 @@ is permitted.
 # Examples
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 use std::fmt::Write as _;
 
 // Iterate using a raw pointer in increments of two elements

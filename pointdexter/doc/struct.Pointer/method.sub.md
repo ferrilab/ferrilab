@@ -41,7 +41,8 @@ compiler optimizations.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
+
 let s: &str = "123";
 
 unsafe {

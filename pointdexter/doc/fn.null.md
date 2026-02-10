@@ -17,7 +17,7 @@ address 0.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let p: Pointer<i32, Shared> = ptxr::null();
 assert!(p.is_null());

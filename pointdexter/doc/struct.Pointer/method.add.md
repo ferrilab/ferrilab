@@ -41,7 +41,8 @@ compiler optimizations.
 # Examples
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
+
 let s: &str = "123";
 let ptr: Pointer<u8, Shared> = s.as_ptr().into();
 

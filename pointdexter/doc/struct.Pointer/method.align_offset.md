@@ -30,7 +30,7 @@ The function panics if align is not a power-of-two.
 Accessing adjacent `u8` as `u16`:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let x = [5_u8, 6, 7, 8, 9];
 let ptr = Pointer::from_raw_const(x.as_ptr());

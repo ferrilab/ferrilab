@@ -32,7 +32,7 @@ representation of some `T`. For instance, the following is an incorrect use of
 this function:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 unsafe {
   let mut value: u8 = 0;
@@ -48,7 +48,7 @@ unsafe {
 Basic usage:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let mut vec = vec![0u32; 4];
 unsafe {

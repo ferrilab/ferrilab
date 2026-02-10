@@ -12,7 +12,7 @@ If the arguments are thin pointers of the same type, then this is the same as
 
 ```rust
 use core::fmt::Debug;
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let whole: &[i32; 3] = &[1, 2, 3];
 let first: &i32 = &whole[0];

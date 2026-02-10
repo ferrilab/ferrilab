@@ -55,7 +55,7 @@ This function panics if `T` is a Zero-Sized Type (“ZST”).
 # Examples
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let a = [0; 5];
 let ptr1: Pointer<i32, Shared> = (&a[1]).into();

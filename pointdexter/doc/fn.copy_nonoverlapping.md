@@ -55,7 +55,7 @@ the pointers must be properly aligned.
 Manually implement [`Vec::append`][1]:
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 /// Moves all the elements of `src` into `dst`, leaving `src` empty.
 fn append<T>(dst: &mut Vec<T>, src: &mut Vec<T>) {

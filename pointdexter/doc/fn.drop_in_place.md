@@ -51,7 +51,7 @@ to overwrite data without causing it to be dropped.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 use std::rc::Rc;
 
 let last = Rc::new(1);

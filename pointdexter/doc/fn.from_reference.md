@@ -39,7 +39,7 @@ way:
 // The temporary holding the return value of `foo` has its lifetime extended,
 // because the surrounding expression involves no function call.
 let p = &mut foo() as *mut T;
-unsafe { p.write(T::default()) };
+unsafe { ptxr::write((p.into()), T::default()) };
 ```
 
 Naively replacing the cast with from_mut is not valid:
@@ -47,7 +47,7 @@ Naively replacing the cast with from_mut is not valid:
 ```rust,no_run
 # type T = i32;
 # fn foo() -> T { 42 }
-use pointdexter::prelude::*;
+use ptxr::*;
 
 // The temporary holding the return value of `foo` does *not* have its lifetime extended,
 // because the surrounding expression involves a function call.
@@ -61,7 +61,7 @@ when raw pointers are involved:
 ```rust
 # type T = i32;
 # fn foo() -> T { 42 }
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let mut x = foo();
 let p = ptxr::from_mut(&mut x);

@@ -7,7 +7,7 @@ Unwraps the `NonNull` back to a regular `Pointer`.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let mut x = 0u32;
 let ptr = NonNullPointer::new((&mut x).into()).unwrap();

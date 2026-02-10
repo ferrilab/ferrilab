@@ -28,7 +28,7 @@ the pointers must be properly aligned.
 Basic usage:
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let mut x = [1, 2, 3, 4];
 let mut y = [7, 8, 9];
@@ -53,7 +53,7 @@ The limitation is illustrated by the following example:
 
 ```rust,compile_fail
 use core::mem;
-use pointdexter::prelude::*;
+use ptxr::*;
 
 const { unsafe {
   const PTR_SIZE: usize = mem::size_of::<*const i32>();

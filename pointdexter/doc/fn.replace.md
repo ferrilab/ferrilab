@@ -42,7 +42,7 @@ Note that even if `T` has size `0`, the pointer must be properly aligned.
 # Examples
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let mut rust = vec!['b', 'u', 's', 't'];
 

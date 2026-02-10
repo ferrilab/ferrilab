@@ -20,7 +20,7 @@ units), and pointers to values of _different_ underlying type can compare equal
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let five = 5;
 let other_five = 5;
@@ -38,7 +38,7 @@ assert!(!ptxr::eq(five_ref.into(), other_five_ref.into()));
 Slices are also compared by their length (fat pointers):
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let a = [1, 2, 3];
 assert!(ptxr::eq((&a[..3]).into(), (&a[..3]).into()));

@@ -10,7 +10,7 @@ to which it refers (which is what the `Hash for &T` implementation does).
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 let five = 5;

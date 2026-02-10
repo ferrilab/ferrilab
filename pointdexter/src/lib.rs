@@ -50,22 +50,6 @@ pub use permission::{
 	Unique,
 };
 
-/// Aliases `pointdexter` to `ptxr`, and exports common symbols into the local
-/// scope.
-pub mod prelude {
-	pub use crate::{
-		self as ptxr,
-		NonNullPointer,
-		NonUniqueError as PdxNonUniqueError,
-		NullPointerError as PdxNullPointerError,
-		Permission,
-		Pointer,
-		Reference,
-		Shared,
-		Unique,
-	};
-}
-
 #[doc = include_str!("../doc/trait.Permission.md")]
 pub trait Permission: permission::Impl {}
 

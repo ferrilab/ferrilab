@@ -13,7 +13,7 @@ Returns whether the pointer is properly aligned for `T`.
 # Examples
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 // On some platforms, the alignment of i32 is less than 4.
 #[repr(align(4))]

@@ -29,7 +29,7 @@ Note that even if `T` has size `0`, the pointer must be properly aligned.
 Basic usage:
 
 ```rust
-use pointdexter::*;
+use ptxr::*;
 
 let x = 12;
 let y: Pointer<i32, Shared> = (&x).into();
@@ -42,7 +42,7 @@ unsafe {
 Manually implement [`mem::swap`]:
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 fn swap<T>(a: &mut T, b: &mut T) {
   let a: Pointer<T, Unique> = a.into();
@@ -90,7 +90,7 @@ will attempt to drop the value at `*src`.
 [`write`] can be used to overwrite data without causing it to be dropped.
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let mut s = String::from("foo");
 let s_ptr: Pointer<String, Unique> = (&mut s).into();

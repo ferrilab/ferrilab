@@ -22,7 +22,7 @@ pointers.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let s: &str = "Follow the rabbit";
 let ptr: Pointer<u8, Shared> = s.as_ptr().into();

@@ -18,7 +18,7 @@ etc.) cannot be conjured.
 # Examples
 
 ```rust
-use pointdexter::prelude::*;
+use ptxr::*;
 
 let mut x = 0u32;
 let ptr = Pointer::from(&mut x);
