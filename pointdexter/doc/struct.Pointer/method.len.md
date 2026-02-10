@@ -20,7 +20,7 @@ reference because the pointer is null or unaligned.
 ```rust
 use pointdexter::prelude::*;
 
-let slice = ptr::null::<i8, Shared>().make_slice(3);
+let slice = ptxr::null::<i8, Shared>().make_slice(3);
 assert_eq!(slice.len(), 3);
 let slice = NonNullPointer::<i8, Shared>::dangling().make_slice(3);
 assert_eq!(slice.len(), 3);

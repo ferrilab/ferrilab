@@ -17,11 +17,11 @@ use pointdexter::prelude::*;
 let whole: &[i32; 3] = &[1, 2, 3];
 let first: &i32 = &whole[0];
 
-assert!(ptr::addr_eq(whole.into(), first.into()));
+assert!(ptxr::addr_eq(whole.into(), first.into()));
 
 let whole: &dyn Debug = whole;
 let first: &dyn Debug = first;
-assert!(!ptr::eq(whole.into(), first.into()));
+assert!(!ptxr::eq(whole.into(), first.into()));
 ```
 
 [`eq`]: crate::eq

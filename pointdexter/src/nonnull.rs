@@ -110,8 +110,8 @@ where
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.addr.md")]
-	#[doc = "[`map_addr`]: Self::map_addr"]
-	#[doc = "[`with_addr`]: Self::with_addr"]
+	///[`map_addr`]: Self::map_addr
+	///[`with_addr`]: Self::with_addr
 	pub fn addr(self) -> NonZero<usize> {
 		self.inner.addr()
 	}
@@ -125,14 +125,14 @@ where
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.with_addr.md")]
-	#[doc = "[`wrapping_offset`]: Pointer::wrapping_offset"]
+	///[`wrapping_offset`]: Pointer::wrapping_offset
 	pub fn with_addr(self, addr: NonZero<usize>) -> Self {
 		Self::from_nonnull(self.inner.with_addr(addr))
 	}
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.map_addr.md")]
-	#[doc = "[`with_addr`]: Self::with_addr"]
+	///[`with_addr`]: Self::with_addr
 	pub fn map_addr(
 		self,
 		func: impl FnOnce(NonZero<usize>) -> NonZero<usize>,
@@ -231,7 +231,7 @@ where P: Permission
 	#[inline(always)]
 	#[cfg(feature = "rust_189")]
 	#[doc = include_str!("../doc/fn.without_provenance.md")]
-	#[doc = "[`with_exposed_provenance`]: Self::with_exposed_provenance"]
+	///[`with_exposed_provenance`]: Self::with_exposed_provenance
 	pub const fn without_provenance(addr: NonZero<usize>) -> Self {
 		Self::from_nonnull(NonNull::without_provenance(addr))
 	}
@@ -239,32 +239,32 @@ where P: Permission
 	#[inline(always)]
 	#[cfg(feature = "rust_189")]
 	#[doc = include_str!("../doc/fn.with_exposed_provenance.md")]
-	#[doc = "[`expose_provenance`]: Self::expose_provenance"]
-	#[doc = "[`with_addr`]: Self::with_addr"]
-	#[doc = "[`without_provenance`]: Self::without_provenance"]
+	///[`expose_provenance`]: Self::expose_provenance
+	///[`with_addr`]: Self::with_addr
+	///[`without_provenance`]: Self::without_provenance
 	pub fn with_exposed_provenance(addr: NonZero<usize>) -> Self {
 		Self::from_nonnull(NonNull::with_exposed_provenance(addr))
 	}
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.offset.md")]
-	#[doc = "[`wrapping_offset`]: Pointer::wrapping_offset"]
+	///[`wrapping_offset`]: Pointer::wrapping_offset
 	pub const unsafe fn offset(self, count: isize) -> Self {
 		Self::from_nonnull(unsafe { self.inner.offset(count) })
 	}
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.add.md")]
-	#[doc = "[`offset`]: Self::offset"]
-	#[doc = "[`wrapping_add`]: Pointer::wrapping_add"]
+	///[`offset`]: Self::offset
+	///[`wrapping_add`]: Pointer::wrapping_add
 	pub const unsafe fn add(self, count: usize) -> Self {
 		Self::from_nonnull(unsafe { self.inner.add(count) })
 	}
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.sub.md")]
-	#[doc = "[`offset`]: Self::offset"]
-	#[doc = "[`wrapping_sub`]: Pointer::wrapping_sub"]
+	///[`offset`]: Self::offset
+	///[`wrapping_sub`]: Pointer::wrapping_sub
 	pub const unsafe fn sub(self, count: usize) -> Self {
 		Self::from_nonnull(unsafe { self.inner.sub(count) })
 	}
@@ -296,14 +296,14 @@ where P: Permission
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.read.md")]
-	#[doc = "[`read_unaligned`]: Self::read_unaligned"]
+	///[`read_unaligned`]: Self::read_unaligned
 	pub const unsafe fn read(self) -> T {
 		unsafe { self.inner.read() }
 	}
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.read_volatile.md")]
-	#[doc = "[`read`]: Self::read"]
+	///[`read`]: Self::read
 	#[cfg_attr(
 		not(feature = "rust_189"),
 		doc = "[`without_provenance`]: Pointer::without_provenance"
@@ -318,15 +318,15 @@ where P: Permission
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.read_unaligned.md")]
-	#[doc = "[`read`]: Self::read"]
+	///[`read`]: Self::read
 	pub const unsafe fn read_unaligned(self) -> T {
 		unsafe { self.inner.read_unaligned() }
 	}
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy.md")]
-	#[doc = "[`copy_nonoverlapping`]: Self::copy_to_nonoverlapping"]
-	#[doc = "[`read`]: Self::read"]
+	///[`copy_nonoverlapping`]: Self::copy_to_nonoverlapping
+	///[`read`]: Self::read
 	pub const unsafe fn copy_to(
 		self,
 		dest: NonNullPointer<T, Unique>,
@@ -339,8 +339,8 @@ where P: Permission
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy_nonoverlapping.md")]
-	#[doc = "[`copy`]: Self::copy_to`"]
-	#[doc = "[`read`]: Self::read"]
+	///[`copy`]: Self::copy_to`
+	///[`read`]: Self::read
 	pub const unsafe fn copy_to_nonoverlapping(
 		self,
 		dest: NonNullPointer<T, Unique>,
@@ -353,7 +353,7 @@ where P: Permission
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/struct.Pointer/method.align_offset.md")]
-	#[doc = "[`wrapping_add`]: Pointer::wrapping_add"]
+	///[`wrapping_add`]: Pointer::wrapping_add
 	pub fn align_offset(self, align: usize) -> usize {
 		self.inner.align_offset(align)
 	}
@@ -368,8 +368,8 @@ where P: Permission
 impl<T> NonNullPointer<T, Unique> {
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy.md")]
-	#[doc = "[`copy_nonoverlapping`]: Self::copy_from_nonoverlapping"]
-	#[doc = "[`read`]: Self::read"]
+	///[`copy_nonoverlapping`]: Self::copy_from_nonoverlapping
+	///[`read`]: Self::read
 	pub const unsafe fn copy_from<P>(
 		self,
 		src: NonNullPointer<T, P>,
@@ -384,8 +384,8 @@ impl<T> NonNullPointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy_nonoverlapping.md")]
-	#[doc = "[`copy`]: Self::copy_from`"]
-	#[doc = "[`read`]: Self::read"]
+	///[`copy`]: Self::copy_from`
+	///[`read`]: Self::read
 	pub const unsafe fn copy_from_nonoverlapping<P>(
 		self,
 		src: NonNullPointer<T, P>,
@@ -400,8 +400,8 @@ impl<T> NonNullPointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.write.md")]
-	#[doc = "[`read`]: Self::read"]
-	#[doc = "[`write_unaligned`]: Self::write_unaligned"]
+	///[`read`]: Self::read
+	///[`write_unaligned`]: Self::write_unaligned
 	pub const unsafe fn write(self, val: T) {
 		unsafe {
 			self.inner.write(val);
@@ -426,7 +426,7 @@ impl<T> NonNullPointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.write_unaligned.md")]
-	#[doc = "[`read_unaligned`]: Self::read_unaligned"]
+	///[`read_unaligned`]: Self::read_unaligned
 	pub const unsafe fn write_unaligned(self, val: T) {
 		unsafe {
 			self.inner.write_unaligned(val);

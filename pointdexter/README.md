@@ -50,6 +50,23 @@ All pointers and references can be converted into their corresponding `Pointer`,
 `Reference`, or `NonNullPointer` using `.into()`, `.try_into()`, or `::new()`.
 Once converted, all stable standard-library APIs continue to exist.
 
+This library was extracted from `bitvec`, where it was first built to support
+the custom pointer type that powers it. That crate’s source code is likely the
+best (and also likely only) example of how Pointdexter is meant to be used as an
+implementation detail of other libraries.
+
+Pointdexter is a long name. Its prelude aliases the crate to `ptxr`. If you feel
+very confident, you can alias it to `ptr` and completely shadow the core module.
+
+```rust
+use pointdexter::prelude::*;
+
+let mut data = 5i32;
+
+let cptr: ptxr::Pointer<i32, Shared> = (&data).into();
+let mptr: ptxr::Pointer<i32, Unique> = (&mut data).into();
+```
+
 ## Rust Version Compatibility
 
 This crate begins its Rust support at 1.85, and uses feature gates to add APIs
@@ -58,10 +75,19 @@ for successive releases.
 If you want to use this crate on earlier Rust versions, please file an issue and
 I will lower the floor accordingly.
 
-Enable the feature `rust_1min`, where `min` is the minor version of Rust you
-use, to enable the pointer APIs that are stable in your compiler. Use `rust_now`
-if you track the stable release train. Features begin at `rust_186`, as Rust
-1.85 is the baseline and is always available.
+Enable the feature `rust_1xy`, where `xy` is the minor version of Rust you use,
+to enable the pointer APIs that are stable in your compiler. Use `rust_now` if
+you track the stable release train. Features begin at `rust_186`, as Rust 1.85
+is the baseline and is always available.
+
+Note that `rust_now` is a **default feature**! If you are pinning a Rust rather
+than floating on the stable series, you must set
+
+```toml
+[dependencies.pointdexter]
+default-features = false
+features = ["rust_1xy"]
+```
 
 <style type="text/css">
   h2 > img {

@@ -153,13 +153,16 @@ where P: Permission
 	}
 
 	#[inline(always)]
+	#[cfg(not(feature = "rust_191"))]
 	#[doc = include_str!("../doc/fn.with_exposed_provenance.md")]
-	#[doc = "[`with_addr`]: Self::with_addr"]
-	#[doc = "[`expose_provenance`]: Self::expose_provenance"]
+	/// [`with_addr`]: Self::with_addr
+	/// [`expose_provenance`]: Self::expose_provenance
 	#[cfg_attr(
 		not(feature = "rust_189"),
-		doc = "[`NonNullPointer::with_exposed_provenance`]: \
-		       crate::NonNullPointer"
+		doc = "
+[`NonNullPointer::with_exposed_provenance`]: crate::NonNullPointer
+[`NonNull::with_exposed_provenance`]: core::ptr::NonNull
+		"
 	)]
 	pub fn with_exposed_provenance(addr: usize) -> Self {
 		if P::IS_MUT {
@@ -171,11 +174,28 @@ where P: Permission
 	}
 
 	#[inline(always)]
+	#[cfg(feature = "rust_191")]
+	#[doc = include_str!("../doc/fn.with_exposed_provenance.md")]
+	/// [`with_addr`]: Self::with_addr
+	/// [`expose_provenance`]: Self::expose_provenance
+	pub const fn with_exposed_provenance(addr: usize) -> Self {
+		if P::IS_MUT {
+			Self::rewrap_mut(ptr::with_exposed_provenance_mut(addr))
+		}
+		else {
+			Self::rewrap(ptr::with_exposed_provenance(addr))
+		}
+	}
+
+	#[inline(always)]
 	#[doc = include_str!("../doc/fn.without_provenance.md")]
-	#[doc = "[`with_exposed_provenance`]: Self::with_exposed_provenance"]
+	/// [`with_exposed_provenance`]: Self::with_exposed_provenance
 	#[cfg_attr(
 		not(feature = "rust_189"),
-		doc = "[`NonNullPointer::without_provenance`]: NonNullPointer"
+		doc = "
+[`NonNullPointer::without_provenance`]: NonNullPointer
+[`NonNull::without_provenance`]: core::ptr::NonNull
+		"
 	)]
 	pub const fn without_provenance(addr: usize) -> Self {
 		if P::IS_MUT {
@@ -227,7 +247,13 @@ where
 		fn addr(@self) -> usize;
 
 		#[doc = include_str!("../doc/struct.Pointer/method.expose_provenance.md")]
-		#[cfg_attr(not(feature = "rust_189"), doc = "[`NonNullPointer::expose_provenance`]: NonNullPointer")]
+		#[cfg_attr(
+			not(feature = "rust_189"),
+			doc = "
+[`NonNullPointer::expose_provenance`]: NonNullPointer
+[`NonNull::expose_provenance`]: NonNull
+			"
+		)]
 		fn expose_provenance(@self) -> usize;
 
 		#[doc = include_str!("../doc/struct.Pointer/method.with_addr.md")]
@@ -335,8 +361,8 @@ impl<T> Pointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy.md")]
-	#[doc = "[`copy_nonoverlapping`]: Self::copy_to_nonoverlapping"]
-	#[doc = "[`read`]: Self::read"]
+	/// [`copy_nonoverlapping`]: Self::copy_to_nonoverlapping
+	/// [`read`]: Self::read
 	pub const unsafe fn copy_from<P>(self, src: Pointer<T, P>, count: usize)
 	where P: Permission {
 		unsafe {
@@ -346,8 +372,8 @@ impl<T> Pointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy_nonoverlapping.md")]
-	#[doc = "[`copy`]: Self::copy_from"]
-	#[doc = "[`read`]: Self::read"]
+	/// [`copy`]: Self::copy_from
+	/// [`read`]: Self::read
 	pub const unsafe fn copy_from_nonoverlapping<P>(
 		self,
 		src: Pointer<T, P>,
@@ -371,8 +397,8 @@ impl<T> Pointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.write.md")]
-	#[doc = "[`read`]: Self::read"]
-	#[doc = "[`write_unaligned`]: Self::write_unaligned"]
+	/// [`read`]: Self::read
+	/// [`write_unaligned`]: Self::write_unaligned
 	pub const unsafe fn write(self, val: T) {
 		unsafe {
 			self.unwrap_mut().write(val);
@@ -397,8 +423,8 @@ impl<T> Pointer<T, Unique> {
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.write_unaligned.md")]
-	#[doc = "[`write`]: Self::write"]
-	#[doc = "[`read_unaligned`]: Self::read_unaligned"]
+	/// [`write`]: Self::write
+	/// [`read_unaligned`]: Self::read_unaligned
 	pub const unsafe fn write_unaligned(self, val: T) {
 		unsafe {
 			self.unwrap_mut().write_unaligned(val);
@@ -406,15 +432,15 @@ impl<T> Pointer<T, Unique> {
 	}
 
 	#[inline(always)]
-	#[doc = include_str!("../doc/fn.replace.md")]
 	#[cfg(not(feature = "rust_188"))]
+	#[doc = include_str!("../doc/fn.replace.md")]
 	pub unsafe fn replace(self, src: T) -> T {
 		unsafe { self.unwrap_mut().replace(src) }
 	}
 
 	#[inline(always)]
-	#[doc = include_str!("../doc/fn.replace.md")]
 	#[cfg(feature = "rust_188")]
+	#[doc = include_str!("../doc/fn.replace.md")]
 	pub const unsafe fn replace(self, src: T) -> T {
 		unsafe { self.unwrap_mut().replace(src) }
 	}
@@ -500,8 +526,8 @@ where P: Permission
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy.md")]
-	#[doc = "[`copy_nonoverlapping`]: Self::copy_to_nonoverlapping"]
-	#[doc = "[`read`]: Self::read"]
+	/// [`copy_nonoverlapping`]: Self::copy_to_nonoverlapping
+	/// [`read`]: Self::read
 	pub const unsafe fn copy_to(self, dest: Pointer<T, Unique>, count: usize) {
 		unsafe {
 			self.unwrap().copy_to(dest.unwrap_mut(), count);
@@ -510,8 +536,8 @@ where P: Permission
 
 	#[inline(always)]
 	#[doc = include_str!("../doc/fn.copy_nonoverlapping.md")]
-	#[doc = "[`copy`]: Self::copy_to"]
-	#[doc = "[`read`]: Self::read"]
+	/// [`copy`]: Self::copy_to
+	/// [`read`]: Self::read
 	pub const unsafe fn copy_to_nonoverlapping(
 		self,
 		dest: Pointer<T, Unique>,
@@ -539,16 +565,9 @@ where P: Permission
 		self.len() == 0
 	}
 
-	/// Gets a raw pointer to the underlying array.
-	///
-	/// If `N` is not exactly equal to the length of `self`, then this method
-	/// returns `None`.
-	///
-	/// # Original
-	///
-	/// [`<*T>::as_array`](https://doc.rust-lang.org/stable/std/primitive.pointer.html#method.as_array)
 	#[inline(always)]
 	#[cfg(feature = "rust_193")]
+	#[doc = include_str!("../doc/struct.Pointer/method.as_array.md")]
 	pub const fn as_array<const N: usize>(self) -> Option<Pointer<[T; N], P>> {
 		match self.unwrap().as_array::<N>() {
 			| Some(ptr) => Some(Pointer::rewrap(ptr)),

@@ -34,7 +34,7 @@ let mut x = [1, 2, 3, 4];
 let mut y = [7, 8, 9];
 
 unsafe {
-  ptr::swap_nonoverlapping(x.as_mut_ptr().into(), y.as_mut_ptr().into(), 2);
+  ptxr::swap_nonoverlapping(x.as_mut_ptr().into(), y.as_mut_ptr().into(), 2);
 }
 
 assert_eq!(x, [7, 8, 3, 4]);
@@ -68,11 +68,11 @@ const { unsafe {
   // Swap the contents of `data1` and `data2` by swapping `PTR_SIZE` many `u8`-sized chunks.
   // This call will fail, because the pointer in `data1` crosses the boundary
   // between several of the 1-byte chunks that are being swapped here.
-  //ptr::swap_nonoverlapping(data1.as_mut_ptr(), data2.as_mut_ptr(), PTR_SIZE);
+  //ptxr::swap_nonoverlapping(data1.as_mut_ptr(), data2.as_mut_ptr(), PTR_SIZE);
   // Swap the contents of `data1` and `data2` by swapping a single chunk of size
   // `[u8; PTR_SIZE]`. That works, as there is no pointer crossing the boundary between
   // two chunks.
-  ptr::swap_nonoverlapping(ptr1, ptr2, 1);
+  ptxr::swap_nonoverlapping(ptr1, ptr2, 1);
   // Read the pointer from `data2` and dereference it.
   let ptr = ptr2.cast::<*const i32>().read_unaligned();
   assert!(*ptr == 42);

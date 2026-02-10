@@ -22,7 +22,7 @@ use pointdexter::prelude::*;
 let mut x = 0u32;
 let ptr = NonNullPointer::new((&mut x).into()).unwrap();
 
-let Err(_) = NonNullPointer::<u32, Unique>::new(ptr::null()) else {
+let Err(_) = NonNullPointer::<u32, Unique>::new(ptxr::null()) else {
   unreachable!()
 };
 ```

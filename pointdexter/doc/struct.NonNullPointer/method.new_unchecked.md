@@ -23,6 +23,6 @@ _Incorrect_ usage of this function:
 ```rust,should_panic
 use pointdexter::prelude::*;
 
-let ptr = unsafe { NonNullPointer::<u32, Unique>::new_unchecked(ptr::null()) };
+let ptr = unsafe { NonNullPointer::<u32, Unique>::new_unchecked(ptxr::null()) };
 // NEVER DO THIS!!! This is undefined behavior. ⚠️
 ```

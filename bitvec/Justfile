@@ -5,12 +5,10 @@
 # Written against `just 1.46.0`.                                       #
 ########################################################################
 
+set fallback
+
 default:
 	just --list
-
-# Runs the benchmark suite.
-bench *ARGS: check
-	cargo +nightly bench {{ARGS}}
 
 # Builds the project.
 build: check
@@ -25,12 +23,10 @@ check:
 	cargo clippy --no-default-features --features alloc
 	cargo clippy        --all-features
 
-# Runs all of the recipes necessary for pre-publish.
-checkout: check build test package
-
 # Runs the cross-compile battery test.
 #
 # This is suitable for a development machine **only**, and should not run in CI.
+[unix]
 cross: rustup_targets
 	@# xargs -n1 -I'{}' env ENABLE_CROSS=1 TARGET='{}' ci/script.sh        --all-features                          < ci/target_test_all.txt
 	xargs -n1 -I'{}' env ENABLE_CROSS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,std    < ci/target_test_no_serde.txt
@@ -42,6 +38,7 @@ cross: rustup_targets
 # Runs the cross-compile battery in some parallelism.
 #
 # This is only useful if don’t expect the tests to fail, because
+[unix]
 cross_par: rustup_targets
 	@# You will need to run this the first time you start cross-compiling
 	@# on a given machine.
@@ -54,6 +51,12 @@ cross_par: rustup_targets
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,std   < ci/target_check_no_serde.txt
 	xargs -n1 -P4 -I'{}' env DISABLE_TESTS=1 TARGET='{}' ci/script.sh --no-default-features --features atomic,alloc < ci/target_check_no_std.txt
 
+[unix]
+dev_extra: dev
+	echo miri cover | xargs -n1 -P2 just
+	@echo "Complete at $(date)"
+
+
 # Looks for undefined behavior in the (non-doc) test suite.
 miri *ARGS: miri_install
 	cargo +nightly miri test --features atomic,serde,std -q --lib --tests {{ARGS}}
@@ -62,14 +65,8 @@ miri_install:
 	rustup toolchain add nightly --component miri
 	cargo +nightly miri setup
 
-package:
-	cargo package --allow-dirty
-
-# Publishes the crate to crates.io
-publish: checkout
-	cargo publish
-
 # Installs *every* target.
+[unix]
 rustup_targets:
 	xargs -P1 rustup target add < ci/targets.txt 2>&1 | grep -v "up to date" || true
 
@@ -92,6 +89,7 @@ test_doc *ARGS:
 	cargo test        --all-features                  -q --doc         {{ARGS}}
 
 # Runs the example programs (suppressing their output)
+[unix]
 test_examples:
 	echo aliasing ipv4 sieve tour \
 	| xargs -n1 cargo +stable run --all-features --example

@@ -29,10 +29,10 @@ let same_five_ref = &five;
 let other_five_ref = &other_five;
 
 assert!(five_ref == same_five_ref);
-assert!(ptr::eq(five_ref.into(), same_five_ref.into()));
+assert!(ptxr::eq(five_ref.into(), same_five_ref.into()));
 
 assert!(five_ref == other_five_ref);
-assert!(!ptr::eq(five_ref.into(), other_five_ref.into()));
+assert!(!ptxr::eq(five_ref.into(), other_five_ref.into()));
 ```
 
 Slices are also compared by their length (fat pointers):
@@ -41,7 +41,7 @@ Slices are also compared by their length (fat pointers):
 use pointdexter::prelude::*;
 
 let a = [1, 2, 3];
-assert!(ptr::eq((&a[..3]).into(), (&a[..3]).into()));
-assert!(!ptr::eq((&a[..2]).into(), (&a[..3]).into()));
-assert!(!ptr::eq((&a[0..2]).into(), (&a[1..3]).into()));
+assert!(ptxr::eq((&a[..3]).into(), (&a[..3]).into()));
+assert!(!ptxr::eq((&a[..2]).into(), (&a[..3]).into()));
+assert!(!ptxr::eq((&a[0..2]).into(), (&a[1..3]).into()));
 ```

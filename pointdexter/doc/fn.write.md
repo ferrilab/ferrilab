@@ -68,7 +68,7 @@ fn swap<T>(a: &mut T, b: &mut T) {
 
     // Create a bitwise copy of `*b` in `*a`.
     // This is safe because mutable references cannot alias.
-    ptr::copy_nonoverlapping(b, a, 1);
+    ptxr::copy_nonoverlapping(b, a, 1);
 
     // As above, exiting here could trigger undefined behavior because
     // the same value is referenced by `a` and `b`.

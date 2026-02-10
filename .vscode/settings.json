@@ -1,0 +1,15 @@
+{
+    "[rust]": {
+        "editor.formatOnSave": false
+    },
+    "cSpell.words": [
+        "MSRV",
+        "Pointdexter",
+        "bitvec",
+        "cloc",
+        "miri",
+        "ptxr",
+        "pointee",
+        "tokei",
+    ]
+}

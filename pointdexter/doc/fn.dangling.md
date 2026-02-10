@@ -24,7 +24,7 @@ Types that lazily allocate must track initialization by some other means.
 ```rust
 use pointdexter::prelude::*;
 
-let a: Pointer<i32, Unique> = ptr::dangling();
+let a: Pointer<i32, Unique> = ptxr::dangling();
 let b = Pointer::<u64, Shared>::dangling();
 let c = NonNullPointer::<i16, Unique>::dangling();
 ```

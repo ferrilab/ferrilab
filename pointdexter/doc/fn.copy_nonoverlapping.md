@@ -79,7 +79,7 @@ fn append<T>(dst: &mut Vec<T>, src: &mut Vec<T>) {
     // The two regions cannot overlap because mutable references do
     // not alias, and two different vectors cannot own the same
     // memory.
-    ptr::copy_nonoverlapping(src_ptr, dst_ptr, src_len);
+    ptxr::copy_nonoverlapping(src_ptr, dst_ptr, src_len);
 
     // Notify `dst` that it now holds the contents of `src`.
     dst.set_len(dst_len + src_len);

@@ -51,7 +51,7 @@ use pointdexter::prelude::*;
 
 // The temporary holding the return value of `foo` does *not* have its lifetime extended,
 // because the surrounding expression involves a function call.
-let p = ptr::from_mut(&mut foo());
+let p = ptxr::from_mut(&mut foo());
 unsafe { p.write(T::default()) }; // UB! Writing to a dangling pointer ⚠️
 ```
 
@@ -64,6 +64,6 @@ when raw pointers are involved:
 use pointdexter::prelude::*;
 
 let mut x = foo();
-let p = ptr::from_mut(&mut x);
+let p = ptxr::from_mut(&mut x);
 unsafe { p.write(T::default()) };
 ```

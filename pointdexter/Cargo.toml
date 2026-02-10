@@ -1,6 +1,6 @@
 [package]
 name = "pointdexter"
-version = "1.0.0"
+version = "1.0.0-rc1"
 edition = "2021"
 
 categories = [
@@ -15,8 +15,9 @@ include = [
 	"Cargo.toml",
 	"README.md",
 	"LICENSE.txt",
-	"src/*.rs",
-	"doc/*.md",
+	"assets/pointdexter.svg",
+	"src/**/*.rs",
+	"doc/**/*.md",
 ]
 keywords = [
 	"no-std",
@@ -32,6 +33,10 @@ rust-version = "1.85"
 [package.metadata.docs.rs]
 features = [
 	"rust_now",
+]
+rustdoc-args = [
+	"--html-in-header",
+	"assets/arborium-header.html",
 ]
 
 [dependencies]

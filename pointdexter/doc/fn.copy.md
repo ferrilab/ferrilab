@@ -66,7 +66,7 @@ unsafe fn from_buf_raw<T, P: Permission>(src: Pointer<T, P>, elts: usize) -> Vec
   // SAFETY: Our precondition ensures the source is aligned and valid,
   // and `Vec::with_capacity` ensures that we have usable space to write them.
   unsafe {
-    ptr::copy(src, dst.as_mut_ptr().into(), elts);
+    ptxr::copy(src, dst.as_mut_ptr().into(), elts);
   }
 
   // SAFETY: We created it with this much capacity earlier,
@@ -77,10 +77,7 @@ unsafe fn from_buf_raw<T, P: Permission>(src: Pointer<T, P>, elts: usize) -> Vec
 ```
 
 [0]: https://en.cppreference.com/w/c/string/byte/memmove
-[1]:
-  https://doc.rust-lang.org/core/ptr/fn.read.html#ownership-of-the-returned-value
+[1]: https://doc.rust-lang.org/core/ptr/fn.read.html#ownership-of-the-returned-value
 [valid]: https://doc.rust-lang.org/core/ptr/index.html#safety
-[core_copyfrom]:
-  https://doc.rust-lang.org/std/primitive.pointer.html#method.copy_from
-[core_copyto]:
-  https://doc.rust-lang.org/std/primitive.pointer.html#method.copy_to
+[core_copyfrom]: https://doc.rust-lang.org/std/primitive.pointer.html#method.copy_from
+[core_copyto]: https://doc.rust-lang.org/std/primitive.pointer.html#method.copy_to

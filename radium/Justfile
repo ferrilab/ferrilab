@@ -5,6 +5,8 @@
 # Written against `just 1.46.0`.                                       #
 ########################################################################
 
+set fallback
+
 # For some reason, rustup does not appear to propagate correctly in Just's
 # subshells, so we explicitly force the toolchain throughout this file.
 TOOLCHAIN := "1.60.0"
@@ -27,6 +29,7 @@ do_all: install build_all uninstall
 	@true
 
 # Installs every target not already installed.
+[unix]
 install:
 	rustup toolchain install {{TOOLCHAIN}}
 	@# egrep exits with failure if no input line matches.
@@ -34,10 +37,12 @@ install:
 	xargs rustup target add --toolchain {{TOOLCHAIN}} < new_targets.txt
 
 # Builds the library once for every target.
+[unix]
 build_all: install
 	rustup target list --toolchain {{TOOLCHAIN}} | grep 'installed' | cut -f1 -d' ' | xargs -n1 -P1 just build_one
 
 # Checks, builds, and documents one target.
+[unix]
 build_one TARGET:
 	# {{TARGET}}
 	@cargo +{{TOOLCHAIN}} check --target {{TARGET}} || (echo Failed to check for {{TARGET}} && exit 255)
@@ -45,6 +50,7 @@ build_one TARGET:
 	@cargo +{{TOOLCHAIN}} doc   --target {{TARGET}} || (echo Failed to doc for {{TARGET}} && exit 255)
 
 # Uninstalls only the targets added by `just install`.
+[unix]
 uninstall:
 	@touch new_targets.txt
 	xargs rustup target remove --toolchain {{TOOLCHAIN}} < new_targets.txt

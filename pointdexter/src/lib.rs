@@ -50,11 +50,11 @@ pub use permission::{
 	Unique,
 };
 
-/// Aliases `pointdexter` to `ptr`, and exports common symbols into the local
+/// Aliases `pointdexter` to `ptxr`, and exports common symbols into the local
 /// scope.
 pub mod prelude {
 	pub use crate::{
-		self as ptr,
+		self as ptxr,
 		NonNullPointer,
 		NonUniqueError as PdxNonUniqueError,
 		NullPointerError as PdxNullPointerError,
@@ -110,14 +110,28 @@ where P: Permission {
 }
 
 #[inline(always)]
+#[cfg(not(feature = "rust_191"))]
 #[doc = include_str!("../doc/fn.with_exposed_provenance.md")]
-#[doc = "[`with_addr`]: Pointer::with_addr"]
-#[doc = "[`expose_provenance`]: Pointer::expose_provenance"]
 #[cfg_attr(
 	not(feature = "rust_189"),
-	doc = "[`NonNullPointer::with_exposed_provenance`]: crate::NonNullPointer"
+	doc = "
+[`NonNull::with_exposed_provenance`]: core::ptr::NonNull
+[`NonNullPointer::with_exposed_provenance`]: crate::NonNullPointer
+"
 )]
+///[`with_addr`]: Pointer::with_addr
+///[`expose_provenance`]: Pointer::expose_provenance
 pub fn with_exposed_provenance<T, P>(addr: usize) -> Pointer<T, P>
+where P: Permission {
+	Pointer::with_exposed_provenance(addr)
+}
+
+#[inline(always)]
+#[cfg(feature = "rust_191")]
+#[doc = include_str!("../doc/fn.with_exposed_provenance.md")]
+/// [`with_addr`]: Pointer::with_addr
+/// [`expose_provenance`]: Pointer::expose_provenance
+pub const fn with_exposed_provenance<T, P>(addr: usize) -> Pointer<T, P>
 where P: Permission {
 	Pointer::with_exposed_provenance(addr)
 }
@@ -126,7 +140,10 @@ where P: Permission {
 #[doc = include_str!("../doc/fn.without_provenance.md")]
 #[cfg_attr(
 	not(feature = "rust_189"),
-	doc = "[`NonNullPointer::without_provenance`]: crate::NonNullPointer"
+	doc = "
+[`NonNull::without_provenance`]: core::ptr::NonNull
+[`NonNullPointer::without_provenance`]: crate::NonNullPointer
+"
 )]
 pub const fn without_provenance<T, P>(addr: usize) -> Pointer<T, P>
 where P: Permission {
@@ -151,7 +168,6 @@ where
 
 #[inline(always)]
 #[doc = include_str!("../doc/fn.copy.md")]
-// #[doc = "[`read`]: crate::read"]
 pub const unsafe fn copy<T, P>(
 	src: Pointer<T, P>,
 	dst: Pointer<T, Unique>,
@@ -221,7 +237,7 @@ pub const unsafe fn write<T>(ptr: Pointer<T, Unique>, src: T) {
 
 #[inline(always)]
 #[doc = include_str!("../doc/fn.write_unaligned.md")]
-#[doc = "[`write`]: crate::write"]
+///[`write`]: crate::write
 pub const unsafe fn write_unaligned<T>(ptr: Pointer<T, Unique>, src: T) {
 	unsafe {
 		core::ptr::write_unaligned(ptr.into_raw_mut(), src);
@@ -263,8 +279,8 @@ pub const unsafe fn swap<T>(x: Pointer<T, Unique>, y: Pointer<T, Unique>) {
 }
 
 #[inline(always)]
-#[doc = include_str!("../doc/fn.swap_nonoverlapping.md")]
 #[cfg(not(feature = "rust_188"))]
+#[doc = include_str!("../doc/fn.swap_nonoverlapping.md")]
 pub unsafe fn swap_nonoverlapping<T>(
 	x: Pointer<T, Unique>,
 	y: Pointer<T, Unique>,
@@ -280,8 +296,8 @@ pub unsafe fn swap_nonoverlapping<T>(
 }
 
 #[inline(always)]
-#[doc = include_str!("../doc/fn.swap_nonoverlapping.md")]
 #[cfg(feature = "rust_188")]
+#[doc = include_str!("../doc/fn.swap_nonoverlapping.md")]
 pub const unsafe fn swap_nonoverlapping<T>(
 	x: Pointer<T, Unique>,
 	y: Pointer<T, Unique>,

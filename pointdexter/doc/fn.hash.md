@@ -17,7 +17,7 @@ let five = 5;
 let five_ref = &five;
 
 let mut hasher = DefaultHasher::new();
-ptr::hash(five_ref.into(), &mut hasher);
+ptxr::hash(five_ref.into(), &mut hasher);
 let actual = hasher.finish();
 
 let mut hasher = DefaultHasher::new();

@@ -67,7 +67,7 @@ unsafe {
   v.set_len(1);
   // Without a call `drop_in_place`, the last item would never be dropped,
   // and the memory it manages would be leaked.
-  ptr::drop_in_place(ptr);
+  ptxr::drop_in_place(ptr);
 }
 
 assert_eq!(v, &[0.into()]);
