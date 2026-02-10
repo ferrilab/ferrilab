@@ -25,7 +25,7 @@ this crate. However, the method became `const fn` in Rust 1.88, which postdates
 it. To use the method as a `const fn`, enable the corresponding feature:
 
 ```toml
-[dependencies.pointdexter]
+[dependencies.ptxr]
 features = ["rust_188"]
 ```
 

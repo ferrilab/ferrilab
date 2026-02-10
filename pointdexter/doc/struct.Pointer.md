@@ -55,7 +55,7 @@ Rust releases:
 These can be enabled with
 
 ```toml
-[dependencies.pointdexter]
+[dependencies.ptxr]
 features = ["rust_187", "rust_188"]
 ```
 

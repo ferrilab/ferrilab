@@ -33,7 +33,7 @@ ptr.sub(count) == origin
 This stabilized in Rust 1.87, and so requires enabling a corresponding feature:
 
 ```toml
-[dependencies.pointdexter]
+[dependencies.ptxr]
 features = ["rust_187"]
 ```
 

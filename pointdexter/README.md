@@ -55,8 +55,8 @@ the custom pointer type that powers it. That crate’s source code is likely the
 best (and also likely only) example of how Pointdexter is meant to be used as an
 implementation detail of other libraries.
 
-Pointdexter is a long name. Its prelude aliases the crate to `ptxr`. If you feel
-very confident, you can alias it to `ptr` and completely shadow the core module.
+Pointdexter is a long name, so the package is called `ptxr`. If you feel very
+confident, you can alias it to `ptr` and completely shadow the core module.
 
 ```rust
 use ptxr::*;
@@ -98,7 +98,7 @@ Note that `rust_now` is a **default feature**! If you are pinning a Rust rather
 than floating on the stable series, you must set
 
 ```toml
-[dependencies.pointdexter]
+[dependencies.ptxr]
 default-features = false
 features = ["rust_1xy"]
 ```
@@ -121,13 +121,13 @@ features = ["rust_1xy"]
 [provenance]: https://doc.rust-lang.org/core/ptr/index.html#provenance
 
 <!-- Badges -->
-[crate_link]: https://crates.io/crates/pointdexter "Crate Link"
-[docs_link]: https://docs.rs/pointdexter/latest/pointdexter "Documentation"
-[docs_img]: https://img.shields.io/docsrs/pointdexter/latest.svg?style=for-the-badge "Documentation Display"
-[downloads_img]: https://img.shields.io/crates/dv/pointdexter.svg?style=for-the-badge "Crate Downloads"
-[license_file]: https://github.com/ferrilab/ferrilab/blob/main/pointdexter/LICENSE.txt "License File"
-[license_img]: https://img.shields.io/crates/l/pointdexter.svg?style=for-the-badge "License Display"
+[crate_link]: https://crates.io/crates/ptxr "Crate Link"
+[docs_link]: https://docs.rs/ptxr/latest/ptxr "Documentation"
+[docs_img]: https://img.shields.io/docsrs/ptxr/latest.svg?style=for-the-badge "Documentation Display"
+[downloads_img]: https://img.shields.io/crates/dv/ptxr.svg?style=for-the-badge "Crate Downloads"
+[license_file]: https://github.com/ferrilab/ferrilab/blob/main/ptxr/LICENSE.txt "License File"
+[license_img]: https://img.shields.io/crates/l/ptxr.svg?style=for-the-badge "License Display"
 [msrv_img]: https://img.shields.io/badge/MSRV-1.85-f46623?style=for-the-badge&logo=rust "Minimum Supported Rust Version: 1.85"
-[version_img]: https://img.shields.io/crates/v/pointdexter?color=f46623&style=for-the-badge "pointdexter version badge"
+[version_img]: https://img.shields.io/crates/v/ptxr?color=f46623&style=for-the-badge "pointdexter version badge"
 
 [logo]: assets/pointdexter.svg

@@ -6,13 +6,13 @@
 
 </div>
 
-|      [![`bitvec`][b_logo]][bcu]       |      [![`radium`][r_logo]][rcu]       |      [![`funty`][f_logo]][fcu]       |      [![`pointdexter`][p_logo]][pcu]       |
-|:-------------------------------------:|:-------------------------------------:|:------------------------------------:|:------------------------------------------:|
-|     [![`bitvec` crate][bci]][bcu]     |     [![`radium` crate][rci]][rcu]     |     [![`funty` crate][fci]][fcu]     |     [![`pointdexter` crate][pci]][pcu]     |
-|  [![`bitvec` MSRV - 1.65][bmi]][bcu]  |  [![`radium` MSRV - 1.60][rmi]][rcu]  |  [![`funty` MSRV - 1.65][fmi]][fcu]  |  [![`pointdexter` MSRV - 1.85][pmi]][pcu]  |
-|    [![`bitvec` license][bli]][blu]    |    [![`radium` license][rli]][rlu]    |    [![`funty` license][fli]][flu]    |    [![`pointdexter` license][pli]][plu]    |
-| [![`bitvec` documentation][bdi]][bdu] | [![`radium` documentation][rdi]][rdu] | [![`funty` documentation][fdi]][fdu] | [![`pointdexter` documentation][pdi]][pdu] |
-|  [![`bitvec` downloads][bdli]][bcu]   |  [![`radium` downloads][rdli]][rcu]   |   [![`funty` downloads][fdli]][fcu]  |   [![`pointdexter` downloads][pdli]][pcu]  |
+|      [![`bitvec`][b_logo]][bcu]       |      [![Radium][r_logo]][rcu]       |      [![`funty`][f_logo]][fcu]       |      [![Pointdexter][p_logo]][pcu]       |
+|:-------------------------------------:|:-----------------------------------:|:------------------------------------:|:----------------------------------------:|
+|     [![`bitvec` crate][bci]][bcu]     |     [![Radium crate][rci]][rcu]     |     [![`funty` crate][fci]][fcu]     |     [![Pointdexter crate][pci]][pcu]     |
+|  [![`bitvec` MSRV - 1.65][bmi]][bcu]  |  [![Radium MSRV - 1.60][rmi]][rcu]  |  [![`funty` MSRV - 1.65][fmi]][fcu]  |  [![Pointdexter MSRV - 1.85][pmi]][pcu]  |
+|    [![`bitvec` license][bli]][blu]    |    [![Radium license][rli]][rlu]    |    [![`funty` license][fli]][flu]    |    [![Pointdexter license][pli]][plu]    |
+| [![`bitvec` documentation][bdi]][bdu] | [![Radium documentation][rdi]][rdu] | [![`funty` documentation][fdi]][fdu] | [![Pointdexter documentation][pdi]][pdu] |
+|  [![`bitvec` downloads][bdli]][bcu]   |  [![Radium downloads][rdli]][rcu]   |   [![`funty` downloads][fdli]][fcu]  |   [![Pointdexter downloads][pdli]][pcu]  |
 
 ## Introduction
 
@@ -103,13 +103,13 @@ We apologize for the inconvenience.
 [f_logo]: funty/assets/funty.svg "funty logo"
 [fmi]: https://img.shields.io/badge/MSRV-1.85-f46623?style=for-the-badge&color=f46623&logo=rust "funty MSRV badge"
 
-[pci]: https://img.shields.io/crates/v/pointdexter.svg?style=for-the-badge&color=f46623 "pointdexter crate badge"
-[pcu]: https://crates.io/crates/pointdexter "pointdexter crate"
-[pdi]: https://img.shields.io/docsrs/pointdexter/latest.svg?style=for-the-badge "pointdexter documentation badge"
-[pdu]: https://docs.rs/pointdexter/latest/pointdexter "pointdexter documentation"
-[pdli]: https://img.shields.io/crates/dv/pointdexter.svg?style=for-the-badge "pointdexter downloads"
+[pci]: https://img.shields.io/crates/v/ptxr.svg?style=for-the-badge&color=f46623 "pointdexter crate badge"
+[pcu]: https://crates.io/crates/ptxr "pointdexter crate"
+[pdi]: https://img.shields.io/docsrs/ptxr/latest.svg?style=for-the-badge "pointdexter documentation badge"
+[pdu]: https://docs.rs/ptxr/latest/ptxr "pointdexter documentation"
+[pdli]: https://img.shields.io/crates/dv/ptxr.svg?style=for-the-badge "pointdexter downloads"
 [plu]: https://github.com/ferrilab/ferrilab/blob/main/pointdexter/LICENSE.txt "pointdexter license"
-[pli]: https://img.shields.io/crates/l/pointdexter.svg?style=for-the-badge "pointdexter license badge"
+[pli]: https://img.shields.io/crates/l/ptxr.svg?style=for-the-badge "pointdexter license badge"
 [p_logo]: pointdexter/assets/pointdexter.svg "pointdexter logo"
 [pmi]: https://img.shields.io/badge/MSRV-1.85-f46623?style=for-the-badge&color=f46623&logo=rust "pointdexter MSRV badge"
 
