@@ -1,5 +1,6 @@
 use core::{
 	any,
+	error::Error,
 	fmt,
 	marker::PhantomData,
 };
@@ -21,6 +22,29 @@ where T: ?Sized
 		Self { _ty: PhantomData }
 	}
 }
+
+impl<T> fmt::Debug for NonUniqueError<T>
+where T: ?Sized
+{
+	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+		write!(fmt, "NonUniqueError<{}>", any::type_name::<T>(),)
+	}
+}
+
+impl<T> fmt::Display for NonUniqueError<T>
+where T: ?Sized
+{
+	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+		write!(
+			fmt,
+			"tried to promote a *const {0} that was never derived from a *mut \
+			 {0}",
+			any::type_name::<T>(),
+		)
+	}
+}
+
+impl<T> Error for NonUniqueError<T> where T: ?Sized {}
 
 /// Emitted when a null-pointer is provided to an API that requires non-null
 /// pointers.
@@ -74,4 +98,11 @@ where
 			any::type_name::<T>(),
 		)
 	}
+}
+
+impl<T, P> Error for NullPointerError<T, P>
+where
+	T: ?Sized,
+	P: Permission,
+{
 }

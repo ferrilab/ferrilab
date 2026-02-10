@@ -65,6 +65,20 @@ let mut data = 5i32;
 
 let cptr: ptxr::Pointer<i32, Shared> = (&data).into();
 let mptr: ptxr::Pointer<i32, Unique> = (&mut data).into();
+
+unsafe { mptr.write(10); }
+
+let sptr: ptxr::Pointer<i32, (Shared, Unique)> = mptr.cast_shared();
+
+// unsafe { sptr.write(15); }
+// contaminated pointers can't write anymore!
+
+assert!(cptr.try_cast_unique().is_err());
+let mptr = sptr.try_cast_unique()
+  .expect("this pointer was mutable once, and can be again");
+unsafe { mptr.write(20); }
+
+assert_eq!(unsafe { cptr.read() }, 20);
 ```
 
 ## Rust Version Compatibility
