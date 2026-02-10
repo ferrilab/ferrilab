@@ -104,16 +104,7 @@ features = ["rust_1xy"]
 ```
 
 <style type="text/css">
-  h2 > img {
-    background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSItMTkgLTgwIDUxNCAxMTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgc3R5bGU9InRyYW5zZm9ybTpza2V3WCgtMThkZWcpIj48cGF0aCBjbGFzcz0icGVuIiBkPSJNMCAyNHYtNzJoMjRWMEgwbTQ4IDB2LTQ4aDI0VjBINDhtNDggMHYtNDhtMjQgNDh2LTQ4aDEybDEyIDEyVjBtMjQtNzJWMGgxMm00OC03MlYwaC0yNHYtNDhoMjRtMjQgMjRoMjR2LTI0aC0yNFYwaDI0bTI0IDB2LTEybDI0LTI0di0xMm0tMjQgMHYxMmwyNCAyNFYwbTQ4IDBoLTEydi03Mm0tMTIgMjRoMjRtMjQgMjRoMjR2LTI0aC0yNFYwaDI0bTI0IDB2LTQ4aDI0Ii8+PHBhdGggZD0iTTE0NC01Nmg0NHYxNmgtMjgiLz48cGF0aCBjbGFzcz0icGVuIiBkPSJNOTYtNzJoMCIgc3R5bGU9InN0cm9rZTojZmY0ZjAwIi8+PC9nPjxzdHlsZT5wYXRoe3N0cm9rZTojMDAwO2ZpbGw6IzAwMH1AbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOmRhcmspe3BhdGh7c3Ryb2tlOiNmZmY7ZmlsbDojZmZmfX0ucGVue2ZpbGw6bm9uZTtzdHJva2Utd2lkdGg6MTZweDtzdHJva2UtbGluZWNhcDpzcXVhcmV9PC9zdHlsZT48L3N2Zz4=");
-    background-position: center center;
-    background-repeat: no-repeat;
-    display: block;
-  }
-  h2 > img::before { display: none; }
-  h1 > img, h2 > img {
-    height: 4em;
-  }
+h1 > img { height: 4em; }
 </style>
 
 <!-- Documentation -->

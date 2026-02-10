@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![doc = include_str!("../doc/lib.md")]
 #![doc(html_favicon_url = "\
 data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIC0xMTYgMTI4IDEyOCIgeG1sbnM9Imh0d\
 HA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBzdHlsZT0idHJhbnNmb3JtOnNrZXdYKC0xOGRlZyki\
