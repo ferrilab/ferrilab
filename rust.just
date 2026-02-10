@@ -55,7 +55,7 @@ package: check build doc test
 # Publishes the crate to crates.io
 [no-cd]
 publish: package
-	cargo publish
+	cargo +stable publish
 
 # Runs the test suite
 [no-cd]
