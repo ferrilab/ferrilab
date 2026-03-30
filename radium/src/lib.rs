@@ -24,6 +24,7 @@ Jpbmc6Y3Jpc3BFZGdlc308L3N0eWxlPjwvc3ZnPg==")]
 pub mod marker;
 pub mod portable;
 pub mod types;
+pub mod family;
 
 use core::{
 	cell::Cell,

@@ -12,13 +12,12 @@ use std::{
 };
 
 use radium::{
-	types::{
+	Radium, family::{AtomFamily, MaybeAtomic, RadiumFamily, RadonFamily}, types::{
 		Atom,
 		Isotope,
 		RadiumU64,
 		Radon,
-	},
-	Radium,
+	}
 };
 
 fn do_work<R: Radium<Item = u64>>(this: &R, ident: u8) {

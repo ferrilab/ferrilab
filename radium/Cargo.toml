@@ -26,7 +26,7 @@ include = [
 	"LICENSE.txt",
 ]
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.65"
 
 [features]
 portable-atomic = [
