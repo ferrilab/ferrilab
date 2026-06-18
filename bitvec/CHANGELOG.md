@@ -5,9 +5,16 @@ All notable changes will be documented in this file.
 This document is written according to the [Keep a Changelog][kac] style.
 
 1. [Version 1](#version-1)
+   1. [1.1.1](#111)
    1. [1.1.0](#110)
    1. [1.0.1](#101)
+      1. [Notes](#notes)
+      1. [Changes](#changes)
    1. [1.0.0](#100)
+      1. [Type Parameter Reördering](#type-parameter-reördering)
+      1. [Additional Changes](#additional-changes)
+      1. [Documentation](#documentation)
+      1. [Dependency Raises](#dependency-raises)
 1. [Version 0 (Prototyping)](#version-0-prototyping)
    1. [0.22](#022)
    1. [0.21](#021)
@@ -37,6 +44,17 @@ This document is written according to the [Keep a Changelog][kac] style.
 `bitvec`’s initial development is now complete, and uses the one-dot series. It
 will continue to receive maintenance, but its API is now stable and **will not**
 change until const-generics allow `BitArray` to be rewritten.
+
+### 1.1.1
+
+Patches an erroneous `Deserialize` implementation which falsely trusts
+user-controlled deserialization components, allowing for out-of-bounds memory
+access.
+
+I have not executed the test suite **with Rust 1.56**, the MSRV of 1.1, because
+I did not commit `Cargo.lock` and my test dependencies have updated their MSRV
+in the interval. I have executed the test suite on nightly 2026 June and stable
+1.96. I have ensured that the crate builds on 1.56.
 
 ### 1.1.0
 
