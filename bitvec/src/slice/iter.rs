@@ -736,7 +736,7 @@ group!(Chunks => &'a BitSlice<T, O> {
 		let width = cmp::min(start + self.width, self.slice.len());
 		let (rest, out) = unsafe {
 			self.slice
-				.get_unchecked(.. start + width)
+				.get_unchecked(.. width)
 				.split_at_unchecked(start)
 		};
 		self.slice = rest;
@@ -822,7 +822,7 @@ group!(ChunksMut => &'a mut BitSlice<T::Alias, O> {
 		let width = cmp::min(start + self.width, slice.len());
 		let (rest, out) = unsafe {
 			slice
-				.get_unchecked_mut(.. start + width)
+				.get_unchecked_mut(.. width)
 				.split_at_unchecked_mut_noalias(start)
 		};
 		self.slice = rest;
